@@ -10,6 +10,7 @@ export type {
   ImportSummary,
   OidcEnvironment,
   ReadPreferenceMode,
+  Scheme,
   ScramVariant,
   SecretUpdate,
   SecretUpdates,

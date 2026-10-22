@@ -62,3 +62,32 @@ export function DropdownMenuRadioItem({
     </DropdownMenuPrimitive.RadioItem>
   );
 }
+
+export function DropdownMenuItem({
+  className,
+  destructive = false,
+  ...props
+}: ComponentProps<typeof DropdownMenuPrimitive.Item> & { destructive?: boolean }) {
+  return (
+    <DropdownMenuPrimitive.Item
+      className={cn(
+        "relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:size-4",
+        destructive && "text-destructive focus:text-destructive",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export function DropdownMenuSeparator({
+  className,
+  ...props
+}: ComponentProps<typeof DropdownMenuPrimitive.Separator>) {
+  return (
+    <DropdownMenuPrimitive.Separator
+      className={cn("-mx-1 my-1 h-px bg-border", className)}
+      {...props}
+    />
+  );
+}

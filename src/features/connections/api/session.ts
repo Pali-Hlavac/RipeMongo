@@ -1,9 +1,12 @@
-/** Live connections: open, close, list and test. */
+/** Live connections: list, open, close and test. */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
-import { commands, unwrap } from "@/shared/ipc/client";
+import { useTabsStore } from "@/features/workspace";
+import { commands, toIpcError, unwrap } from "@/shared/ipc/client";
 
-import type { ConnectionConfig, SecretUpdates } from "../types";
+import { useConnectionStatusStore } from "../store/status";
+import type { ConnectionConfig, ConnectionProfile, SecretUpdates } from "../types";
 import { connectionKeys } from "./keys";
 
 /** Connections that are currently open. */
@@ -14,27 +17,56 @@ export function useActiveConnections() {
   });
 }
 
-/** Opens a saved connection. Errors are shown by the caller next to the connection. */
-export function useOpenConnection() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (connectionId: string) => unwrap(commands.openConnection(connectionId)),
-    meta: { silent: true },
-    onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: connectionKeys.active() });
-    },
+/** Id of the workspace tab showing a connection's overview. */
+export function connectionTabId(connectionId: string): string {
+  return `connection:${connectionId}`;
+}
+
+/** Opens (or focuses) the overview tab of a connection. */
+export function openConnectionTab(profile: ConnectionProfile): void {
+  useTabsStore.getState().openTab({
+    id: connectionTabId(profile.id),
+    kind: "connection",
+    connectionId: profile.id,
+    title: profile.name,
   });
 }
 
-/** Closes a live connection. */
-export function useCloseConnection() {
+/**
+ * Connect and disconnect actions. Connecting opens the overview tab right away; progress
+ * and errors are tracked per connection so the sidebar and tab can show them.
+ */
+export function useConnectionSession() {
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (connectionId: string) => unwrap(commands.closeConnection(connectionId)),
-    onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: connectionKeys.active() });
-    },
-  });
+  const setPending = useConnectionStatusStore((state) => state.setPending);
+  const refreshActive = () => queryClient.invalidateQueries({ queryKey: connectionKeys.active() });
+
+  const connect = async (profile: ConnectionProfile): Promise<void> => {
+    openConnectionTab(profile);
+    setPending(profile.id, { state: "connecting" });
+    try {
+      await unwrap(commands.openConnection(profile.id));
+      setPending(profile.id, null);
+    } catch (error) {
+      setPending(profile.id, { state: "failed", error: toIpcError(error) });
+    } finally {
+      await refreshActive();
+    }
+  };
+
+  const disconnect = async (connectionId: string): Promise<void> => {
+    setPending(connectionId, null);
+    try {
+      await unwrap(commands.closeConnection(connectionId));
+    } catch (error) {
+      const { message, hint } = toIpcError(error);
+      toast.error(message, { description: hint ?? undefined });
+    } finally {
+      await refreshActive();
+    }
+  };
+
+  return { connect, disconnect };
 }
 
 interface TestInput {

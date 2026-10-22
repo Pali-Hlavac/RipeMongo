@@ -2,6 +2,7 @@ import { SearchIcon } from "lucide-react";
 import { Group, Panel, Separator } from "react-resizable-panels";
 
 import { PALETTE_HOTKEY, usePaletteStore } from "@/features/command-palette";
+import { ConnectionSidebar } from "@/features/connections";
 import { WorkspaceView } from "@/features/workspace";
 import { formatHotkey } from "@/shared/lib/hotkeys";
 import { isMacPlatform } from "@/shared/lib/platform";
@@ -9,7 +10,6 @@ import { Button } from "@/shared/ui/button";
 import { Tooltip } from "@/shared/ui/tooltip";
 
 import { renderTab } from "./renderTab";
-import { Sidebar } from "./Sidebar";
 import { StatusBar } from "./StatusBar";
 
 /** Sidebar size limits, relative to the window width. */
@@ -43,7 +43,7 @@ export function AppLayout() {
           minSize={SIDEBAR_SIZE.min}
           maxSize={SIDEBAR_SIZE.max}
         >
-          <Sidebar />
+          <ConnectionSidebar />
         </Panel>
         <Separator
           aria-label="Resize sidebar"

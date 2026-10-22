@@ -1,17 +1,17 @@
 import type { ReactNode } from "react";
 
 import { PALETTE_HOTKEY } from "@/features/command-palette";
+import { ConnectionOverview } from "@/features/connections";
 import { WelcomeView, type WorkspaceTab } from "@/features/workspace";
 
-/**
- * Maps each workspace tab kind to its feature view. Connection tabs cannot be opened yet;
- * their overview view is wired here together with the connection sidebar (milestone 2).
- */
+import { WelcomeActions } from "./WelcomeActions";
+
+/** Maps each workspace tab kind to its feature view. */
 export function renderTab(tab: WorkspaceTab): ReactNode {
   switch (tab.kind) {
     case "welcome":
-      return <WelcomeView paletteHotkey={PALETTE_HOTKEY} />;
+      return <WelcomeView paletteHotkey={PALETTE_HOTKEY} actions={<WelcomeActions />} />;
     case "connection":
-      return null;
+      return <ConnectionOverview connectionId={tab.connectionId} />;
   }
 }

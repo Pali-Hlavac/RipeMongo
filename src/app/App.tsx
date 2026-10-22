@@ -2,6 +2,7 @@ import { Toaster } from "sonner";
 
 import { AboutDialog } from "@/features/about";
 import { CommandPalette } from "@/features/command-palette";
+import { ConnectionDialogs } from "@/features/connections";
 import { ThemeController, useSettings, useThemePreference } from "@/features/settings";
 import { LoadingState } from "@/shared/components/LoadingState";
 
@@ -25,6 +26,7 @@ export function App() {
       <AppLayout />
       <CommandPalette commands={commands} />
       <AboutDialog />
+      <ConnectionDialogs />
       <Toaster theme={preference} position="bottom-right" richColors closeButton />
     </>
   );
