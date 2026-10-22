@@ -84,6 +84,16 @@ describe("bulk actions", () => {
     });
   });
 
+  it("offers no delete when nothing matches", async () => {
+    vi.mocked(commands.previewDeleteMany).mockReturnValue(
+      ok({ matched: { count: 0, estimated: false }, samples: [] }),
+    );
+    const { dialog } = await open(/delete documents/i);
+
+    expect(await within(dialog).findByText("No documents match the filter.")).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "Delete documents" })).toBeDisabled();
+  });
+
   it("shows before and after, and requires a fresh preview before updating", async () => {
     const { user, dialog } = await open(/update documents/i);
     const apply = within(dialog).getByRole("button", { name: "Update documents" });

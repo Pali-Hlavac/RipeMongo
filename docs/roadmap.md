@@ -110,14 +110,16 @@ Slices, in order: (1) database/collection admin backend + sidebar tree + dialogs
   `preview_delete_many`, `delete_many`; update preview simulated in an aborted transaction on
   replica sets, count + current documents on standalone), `tests/bulk_writes.rs` (standalone and
   single-node replica set via `common::start_replica_set`), frontend `components/bulk/`
-  (Bulk menu, dialogs, preview samples, confirm-by-typing). Not yet verified in the real app.
+  (Bulk menu, dialogs, preview samples, confirm-by-typing). Verified in the real app
+  (2026-10-22, single-node replica set): before/after preview with nothing written, stale
+  preview blocks the update, server error (`$inc` on a string) shown in the preview, update of 8
+  and delete of 4 after typing the collection name. Fixed: "Delete no documents" button label.
 
 **Next: slice 7 (finish M3)**
 
-1. Real-app check of the bulk dialogs (standalone and a replica set).
-2. Replica-set integration tests beyond bulk (catalog, documents on `start_replica_set`);
+1. Replica-set integration tests beyond bulk (catalog, documents on `start_replica_set`);
    SSH tunnel test against a real sshd container (carried over from M2).
-3. Docs pass: tick "ADRs 0011, 0012; feature docs; user guide pages", review the user guide.
+2. Docs pass: tick "ADRs 0011, 0012; feature docs; user guide pages", review the user guide.
 
 Verified in the real app (2026-10-22, MongoDB 8 in Docker, 120 nested sample documents): list,
 JSON and table views, paging, filter with field suggestions, sort, inline query errors, history

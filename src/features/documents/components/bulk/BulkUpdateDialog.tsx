@@ -104,7 +104,7 @@ export function BulkUpdateDialog({ target, initialFilter, onClose }: BulkUpdateD
               setConfirming(true);
             }}
           >
-            Update {preview.data && current ? documentsPhrase(preview.data.matched) : "documents"}
+            Update {ready ? documentsPhrase(preview.data.matched) : "documents"}
           </Button>
         </div>
         {preview.data && (

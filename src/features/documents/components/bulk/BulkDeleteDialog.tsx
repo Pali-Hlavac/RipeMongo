@@ -88,7 +88,7 @@ export function BulkDeleteDialog({ target, initialFilter, onClose }: BulkDeleteD
               setConfirming(true);
             }}
           >
-            Delete {preview.data && current ? documentsPhrase(preview.data.matched) : "documents"}
+            Delete {ready ? documentsPhrase(preview.data.matched) : "documents"}
           </Button>
         </div>
         {preview.data && (
