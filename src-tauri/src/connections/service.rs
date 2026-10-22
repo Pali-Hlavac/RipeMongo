@@ -11,7 +11,7 @@ use super::{
     ConnectionConfig, ConnectionError, ConnectionProfile, ConnectionSecrets, SecretUpdates,
     ServerInfo, StoredSecrets,
 };
-use crate::secrets::SharedSecretStore;
+use crate::secrets::{SecretsError, SharedSecretStore};
 
 /// File name of saved profiles inside the app-config directory.
 const CONNECTIONS_FILE_NAME: &str = "connections.json";
@@ -145,5 +145,27 @@ impl ConnectionManager {
     /// All live connections.
     pub async fn active(&self) -> Vec<ActiveConnectionInfo> {
         self.registry.list().await
+    }
+
+    /// Stored secrets of a connection (for export only; never sent to the webview).
+    pub(super) fn load_secrets(
+        &self,
+        id: &str,
+    ) -> std::result::Result<ConnectionSecrets, SecretsError> {
+        ConnectionSecrets::load(self.secrets.as_ref(), id)
+    }
+
+    /// Stores secrets for a connection (used by import).
+    pub(super) fn store_secrets(
+        &self,
+        id: &str,
+        secrets: &ConnectionSecrets,
+    ) -> std::result::Result<(), SecretsError> {
+        secrets.save(self.secrets.as_ref(), id)
+    }
+
+    /// Persists an already validated profile without touching secrets (used by import).
+    pub(super) fn save_imported(&self, profile: ConnectionProfile) -> Result<ConnectionProfile> {
+        self.repository.upsert(profile)
     }
 }

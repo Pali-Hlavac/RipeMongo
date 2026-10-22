@@ -18,6 +18,11 @@
     "allow-test-connection",
     "allow-open-connection",
     "allow-close-connection",
-    "allow-list-active-connections"
+    "allow-list-active-connections",
+    "allow-export-connections",
+    "allow-inspect-connections-file",
+    "allow-import-connections",
+    "dialog:allow-open",
+    "dialog:allow-save"
   ]
 }

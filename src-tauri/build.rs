@@ -19,6 +19,9 @@ const APP_COMMANDS: &[&str] = &[
     "open_connection",
     "close_connection",
     "list_active_connections",
+    "export_connections",
+    "inspect_connections_file",
+    "import_connections",
 ];
 
 /// Common-Controls v6 manifest, embedded into every linked artifact on Windows.

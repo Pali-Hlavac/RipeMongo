@@ -39,6 +39,9 @@ pub fn builder() -> Builder<tauri::Wry> {
             connections::commands::open_connection,
             connections::commands::close_connection,
             connections::commands::list_active_connections,
+            connections::transfer::commands::export_connections,
+            connections::transfer::commands::inspect_connections_file,
+            connections::transfer::commands::import_connections,
         ])
 }
 

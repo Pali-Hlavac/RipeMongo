@@ -36,6 +36,12 @@ export const commands = {
 	closeConnection: (connectionId: string) => typedError<null, AppError>(__TAURI_INVOKE("close_connection", { connectionId })),
 	/**  All live connections. */
 	listActiveConnections: () => typedError<ActiveConnectionInfo[], AppError>(__TAURI_INVOKE("list_active_connections")),
+	/**  Writes the selected connections to `path`; with a password, secrets are encrypted in. */
+	exportConnections: (path: string, connectionIds: string[], password: string | null) => typedError<null, AppError>(__TAURI_INVOKE("export_connections", { path, connectionIds, password })),
+	/**  Reports how many connections a file holds and whether it carries encrypted secrets. */
+	inspectConnectionsFile: (path: string) => typedError<ConnectionsFileInfo, AppError>(__TAURI_INVOKE("inspect_connections_file", { path })),
+	/**  Imports every connection in `path` as new connections. */
+	importConnections: (path: string, password: string | null) => typedError<ImportSummary, AppError>(__TAURI_INVOKE("import_connections", { path, password })),
 };
 
 /* Types */
@@ -121,6 +127,12 @@ export type ConnectionSecrets = {
 	sshKeyPassphrase: string | null,
 };
 
+/**  What a connections file contains, shown before importing. */
+export type ConnectionsFileInfo = {
+	connectionCount: number,
+	hasEncryptedSecrets: boolean,
+};
+
 /**  Stable, machine-readable error category the frontend can branch on. */
 export type ErrorCode = 
 /**  An unexpected failure inside the app; usually a bug. */
@@ -146,6 +158,12 @@ export type ErrorCode =
 export type HostPort = {
 	host: string,
 	port: number | null,
+};
+
+/**  Result of an import. */
+export type ImportSummary = {
+	imported: number,
+	secretsImported: boolean,
 };
 
 /**  Built-in OIDC machine-workflow providers supported by the driver. */

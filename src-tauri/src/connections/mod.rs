@@ -9,6 +9,7 @@ mod repository;
 mod secrets;
 mod server_info;
 mod service;
+pub mod transfer;
 mod types;
 pub mod uri;
 mod validation;
