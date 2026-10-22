@@ -60,6 +60,10 @@ export const commands = {
 	dropCollection: (connectionId: string, database: string, collection: string) => typedError<null, AppError>(__TAURI_INVOKE("drop_collection", { connectionId, database, collection })),
 	/**  Renames a collection within its database. */
 	renameCollection: (connectionId: string, database: string, collection: string, newName: string) => typedError<null, AppError>(__TAURI_INVOKE("rename_collection", { connectionId, database, collection, newName })),
+	/**  One page of documents matching a query. */
+	findDocuments: (connectionId: string, database: string, collection: string, request: FindRequest) => typedError<FindPage, AppError>(__TAURI_INVOKE("find_documents", { connectionId, database, collection, request })),
+	/**  Number of documents matching a filter (estimated when the filter is empty). */
+	countDocuments: (connectionId: string, database: string, collection: string, filter: string, maxTimeMs: number | null) => typedError<DocumentCount, AppError>(__TAURI_INVOKE("count_documents", { connectionId, database, collection, filter, maxTimeMs })),
 };
 
 /* Types */
@@ -185,6 +189,13 @@ export type DatabaseInfo = {
 	empty: boolean,
 };
 
+/**  Result of counting the documents matching a filter. */
+export type DocumentCount = {
+	count: number | null,
+	/**  `true` when taken from collection metadata (fast, may be slightly off). */
+	estimated: boolean,
+};
+
 /**  Stable, machine-readable error category the frontend can branch on. */
 export type ErrorCode = 
 /**  An unexpected failure inside the app; usually a bug. */
@@ -213,6 +224,31 @@ export type ErrorCode =
 "TIMEOUT" | 
 /**  The server rejected the operation for another reason (message explains why). */
 "OPERATION_FAILED";
+
+/**  A page of documents. */
+export type FindPage = {
+	/**  Each document as canonical Extended JSON (lossless; field order kept). */
+	documents: string[],
+	/**  Whether at least one more document follows this page. */
+	hasMore: boolean,
+};
+
+/**
+ *  One page of a `find`. Query parts are text in JSON, Extended JSON or shell syntax;
+ *  blank parts mean "none".
+ */
+export type FindRequest = {
+	filter: string,
+	projection: string,
+	sort: string,
+	/**  e.g. `{ locale: "en", strength: 2 }`. */
+	collation: string,
+	skip: number,
+	/**  Page size, 1 to `MAX_PAGE_SIZE` (1000). */
+	limit: number,
+	/**  Server-side time limit; `None` means no limit. */
+	maxTimeMs: number | null,
+};
 
 /**  One seed host. `port` is `None` for SRV records or when the default port is meant. */
 export type HostPort = {

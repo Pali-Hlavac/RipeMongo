@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { catalogKeys } from "@/features/catalog";
+import { documentKeys } from "@/features/documents";
 import { useTabsStore } from "@/features/workspace";
 import { commands, toIpcError, unwrap } from "@/shared/ipc/client";
 
@@ -69,6 +70,7 @@ export function useConnectionSession() {
       await refreshActive();
       // After the refresh, so the tree has unmounted and nothing refetches the dropped data.
       queryClient.removeQueries({ queryKey: catalogKeys.connection(connectionId) });
+      queryClient.removeQueries({ queryKey: documentKeys.connection(connectionId) });
     }
   };
 

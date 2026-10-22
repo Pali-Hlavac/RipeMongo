@@ -32,6 +32,12 @@ pub enum MongoError {
     Driver(#[from] mongodb::error::Error),
     #[error(transparent)]
     Ejson(#[from] EjsonError),
+    /// A query part (filter, sort, ...) could not be parsed; `field` names it for the user.
+    #[error("{field}: {error}")]
+    Query {
+        field: &'static str,
+        error: EjsonError,
+    },
     #[error("{0}")]
     Invalid(String),
 }
@@ -42,6 +48,13 @@ impl From<MongoError> for AppError {
             MongoError::Connection(error) => error.into(),
             MongoError::Driver(error) => driver_error(&error),
             MongoError::Ejson(error) => error.into(),
+            MongoError::Query { field, error } => {
+                let app = AppError::from(error);
+                AppError {
+                    message: format!("{field}: {}", app.message),
+                    ..app
+                }
+            }
             MongoError::Invalid(message) => AppError::new(ErrorCode::InvalidInput, message),
         }
     }

@@ -73,7 +73,7 @@ Every domain module follows the same layout:
 
 - **Purpose:** parse what users type (JSON, Extended JSON, mongosh syntax such as unquoted
   keys, `ObjectId(…)`, `ISODate(…)`, `/re/i`) into BSON with line/column errors, and serialize
-  documents as canonical Extended JSON (`to_canonical_json`). See ADR 0012 (planned).
+  documents as canonical Extended JSON (`to_canonical_json`). See ADR 0012.
 - **Errors:** `EjsonError` → `INVALID_INPUT`.
 
 ## `databases`
@@ -90,6 +90,15 @@ Every domain module follows the same layout:
   dropping the target), drop.
 - **Docs:** [features/navigation.md](../features/navigation.md).
 
+## `documents`
+
+- **Purpose:** paged `find_documents` (skip, limit + 1 for `hasMore`, `maxTimeMS`, filter /
+  projection / sort / collation parsed by `ejson`, documents returned as canonical Extended
+  JSON) and `count_documents` (estimate for an empty filter, exact otherwise). See ADR 0011
+  and 0012.
+- **Errors:** `MongoError::Query { field }` names the bad query part ("Filter: …").
+- **Docs:** [features/documents.md](../features/documents.md).
+
 ## `ssh`
 
 - **Purpose:** `SshTunnel::open` forwards a random loopback port to the MongoDB host through a
@@ -101,7 +110,7 @@ Every domain module follows the same layout:
 
 | Module                           | Milestone | Purpose                                        |
 | -------------------------------- | --------- | ---------------------------------------------- |
-| `documents`                      | 3         | Find with paging, document CRUD                |
+| `documents` (writes)             | 3         | Insert, update, delete, bulk operations        |
 | `jobs`, `tools`, `import_export` | 4         | Background jobs, sidecar runner, import/export |
 | `aggregation`                    | 5         | Pipeline execution and previews                |
 | `indexes`, `validation`          | 6         | Index and validator management, explain        |

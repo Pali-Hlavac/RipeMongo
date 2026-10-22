@@ -14,7 +14,8 @@ Once you are connected, the sidebar shows what is on the server.
   - an eye for a **view** (a saved, read-only query on another collection),
   - a clock for a **time-series** collection (measurements over time).
 - Click a collection to open it in a tab. The top of the tab shows how many documents it has and
-  how much space it uses. Browsing and editing documents is coming in the next update.
+  how much space it uses; below that are its documents (see
+  [Viewing documents](documents.md)).
 
 Only databases you are allowed to see are listed. If the list looks out of date, choose
 **Refresh databases** from the connection's **⋯** menu, or **Refresh** from a database's menu.

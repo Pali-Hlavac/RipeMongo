@@ -31,6 +31,8 @@ const APP_COMMANDS: &[&str] = &[
     "create_view",
     "drop_collection",
     "rename_collection",
+    "find_documents",
+    "count_documents",
 ];
 
 /// Common-Controls v6 manifest, embedded into every linked artifact on Windows.

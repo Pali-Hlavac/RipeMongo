@@ -34,6 +34,7 @@ src/
 | `about`           | App info query, About dialog                                   | [app-shell](../features/app-shell.md)                   |
 | `connections`     | Sidebar, editor, overview tab, import/export, palette commands | [connections](../features/connections.md)               |
 | `catalog`         | Database tree, collection header, create/rename/drop dialogs   | [navigation](../features/navigation.md)                 |
+| `documents`       | Paged documents, list/JSON/table views, BSON model and format  | [documents](../features/documents.md)                   |
 
 ## State rules
 

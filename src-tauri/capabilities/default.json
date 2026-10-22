@@ -32,6 +32,8 @@
     "allow-create-collection",
     "allow-create-view",
     "allow-drop-collection",
-    "allow-rename-collection"
+    "allow-rename-collection",
+    "allow-find-documents",
+    "allow-count-documents"
   ]
 }

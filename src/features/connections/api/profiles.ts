@@ -2,6 +2,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { catalogKeys } from "@/features/catalog";
+import { documentKeys } from "@/features/documents";
 import { useTabsStore } from "@/features/workspace";
 import { commands, unwrap } from "@/shared/ipc/client";
 
@@ -59,6 +60,7 @@ export function useDeleteConnection() {
         .getState()
         .closeTabs((tab) => "connectionId" in tab && tab.connectionId === connectionId);
       queryClient.removeQueries({ queryKey: catalogKeys.connection(connectionId) });
+      queryClient.removeQueries({ queryKey: documentKeys.connection(connectionId) });
       void queryClient.invalidateQueries({ queryKey: connectionKeys.all });
     },
   });

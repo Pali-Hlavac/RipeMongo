@@ -54,13 +54,13 @@ delete → import (wrong password rejected inline, right password restores the k
 - [x] Sidebar tree: databases, collections, views with counts and sizes
 - [x] Create/drop databases, collections, views, capped and time-series collections; rename collections
 - [x] Confirm-by-typing dialog for destructive actions
-- [ ] Documents: list (JSON tree), JSON and virtualized table views
+- [x] Documents: list (JSON tree), JSON and virtualized table views
 - [ ] Query bar: filter, project, sort, collation, skip, limit, maxTimeMS; field/operator autocomplete
 - [ ] Shell-style query syntax (`{_id: ObjectId("…")}`, `ISODate(…)`, unquoted keys, `/regex/`)
 - [ ] Query history and favorite queries per collection
 - [ ] Insert, edit (inline + Monaco JSON editor), clone, delete; bulk update/delete with preview + confirmation
 - [ ] Full BSON/Extended JSON support (ObjectId, Date, Decimal128, Long, Binary, UUID, Regex, …)
-- [ ] Paged loading; never load a whole collection
+- [x] Paged loading; never load a whole collection
 - [ ] Replica-set integration tests; SSH tunnel test against a real sshd (carried over from M2)
 - [ ] ADRs 0011 (paging), 0012 (Extended JSON); feature docs; user guide pages
 
@@ -83,18 +83,29 @@ Slices, in order: (1) database/collection admin backend + sidebar tree + dialogs
   labelled "document browsing is coming" placeholder). Docs: `docs/features/navigation.md`,
   user guide `databases-and-collections.md`.
 
-**Next: slice 3 (find with paging + document views)**
+- Slice 3 complete: backend `documents/` (`find_documents` with skip/limit + 1 and
+  maxTimeMS, `count_documents`; `tests/documents.rs`), ADRs 0011 and 0012, frontend feature
+  `src/features/documents/` (ordered EJSON reader, typed `BsonValue`, `toShell` round-trip
+  tested against the Rust parser, list/JSON/virtualized table views, pager, per-tab view
+  store). TanStack Table is **v9** (`useTable`, `tableFeatures`, `table.FlexRender`).
 
-1. ADR 0011 (paging): skip/limit pages with a page size setting (default 20, max ~1000),
-   `maxTimeMS` default, an estimated/exact count on demand; never load a whole collection.
-2. Backend `documents/` module: `find_documents(connectionId, db, coll, FindRequest)` with
-   filter/projection/sort/collation as text parsed by `ejson`, skip, limit, maxTimeMS →
-   `{ documents: string[] (canonical EJSON), hasMore }`; `count_documents`. Integration test.
-3. Frontend `src/features/documents/`: document list (expandable JSON tree with type-aware
-   rendering of `$oid`, `$date`, `$numberLong`, …), JSON view, virtualized table view
-   (TanStack Table + virtual), pager. Replace the placeholder in `CollectionTabView`.
-4. Then slice 4 (query bar, autocomplete, history/favorites), 5 (CRUD + Monaco), 6 (bulk
-   update/delete with preview), 7 (replica-set + sshd integration tests, docs, verification).
+**Next: slice 4 (query bar)**
+
+1. Per-tab query state (filter, projection, sort, collation, maxTimeMS, skip/limit override)
+   in `documents/store`; `CollectionDocuments` builds `FindRequest` from it (today the query
+   parts are empty strings).
+2. `QueryBar` component: filter input always visible, "Options" expands projection / sort /
+   collation / maxTimeMS; Enter or "Find" applies, "Reset" clears; parse errors from the
+   backend (named part, line/column) shown inline.
+3. Autocomplete: field names sampled from the loaded page (and nested paths), `$` operators,
+   shell constructors (ObjectId, ISODate, …). Decide CodeMirror-lite vs. a small custom
+   input with a popup (Monaco is reserved for the CRUD editor in slice 5).
+4. History and favorites per collection: persisted (JSON file via a small backend
+   `query_history` module, or settings), recent N runs plus named favorites.
+5. Then slices 5 (CRUD + Monaco), 6 (bulk update/delete with preview), 7 (replica-set + sshd
+   integration tests, docs, verification).
+
+The documents views have not yet been clicked through in the real app; do it with slice 4.
 
 Verified in the real app (2026-10-22) against MongoDB 8 in Docker: auto-expand after
 connect, sizes and counts, view/time-series icons, collection tab statistics, rename (open tab
@@ -150,8 +161,8 @@ That check found that deleting a connection left its collection tabs open; fixed
 | 0008      | Encrypted connection export                                                            | M2        | Planned  |
 | 0009      | Bundled mongo-tools sidecars                                                           | M4        | Planned  |
 | 0010      | Background job model                                                                   | M4        | Planned  |
-| 0011      | Cursor streaming and pagination                                                        | M3        | Planned  |
-| 0012      | Extended JSON as the editing format                                                    | M3        | Planned  |
+| 0011      | Cursor streaming and pagination                                                        | M3        | Accepted |
+| 0012      | Extended JSON as the editing format                                                    | M3        | Accepted |
 | 0013      | SSH tunnels via russh, forcing `directConnection`                                      | M2        | Planned  |
 | 0014      | No mongosh port in v1                                                                  | M8        | Planned  |
 | 0015      | Testing strategy                                                                       | M8        | Planned  |

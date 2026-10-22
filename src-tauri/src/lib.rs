@@ -4,6 +4,7 @@ mod app_info;
 pub mod collections;
 pub mod connections;
 pub mod databases;
+pub mod documents;
 pub mod ejson;
 pub mod error;
 mod ipc;

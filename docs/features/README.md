@@ -9,7 +9,8 @@ flow), key files, edge cases and limitations, and how to test it.
 | [Settings and theme](settings-and-theme.md)                | Implemented (M1) |
 | [Connections](connections.md)                              | Implemented (M2) |
 | [Navigation](navigation.md): databases and collections     | Implemented (M3) |
-| Documents, query bar                                       | Planned (M3)     |
+| [Documents](documents.md): paging, list/JSON/table views   | Implemented (M3) |
+| Query bar, editing documents                               | Planned (M3)     |
 | Import / export, dump / restore, copy data                 | Planned (M4)     |
 | Aggregation                                                | Planned (M5)     |
 | Indexes, explain, validation                               | Planned (M6)     |

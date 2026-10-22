@@ -13,11 +13,12 @@ are not available yet are listed at the bottom.
 - [The interface](interface.md): sidebar, tabs, command palette, themes
 - [Connections](connections.md): save, organize, secure and share connections
 - [Databases and collections](databases-and-collections.md): browse, create, rename and drop
+- [Viewing documents](documents.md): list, JSON and table views, paging, copying
 - [Keyboard shortcuts](keyboard-shortcuts.md)
 
 ## Coming later
 
-Browsing and editing documents, the query bar, aggregations, indexes, schema analysis,
+Editing documents, the query bar, aggregations, indexes, schema analysis,
 performance monitoring, and dump/restore/import/export are being built. See the
 [roadmap](../roadmap.md) for the plan.
 

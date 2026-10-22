@@ -40,9 +40,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   - create databases (with their first collection), standard, capped and time-series
     collections, and views from an aggregation pipeline; rename collections;
   - drop databases, collections and views after typing the exact name (confirm-by-typing);
-  - collection tab with document count, data, storage and index sizes (document browsing
-    follows later in milestone 3);
+  - collection tab with document count, data, storage and index sizes;
   - clear errors for missing privileges, existing names, invalid names and timeouts.
+- Documents (milestone 3): paged loading (10–1000 per page, never the whole collection) with
+  list (expandable, type-colored), JSON (mongosh syntax) and virtualized table views; exact
+  BSON types preserved end to end (Int64, Decimal128, dates, UUIDs, …); copy a document;
+  ADR 0011 (paging) and ADR 0012 (Extended JSON).
 - Query parsing in the backend: JSON, Extended JSON and mongosh syntax (`ObjectId(…)`,
   `ISODate(…)`, unquoted keys, `/regex/`, `NumberLong(…)`, …) with line/column errors.
 - End-user guide in `docs/user-guide/`.
@@ -54,7 +57,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Not yet implemented
 
-- Browsing, querying and editing documents (later in milestone 3). Collection tabs say so.
+- Query bar and editing documents (later in milestone 3).
 - Interactive browser OIDC sign-in and Kerberos (GSSAPI) authentication.
 - SSH tunnels have not yet been verified against a real SSH server in automated tests.
 

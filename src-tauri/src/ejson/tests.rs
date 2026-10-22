@@ -157,3 +157,38 @@ fn canonical_output_round_trips_every_type() {
     );
     assert_eq!(parse_document(&json).unwrap(), original);
 }
+
+/// The frontend's JSON view (`documents/lib/format.ts` `toShell`) must read back losslessly;
+/// this is the exact text its test produces.
+#[test]
+fn frontend_shell_output_round_trips_to_canonical_json() {
+    let shell = r#"{
+  _id: ObjectId("65a1b2c3d4e5f60718293a4b"),
+  n: 7,
+  big: NumberLong("9007199254740993"),
+  price: 2.0,
+  dec: NumberDecimal("0.1"),
+  at: ISODate("2024-01-01T00:00:00.000Z"),
+  id: UUID("01234567-89ab-cdef-0123-456789abcdef"),
+  re: RegExp("^a/b", "i"),
+  ts: Timestamp(1, 2),
+  tags: [
+    "x",
+    1
+  ],
+  nested: {
+    "weird key": null,
+    ok: true
+  }
+}"#;
+    let canonical = concat!(
+        r#"{"_id":{"$oid":"65a1b2c3d4e5f60718293a4b"},"n":{"$numberInt":"7"},"#,
+        r#""big":{"$numberLong":"9007199254740993"},"price":{"$numberDouble":"2.0"},"#,
+        r#""dec":{"$numberDecimal":"0.1"},"at":{"$date":{"$numberLong":"1704067200000"}},"#,
+        r#""id":{"$binary":{"base64":"ASNFZ4mrze8BI0VniavN7w==","subType":"04"}},"#,
+        r#""re":{"$regularExpression":{"pattern":"^a/b","options":"i"}},"#,
+        r#""ts":{"$timestamp":{"t":1,"i":2}},"tags":["x",{"$numberInt":"1"}],"#,
+        r#""nested":{"weird key":null,"ok":true}}"#
+    );
+    assert_eq!(to_canonical_json(parse_document(shell).unwrap()), canonical);
+}
