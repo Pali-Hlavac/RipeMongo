@@ -1,0 +1,12 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Minimal permissions for the main window. Grant each new app command explicitly.",
+  "windows": ["main"],
+  "permissions": [
+    "core:event:default",
+    "allow-get-app-info",
+    "allow-get-settings",
+    "allow-update-settings"
+  ]
+}
