@@ -55,6 +55,32 @@ again.
   value and deleting still work.
 - Documents without an `_id` (for example when the projection hides it) cannot be changed.
 
-## Coming next
+## Change or delete many documents at once
 
-Updating or deleting all documents that match a filter is coming in the next update.
+Use the **Bulk** button above the documents. Both actions start with the filter you are using
+in the query bar; you can change it in the dialog. An empty filter means every document.
+
+**Update documents**
+
+1. Choose **Bulk → Update documents…**.
+2. Type what to change, for example `{ $set: { status: "archived" } }` to set a field,
+   `{ $inc: { qty: 1 } }` to add to a number, or `{ $unset: { oldField: "" } }` to remove a field.
+3. Click **Preview** (or press **Ctrl+Enter**). You see how many documents match and the first
+   few of them before and after the change.
+4. Click **Update … documents**, type the collection name to confirm, and click
+   **Update documents**.
+
+If you change the filter or the update after previewing, preview again; the update button
+stays off until the preview matches what you typed.
+
+On a single server without a replica set, RipeMongo cannot show the result in advance; the
+preview then shows the matching documents as they are now.
+
+**Delete documents**
+
+1. Choose **Bulk → Delete documents…**. The matching documents are counted right away.
+2. Check the count and the examples, then click **Delete … documents**.
+3. Type the collection name and click **Delete documents**.
+
+Bulk changes cannot be undone. Consider exporting the collection first (coming with dump and
+export in a later update).

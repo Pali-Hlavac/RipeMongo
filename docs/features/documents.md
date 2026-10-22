@@ -44,7 +44,17 @@
   shown. While a projection is applied, whole-document edit and clone are disabled because the
   hidden fields would be lost; inline field edits and delete stay available.
 
-Not yet: bulk update and delete by filter (next M3 slice).
+- **Bulk update / delete** (toolbar "Bulk" menu, writable collections only): starts from the
+  tab's applied filter.
+  - **Update documents**: an update in shell syntax, either operators (`{ $set: … }`,
+    `{ $inc: … }`, `{ $unset: … }`, …) or an aggregation pipeline in `[ ]`. A replacement
+    document (no `$` keys) is rejected.
+  - **Preview** first (button, Enter in the filter, Ctrl/⌘+Enter in the editor): how many
+    documents match and the first 3, before and after. On a standalone server the "after" is
+    not available and the dialog says so.
+  - **Apply** only after a preview of exactly the current filter and update (editing either
+    marks the preview stale and disables the button), then confirm by typing the collection
+    name. A toast reports "Updated X of Y matching documents" / "Deleted N documents".
 
 ## How it works
 
@@ -74,6 +84,13 @@ CollectionTabView (app) → CollectionDocuments (documents)
   `set_document_field` and `delete_document`, then refreshes the pages and the collection
   statistics. Documents are addressed by `_id` sent as canonical Extended JSON
   (`lib/identity.ts`, `lib/canonical.ts`).
+- Bulk: `components/bulk/` (`BulkActionsMenu` → `BulkUpdateDialog` / `BulkDeleteDialog`,
+  `PreviewSamples`), `api/bulk.ts`. Previews are TanStack queries keyed by the submitted
+  filter and update (`gcTime: 0`, never retried). The backend (`documents/bulk.rs`) counts with
+  `count_documents` (estimated for an empty filter) and, on replica sets and sharded clusters,
+  simulates the update on the sample documents in a transaction that is always aborted, so the
+  "after" is what the server would really store and server-side errors (e.g. `$inc` on a
+  string) show up before anything is written.
 - Concurrency check: `replace_document` receives the document as loaded and compares it with
   the stored one before `replaceOne`; `set_document_field` filters on `{ _id, path: original }`
   so a changed field matches nothing (`CONFLICT`).
@@ -94,6 +111,8 @@ CollectionTabView (app) → CollectionDocuments (documents)
 | `src-tauri/src/query_history/`               | Recent and favorite queries (JSON file)          |
 | `src-tauri/src/documents/writes.rs`          | Insert, replace, set field, delete               |
 | `src/features/documents/components/actions/` | Editor and delete dialogs, card action buttons   |
+| `src-tauri/src/documents/bulk.rs`            | Update/delete many and their previews            |
+| `src/features/documents/components/bulk/`    | Bulk menu, update/delete dialogs, preview        |
 | `src/shared/editor/`                         | Lazy Monaco editor, mongosh highlighting         |
 
 ## Edge cases and limitations
@@ -108,6 +127,9 @@ CollectionTabView (app) → CollectionDocuments (documents)
 - The table shows the fields of the loaded page only; a field that appears only on other pages
   has no column until you get there.
 - Documents without an `_id` (projected away) cannot be edited or deleted.
+- Bulk writes are not atomic across documents and cannot be undone. The count and samples
+  are from the moment of the preview; the write applies to whatever matches when it runs.
+- Upserts, `arrayFilters`, hints and collation for bulk writes are not offered yet.
 - Inline edit sets the whole value of a field; renaming or removing a field needs the
   document editor.
 
@@ -120,6 +142,10 @@ CollectionTabView (app) → CollectionDocuments (documents)
   `CollectionDocuments.test.tsx` (list expand, paging, JSON and table views),
   `QueryBar.test.tsx` (run, record, suggestions, inline errors, history),
   `completion.test.ts`, `query.test.ts`; Rust `query_history/tests.rs`.
+- Bulk: `tests/bulk_writes.rs` (Docker: standalone preview without "after", update with
+  operators and a pipeline, replacement rejected, delete many; single-node replica set: exact
+  before/after preview, nothing written, server errors surfaced in the preview),
+  `documents::bulk` unit tests (update parsing), `BulkDialogs.test.tsx`, `lib/bulk.test.ts`.
 - Writes: `tests/document_writes.rs` (Docker: insert one/many, duplicate key, replace keeps
   `_id`, conflicts, validator rejection, inline `$set`, delete) and
   `DocumentActions.test.tsx` (insert, edit, conflict, clone, delete, inline edit, read-only,

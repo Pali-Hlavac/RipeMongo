@@ -59,7 +59,7 @@ delete → import (wrong password rejected inline, right password restores the k
 - [x] Shell-style query syntax (`{_id: ObjectId("…")}`, `ISODate(…)`, unquoted keys, `/regex/`)
 - [x] Query history and favorite queries per collection
 - [x] Insert, edit (inline + Monaco JSON editor), clone, delete
-- [ ] Bulk update/delete with preview + confirmation
+- [x] Bulk update/delete with preview + confirmation
 - [x] Full BSON/Extended JSON support (ObjectId, Date, Decimal128, Long, Binary, UUID, Regex, …)
 - [x] Paged loading; never load a whole collection
 - [ ] Replica-set integration tests; SSH tunnel test against a real sshd (carried over from M2)
@@ -106,15 +106,18 @@ Slices, in order: (1) database/collection admin backend + sidebar tree + dialogs
   `_id`, inline edit, delete, table row double-click, no write actions on a view. Found and
   fixed there: Monaco crashed under `freezePrototype` (now patched, guarded in `pnpm lint`).
 
-**Next: slice 6 (bulk update/delete)**
+- Slice 6 complete: `documents/bulk.rs` (`preview_update_many`, `update_many`,
+  `preview_delete_many`, `delete_many`; update preview simulated in an aborted transaction on
+  replica sets, count + current documents on standalone), `tests/bulk_writes.rs` (standalone and
+  single-node replica set via `common::start_replica_set`), frontend `components/bulk/`
+  (Bulk menu, dialogs, preview samples, confirm-by-typing). Not yet verified in the real app.
 
-1. Backend: `update_many` (filter + update document or pipeline, shell syntax) and
-   `delete_many` (filter), each with a preview: matched count plus a sample of documents
-   before/after (update via a dry-run aggregation `$match` + `$set`-style preview or by applying
-   the update to sampled documents in memory).
-2. UI: "Update documents" / "Delete documents" from the toolbar, prefilled with the current
-   filter; preview first; confirm-by-typing the collection name; result toast with counts.
-3. Then slice 7 (replica-set and sshd integration tests, docs, user guide, verification).
+**Next: slice 7 (finish M3)**
+
+1. Real-app check of the bulk dialogs (standalone and a replica set).
+2. Replica-set integration tests beyond bulk (catalog, documents on `start_replica_set`);
+   SSH tunnel test against a real sshd container (carried over from M2).
+3. Docs pass: tick "ADRs 0011, 0012; feature docs; user guide pages", review the user guide.
 
 Verified in the real app (2026-10-22, MongoDB 8 in Docker, 120 nested sample documents): list,
 JSON and table views, paging, filter with field suggestions, sort, inline query errors, history

@@ -75,6 +75,8 @@ export function CollectionDocuments({ tabId, readOnly, ...target }: CollectionDo
           }}
         />
         <DocumentsToolbar
+          target={target}
+          filter={query.filter}
           state={state}
           onChange={update}
           onReload={reload}

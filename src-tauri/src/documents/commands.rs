@@ -1,8 +1,10 @@
-//! Tauri boundary for reading documents.
+//! Tauri boundary for reading and writing documents.
 
 use tauri::State;
 
-use super::{DocumentCount, FieldEdit, FindPage, FindRequest};
+use super::{
+    DeletePreview, DocumentCount, FieldEdit, FindPage, FindRequest, UpdatePreview, UpdateSummary,
+};
 use crate::connections::ConnectionManager;
 use crate::error::CommandResult;
 use crate::mongo;
@@ -92,4 +94,62 @@ pub async fn delete_document(
 ) -> CommandResult<()> {
     let db = mongo::database(&manager, &connection_id, &database).await?;
     Ok(super::delete_document(&db, &collection, &id).await?)
+}
+
+/// Counts what `update_many` would change and shows a few documents before and after.
+#[tauri::command]
+#[specta::specta]
+pub async fn preview_update_many(
+    manager: State<'_, ConnectionManager>,
+    connection_id: String,
+    database: String,
+    collection: String,
+    filter: String,
+    update: String,
+) -> CommandResult<UpdatePreview> {
+    let db = mongo::database(&manager, &connection_id, &database).await?;
+    Ok(super::preview_update_many(&db, &collection, &filter, &update).await?)
+}
+
+/// Applies an update (operators or pipeline) to every document matching the filter.
+#[tauri::command]
+#[specta::specta]
+pub async fn update_many(
+    manager: State<'_, ConnectionManager>,
+    connection_id: String,
+    database: String,
+    collection: String,
+    filter: String,
+    update: String,
+) -> CommandResult<UpdateSummary> {
+    let db = mongo::database(&manager, &connection_id, &database).await?;
+    Ok(super::update_many(&db, &collection, &filter, &update).await?)
+}
+
+/// Counts what `delete_many` would delete and shows the first few documents.
+#[tauri::command]
+#[specta::specta]
+pub async fn preview_delete_many(
+    manager: State<'_, ConnectionManager>,
+    connection_id: String,
+    database: String,
+    collection: String,
+    filter: String,
+) -> CommandResult<DeletePreview> {
+    let db = mongo::database(&manager, &connection_id, &database).await?;
+    Ok(super::preview_delete_many(&db, &collection, &filter).await?)
+}
+
+/// Deletes every document matching the filter; returns how many were deleted.
+#[tauri::command]
+#[specta::specta]
+pub async fn delete_many(
+    manager: State<'_, ConnectionManager>,
+    connection_id: String,
+    database: String,
+    collection: String,
+    filter: String,
+) -> CommandResult<f64> {
+    let db = mongo::database(&manager, &connection_id, &database).await?;
+    Ok(super::delete_many(&db, &collection, &filter).await?)
 }

@@ -8,7 +8,8 @@ import { commands, unwrap } from "@/shared/ipc/client";
 import type { FieldEdit } from "../types";
 import { documentKeys, type CollectionTarget } from "./keys";
 
-function useRefresh(target: CollectionTarget) {
+/** Refetches the collection's pages and its statistics after a write. */
+export function useRefreshCollection(target: CollectionTarget) {
   const queryClient = useQueryClient();
   return () =>
     Promise.all([
@@ -21,7 +22,7 @@ function useRefresh(target: CollectionTarget) {
 
 /** Inserts the documents typed in the editor (one or an array). Errors show in the dialog. */
 export function useInsertDocuments(target: CollectionTarget) {
-  const refresh = useRefresh(target);
+  const refresh = useRefreshCollection(target);
   const { connectionId, database, collection } = target;
   return useMutation({
     mutationFn: (text: string) =>
@@ -43,7 +44,7 @@ interface ReplaceInput {
 }
 
 export function useReplaceDocument(target: CollectionTarget) {
-  const refresh = useRefresh(target);
+  const refresh = useRefreshCollection(target);
   const { connectionId, database, collection } = target;
   return useMutation({
     mutationFn: ({ id, original, text }: ReplaceInput) =>
@@ -58,7 +59,7 @@ export function useReplaceDocument(target: CollectionTarget) {
 
 /** Inline edit of one field; failures (e.g. a conflict) appear as a toast. */
 export function useSetField(target: CollectionTarget) {
-  const refresh = useRefresh(target);
+  const refresh = useRefreshCollection(target);
   const { connectionId, database, collection } = target;
   return useMutation({
     mutationFn: (edit: FieldEdit) =>
@@ -68,7 +69,7 @@ export function useSetField(target: CollectionTarget) {
 }
 
 export function useDeleteDocument(target: CollectionTarget) {
-  const refresh = useRefresh(target);
+  const refresh = useRefreshCollection(target);
   const { connectionId, database, collection } = target;
   return useMutation({
     mutationFn: (id: string) =>

@@ -4,13 +4,18 @@ import { cn } from "@/shared/lib/cn";
 import { Button } from "@/shared/ui/button";
 import { Tooltip } from "@/shared/ui/tooltip";
 
+import type { CollectionTarget } from "../api/keys";
 import type { CollectionViewState, DocumentView } from "../store/view";
 import type { DocumentCount } from "../types";
 import { useDocumentActions } from "./actions/context";
+import { BulkActionsMenu } from "./bulk/BulkActionsMenu";
 import { Pager } from "./Pager";
 import { ViewSwitcher } from "./ViewSwitcher";
 
 interface DocumentsToolbarProps {
+  target: CollectionTarget;
+  /** Applied filter of the tab, for the bulk actions. */
+  filter: string;
   state: CollectionViewState;
   onChange: (patch: Partial<CollectionViewState>) => void;
   onReload: () => void;
@@ -23,6 +28,8 @@ interface DocumentsToolbarProps {
 
 /** View switcher, reload and pager above the documents. */
 export function DocumentsToolbar({
+  target,
+  filter,
   state,
   onChange,
   onReload,
@@ -53,9 +60,12 @@ export function DocumentsToolbar({
         </Button>
       </Tooltip>
       {!actions.readOnly && (
-        <Button variant="outline" size="sm" className="h-7" onClick={actions.insert}>
-          <PlusIcon aria-hidden /> Insert
-        </Button>
+        <>
+          <Button variant="outline" size="sm" className="h-7" onClick={actions.insert}>
+            <PlusIcon aria-hidden /> Insert
+          </Button>
+          <BulkActionsMenu target={target} filter={filter} />
+        </>
       )}
       <div className="ml-auto">
         <Pager

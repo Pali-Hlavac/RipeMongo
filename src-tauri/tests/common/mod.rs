@@ -5,7 +5,9 @@
 #![allow(dead_code, clippy::expect_used)]
 
 use std::sync::Arc;
+use std::time::Duration;
 
+use mongodb::bson::doc;
 use ripemongo_lib::connections::{
     ConnectionConfig, ConnectionManager, ConnectionProfile, HostPort,
 };
@@ -19,6 +21,9 @@ pub const MONGO_TAG: &str = "8.0";
 pub const MONGO_PORT: u16 = 27017;
 pub const ROOT_USER: &str = "root";
 pub const ROOT_PASSWORD: &str = "s3cret-p@ss";
+pub const REPLICA_SET: &str = "rs0";
+const PRIMARY_POLLS: u32 = 60;
+const PRIMARY_POLL_INTERVAL: Duration = Duration::from_millis(500);
 
 /// True when a Docker daemon answers; otherwise the calling test should return early.
 pub fn docker_available() -> bool {
@@ -45,6 +50,39 @@ pub async fn start_mongo() -> (ContainerAsync<GenericImage>, u16) {
         .await
         .expect("mapped port");
     (container, port)
+}
+
+/// Starts a single-node replica set (transactions work); connect with `directConnection`.
+pub async fn start_replica_set() -> (ContainerAsync<GenericImage>, u16) {
+    let container = GenericImage::new(MONGO_IMAGE, MONGO_TAG)
+        .with_wait_for(WaitFor::message_on_stdout("Waiting for connections"))
+        .with_exposed_port(MONGO_PORT.tcp())
+        .with_cmd(["--replSet", REPLICA_SET, "--bind_ip_all"])
+        .start()
+        .await
+        .expect("start mongo replica set");
+    let port = container
+        .get_host_port_ipv4(MONGO_PORT)
+        .await
+        .expect("mapped port");
+    let uri = format!("mongodb://127.0.0.1:{port}/?directConnection=true");
+    let admin = mongodb::Client::with_uri_str(uri)
+        .await
+        .expect("client")
+        .database("admin");
+    let config = doc! { "_id": REPLICA_SET, "members": [{ "_id": 0, "host": format!("localhost:{MONGO_PORT}") }] };
+    admin
+        .run_command(doc! { "replSetInitiate": config })
+        .await
+        .expect("initiate replica set");
+    for _ in 0..PRIMARY_POLLS {
+        let hello = admin.run_command(doc! { "hello": 1 }).await.expect("hello");
+        if hello.get_bool("isWritablePrimary") == Ok(true) {
+            return (container, port);
+        }
+        tokio::time::sleep(PRIMARY_POLL_INTERVAL).await;
+    }
+    panic!("the replica set member did not become primary");
 }
 
 /// Starts MongoDB with a root user (`ROOT_USER` / `ROOT_PASSWORD`).

@@ -1,11 +1,15 @@
-//! Documents: paged `find`, counting, and single-document writes (insert, replace, set a
-//! field, delete).
+//! Documents: paged `find`, counting, single-document writes (insert, replace, set a
+//! field, delete) and bulk writes by filter with a preview.
 
+mod bulk;
 pub mod commands;
 mod service;
 mod types;
 mod writes;
 
+pub use bulk::{
+    delete_many, preview_delete_many, preview_update_many, update_many, PREVIEW_SAMPLES,
+};
 pub use service::{count_documents, find_documents, MAX_PAGE_SIZE};
 pub use types::*;
 pub use writes::{

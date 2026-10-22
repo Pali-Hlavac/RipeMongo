@@ -42,6 +42,10 @@
     "allow-insert-documents",
     "allow-replace-document",
     "allow-set-document-field",
-    "allow-delete-document"
+    "allow-delete-document",
+    "allow-preview-update-many",
+    "allow-update-many",
+    "allow-preview-delete-many",
+    "allow-delete-many"
   ]
 }

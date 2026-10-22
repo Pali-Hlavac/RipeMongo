@@ -97,6 +97,8 @@ Every domain module follows the same layout:
   JSON) and `count_documents` (estimate for an empty filter, exact otherwise). See ADR 0011
   and 0012. `writes.rs`: `insert_documents` (one or an array, at most 10,000),
   `replace_document` and `set_field` with optimistic concurrency checks, `delete_document`.
+  `bulk.rs`: `update_many` / `delete_many` and their previews; the update preview runs in an
+  aborted transaction where the topology supports transactions.
 - **Errors:** `MongoError::Query { field }` names the bad query part ("Filter: …");
   `Conflict` → `CONFLICT`, `Missing` → `NOT_FOUND`; duplicate keys (11000) and validator
   rejections (121) → `INVALID_INPUT`.
@@ -123,7 +125,6 @@ Every domain module follows the same layout:
 
 | Module                           | Milestone | Purpose                                        |
 | -------------------------------- | --------- | ---------------------------------------------- |
-| `documents` (bulk writes)        | 3         | Update and delete many with preview            |
 | `jobs`, `tools`, `import_export` | 4         | Background jobs, sidecar runner, import/export |
 | `aggregation`                    | 5         | Pipeline execution and previews                |
 | `indexes`, `validation`          | 6         | Index and validator management, explain        |

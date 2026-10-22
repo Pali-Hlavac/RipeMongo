@@ -51,3 +51,39 @@ pub struct FieldEdit {
     pub original_value: String,
     pub value: String,
 }
+
+/// Preview of an update-many: the match count and a few documents before and after.
+#[derive(Debug, Clone, PartialEq, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdatePreview {
+    pub matched: DocumentCount,
+    pub samples: Vec<UpdateSample>,
+    /// Whether `after` was computed (needs transactions, i.e. a replica set or cluster).
+    pub simulated: bool,
+}
+
+/// One sample document, as canonical Extended JSON.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateSample {
+    pub before: String,
+    /// The document as the update would leave it; `None` when not simulated.
+    pub after: Option<String>,
+}
+
+/// Outcome of an update-many.
+#[derive(Debug, Clone, PartialEq, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateSummary {
+    pub matched: f64,
+    pub modified: f64,
+}
+
+/// Preview of a delete-many: the match count and the first few matching documents.
+#[derive(Debug, Clone, PartialEq, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct DeletePreview {
+    pub matched: DocumentCount,
+    /// Canonical Extended JSON.
+    pub samples: Vec<String>,
+}

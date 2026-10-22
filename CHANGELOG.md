@@ -53,6 +53,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   single field inline, clone and delete, in a built-in code editor (Monaco, loaded on demand,
   with shell-syntax highlighting and error markers); refused on views and read-only
   collections; a document changed by someone else since it was loaded is never overwritten.
+- Bulk update and delete (milestone 3): change or delete every document matching a filter, with
+  a preview of the match count and sample documents (before and after on replica sets) and a
+  confirmation by typing the collection name.
 - Query parsing in the backend: JSON, Extended JSON and mongosh syntax (`ObjectId(…)`,
   `ISODate(…)`, unquoted keys, `/regex/`, `NumberLong(…)`, …) with line/column errors.
 - End-user guide in `docs/user-guide/`.
@@ -64,7 +67,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Not yet implemented
 
-- Updating and deleting many documents at once (later in milestone 3).
 - Interactive browser OIDC sign-in and Kerberos (GSSAPI) authentication.
 - SSH tunnels have not yet been verified against a real SSH server in automated tests.
 

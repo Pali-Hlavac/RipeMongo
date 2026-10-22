@@ -80,6 +80,14 @@ export const commands = {
 	setDocumentField: (connectionId: string, database: string, collection: string, edit: FieldEdit) => typedError<null, AppError>(__TAURI_INVOKE("set_document_field", { connectionId, database, collection, edit })),
 	/**  Deletes one document by `_id`. */
 	deleteDocument: (connectionId: string, database: string, collection: string, id: string) => typedError<null, AppError>(__TAURI_INVOKE("delete_document", { connectionId, database, collection, id })),
+	/**  Counts what `update_many` would change and shows a few documents before and after. */
+	previewUpdateMany: (connectionId: string, database: string, collection: string, filter: string, update: string) => typedError<UpdatePreview, AppError>(__TAURI_INVOKE("preview_update_many", { connectionId, database, collection, filter, update })),
+	/**  Applies an update (operators or pipeline) to every document matching the filter. */
+	updateMany: (connectionId: string, database: string, collection: string, filter: string, update: string) => typedError<UpdateSummary, AppError>(__TAURI_INVOKE("update_many", { connectionId, database, collection, filter, update })),
+	/**  Counts what `delete_many` would delete and shows the first few documents. */
+	previewDeleteMany: (connectionId: string, database: string, collection: string, filter: string) => typedError<DeletePreview, AppError>(__TAURI_INVOKE("preview_delete_many", { connectionId, database, collection, filter })),
+	/**  Deletes every document matching the filter; returns how many were deleted. */
+	deleteMany: (connectionId: string, database: string, collection: string, filter: string) => typedError<number | null, AppError>(__TAURI_INVOKE("delete_many", { connectionId, database, collection, filter })),
 };
 
 /* Types */
@@ -210,6 +218,13 @@ export type DatabaseInfo = {
 	/**  Size on disk in bytes (as a float: JS numbers cannot hold every u64). */
 	sizeOnDisk: number | null,
 	empty: boolean,
+};
+
+/**  Preview of a delete-many: the match count and the first few matching documents. */
+export type DeletePreview = {
+	matched: DocumentCount,
+	/**  Canonical Extended JSON. */
+	samples: string[],
 };
 
 /**  Result of counting the documents matching a filter. */
@@ -433,6 +448,27 @@ export type TlsConfig = {
 
 /**  Deployment shape as seen from the connected member. */
 export type TopologyKind = "standalone" | "replicaSet" | "sharded";
+
+/**  Preview of an update-many: the match count and a few documents before and after. */
+export type UpdatePreview = {
+	matched: DocumentCount,
+	samples: UpdateSample[],
+	/**  Whether `after` was computed (needs transactions, i.e. a replica set or cluster). */
+	simulated: boolean,
+};
+
+/**  One sample document, as canonical Extended JSON. */
+export type UpdateSample = {
+	before: string,
+	/**  The document as the update would leave it; `None` when not simulated. */
+	after: string | null,
+};
+
+/**  Outcome of an update-many. */
+export type UpdateSummary = {
+	matched: number | null,
+	modified: number | null,
+};
 
 /**  A URI option RipeMongo has no dedicated field for; preserved verbatim and in order. */
 export type UriOption = {

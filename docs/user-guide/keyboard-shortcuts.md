@@ -15,6 +15,7 @@ On macOS, use **⌘** where this page says **Ctrl**, except for switching tabs.
 | Show query suggestions                       | Ctrl+Space         | ⌃Space             |
 | Choose / accept a suggestion                 | ↑ ↓ / Enter or Tab | ↑ ↓ / Enter or Tab |
 | Save in the document editor                  | Ctrl+Enter         | ⌘Enter             |
+| Preview a bulk update                        | Ctrl+Enter         | ⌘Enter             |
 | Edit the focused field value (List view)     | Enter or F2        | Enter or F2        |
 | Save / cancel an inline field edit           | Enter / Esc        | Enter / Esc        |
 

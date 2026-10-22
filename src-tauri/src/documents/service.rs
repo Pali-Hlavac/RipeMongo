@@ -116,7 +116,7 @@ pub async fn count_documents(
 
 /// Counts beyond 2^53 lose precision; no real collection gets there.
 #[allow(clippy::cast_precision_loss)]
-fn as_f64(count: u64) -> f64 {
+pub(crate) fn as_f64(count: u64) -> f64 {
     count as f64
 }
 

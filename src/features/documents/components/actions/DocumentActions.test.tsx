@@ -162,6 +162,7 @@ describe("document actions", () => {
   it("offers no writes on a read-only collection", async () => {
     const { card } = await renderDocuments(true);
     expect(screen.queryByRole("button", { name: "Insert" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /bulk/i })).not.toBeInTheDocument();
     expect(within(card).queryByRole("button", { name: /Edit|Delete/ })).not.toBeInTheDocument();
     expect(within(card).getByText('"Item 0"').closest("button")).toBeNull();
   });

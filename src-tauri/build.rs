@@ -41,6 +41,10 @@ const APP_COMMANDS: &[&str] = &[
     "replace_document",
     "set_document_field",
     "delete_document",
+    "preview_update_many",
+    "update_many",
+    "preview_delete_many",
+    "delete_many",
 ];
 
 /// Common-Controls v6 manifest, embedded into every linked artifact on Windows.

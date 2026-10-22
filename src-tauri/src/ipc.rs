@@ -61,6 +61,10 @@ pub fn builder() -> Builder<tauri::Wry> {
             documents::commands::replace_document,
             documents::commands::set_document_field,
             documents::commands::delete_document,
+            documents::commands::preview_update_many,
+            documents::commands::update_many,
+            documents::commands::preview_delete_many,
+            documents::commands::delete_many,
         ])
 }
 
