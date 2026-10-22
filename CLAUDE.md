@@ -84,21 +84,21 @@ from `index.ts`, add `docs/features/<name>.md`, and register palette commands in
 
 ## Commands
 
-| Task                       | Command                                        |
-| -------------------------- | ---------------------------------------------- |
-| Install                    | `pnpm install`                                 |
-| Run the desktop app (dev)  | `pnpm app:dev`                                 |
-| Build installers           | `pnpm app:build`                               |
-| Frontend tests             | `pnpm test` (watch: `pnpm test:watch`)         |
-| Rust tests                 | `pnpm test:rust`                               |
-| Lint (TS + file sizes)     | `pnpm lint`                                    |
-| Lint Rust (clippy)         | `pnpm lint:rust`                               |
-| Type-check                 | `pnpm typecheck`                               |
-| Format / check formatting  | `pnpm format` / `pnpm format:check`            |
-| Regenerate IPC bindings    | `pnpm bindings`                                |
-| Everything CI runs         | `pnpm check`                                   |
-| Fetch sidecars             | milestone 4 (`pnpm sidecars`)                  |
-| Integration tests (Docker) | milestone 2+ (see docs/development/testing.md) |
+| Task                       | Command                                                  |
+| -------------------------- | -------------------------------------------------------- |
+| Install                    | `pnpm install`                                           |
+| Run the desktop app (dev)  | `pnpm app:dev`                                           |
+| Build installers           | `pnpm app:build`                                         |
+| Frontend tests             | `pnpm test` (watch: `pnpm test:watch`)                   |
+| Rust tests                 | `pnpm test:rust`                                         |
+| Lint (TS + file sizes)     | `pnpm lint`                                              |
+| Lint Rust (clippy)         | `pnpm lint:rust`                                         |
+| Type-check                 | `pnpm typecheck`                                         |
+| Format / check formatting  | `pnpm format` / `pnpm format:check`                      |
+| Regenerate IPC bindings    | `pnpm bindings`                                          |
+| Everything CI runs         | `pnpm check`                                             |
+| Fetch sidecars             | milestone 4 (`pnpm sidecars`)                            |
+| Integration tests (Docker) | `pnpm test:rust` (start Docker first; skipped otherwise) |
 
 ## Gotchas
 
@@ -111,6 +111,15 @@ from `index.ts`, add `docs/features/<name>.md`, and register palette commands in
   Use `f64` for sizes/counts or strings for exact values.
 - **specta versions are pinned** (`=2.0.0-rc.26`, `specta-typescript =0.0.13`); upgrade them together.
 - **jsdom is pinned to 27.x** because jsdom 30 needs Node ≥ 22.22.
+- **Secrets never go to the webview**: send `SecretUpdates`, read `StoredSecrets` booleans.
+  Never add a command that returns a stored secret.
+- **russh uses the `ring` backend** (`default-features = false`); its default `aws-lc-rs`
+  needs CMake/NASM on Windows. `mongodb`'s `aws-auth` still pulls `aws-lc-sys`, which builds
+  without extra tools today.
+- **Keychain on Linux** needs a Secret Service provider (GNOME Keyring/KWallet); CI unit tests
+  use `MemorySecretStore`, never the real keychain.
+- **Tauri sync commands run on the main thread**: make any command doing I/O `async`.
+- **`disable_serde_phases()`** in `ipc.rs`: one TS type per Rust type; send full objects.
 - **TypeScript is pinned to 6.0** until `typescript-eslint` supports TS 7.
 - **CSP** is strict (`tauri.conf.json`); Monaco will need `worker-src blob:` (already allowed).
 - **Linux** dev needs `libwebkit2gtk-4.1-dev` and friends (see docs/getting-started.md).

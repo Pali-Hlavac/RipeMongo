@@ -33,19 +33,48 @@ Every domain module follows the same layout:
 - **Purpose:** persist user preferences (currently the theme) as JSON.
 - **Public API:** `get_settings`, `update_settings`; `Settings`, `ThemePreference`;
   `SettingsStore` managed state; `settings::init(app)`.
-- **Behaviour:** missing file → defaults; unknown/missing fields tolerated
-  (`#[serde(default)]`); writes are serialized by a mutex and atomic (temp file + rename).
-- **Errors:** `SettingsError::{Io, Parse, Serialize}` → `IO`, `INVALID_DATA`, `INTERNAL`.
-- **Key files:** `settings/service.rs`, `settings/error.rs`, `settings/types.rs`.
+- **Storage:** `SettingsStore` = `JsonFile<Settings>` (see `storage`).
+
+## `storage`
+
+- **Purpose:** typed JSON documents on disk (`JsonFile<T>`): defaults for missing files,
+  tolerant parsing, atomic writes serialized by a mutex. Used by `settings` and `connections`.
+- **Errors:** `StorageError::{Io, Parse, Serialize}` → `IO`, `INVALID_DATA`, `INTERNAL`.
+
+## `secrets`
+
+- **Purpose:** the `SecretStore` trait with `KeyringSecretStore` (OS keychain via `keyring` 4,
+  service `com.ripemongo.app`) and `MemorySecretStore` (tests).
+- **Errors:** `SecretsError::{Unavailable, Platform}` → `KEYCHAIN` with platform hints.
+
+## `connections`
+
+- **Purpose:** saved profiles, connection strings, per-connection secrets, live clients and
+  import/export. Entry point: `ConnectionManager` (`service.rs`), registered by
+  `connections::init`.
+- **Key files:** `config.rs`/`types.rs` (model), `uri/` (parse/build/redact), `secrets.rs`
+  (keychain keys, `SecretUpdates`), `validation.rs`, `repository.rs` (`connections.json`),
+  `client.rs` (driver client + tunnel), `registry.rs` (live clients), `server_info.rs`
+  (`hello` + `buildInfo`), `transfer/` (export/import, Argon2id + XChaCha20-Poly1305),
+  `commands.rs`.
+- **Errors:** `ConnectionError` → `NOT_FOUND`, `INVALID_INPUT`, `CONNECTION_FAILED`,
+  `AUTH_FAILED`, plus storage/keychain/SSH codes. Driver messages are shortened and redacted.
+- **Docs:** [features/connections.md](../features/connections.md).
+
+## `ssh`
+
+- **Purpose:** `SshTunnel::open` forwards a random loopback port to the MongoDB host through a
+  bastion (russh with the `ring` backend). `host_keys.rs` verifies server keys (user
+  known_hosts, then RipeMongo's own; trust on first use; changed keys rejected). See ADR 0013.
+- **Errors:** `SshError` → `SSH_FAILED` with a specific hint per cause.
 
 ## Planned modules
 
-| Module                                  | Milestone | Purpose                                                   |
-| --------------------------------------- | --------- | --------------------------------------------------------- |
-| `connections`, `secrets`, `ssh`         | 2         | Saved connections, keychain, SSH tunnels, client registry |
-| `databases`, `collections`, `documents` | 3         | Browsing and CRUD                                         |
-| `jobs`, `tools`, `import_export`        | 4         | Background jobs, sidecar runner, import/export            |
-| `aggregation`                           | 5         | Pipeline execution and previews                           |
-| `indexes`, `validation`                 | 6         | Index and validator management, explain                   |
-| `schema`, `server_stats`                | 7         | Schema sampling, performance metrics                      |
-| `console`                               | 8         | `runCommand` console                                      |
+| Module                                  | Milestone | Purpose                                        |
+| --------------------------------------- | --------- | ---------------------------------------------- |
+| `databases`, `collections`, `documents` | 3         | Browsing and CRUD                              |
+| `jobs`, `tools`, `import_export`        | 4         | Background jobs, sidecar runner, import/export |
+| `aggregation`                           | 5         | Pipeline execution and previews                |
+| `indexes`, `validation`                 | 6         | Index and validator management, explain        |
+| `schema`, `server_stats`                | 7         | Schema sampling, performance metrics           |
+| `console`                               | 8         | `runCommand` console                           |

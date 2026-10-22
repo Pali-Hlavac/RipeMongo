@@ -9,7 +9,7 @@ src/
     providers.tsx        QueryClientProvider, TooltipProvider
     query-client.ts      QueryClient defaults; mutation errors → toast
     styles.css           Tailwind v4 + design tokens (light/dark)
-    layout/              AppLayout (resizable panels), Sidebar, StatusBar
+    layout/              AppLayout (resizable panels), StatusBar, renderTab (tab kind → view)
     commands/            useAppCommands: palette entries composed from features
   features/<name>/
     index.ts             public API; other code imports only from here
@@ -21,16 +21,18 @@ src/
     hooks/               useHotkey, usePrefersDark
     lib/                 cn, hotkeys, platform, native-feel
   test/setup.ts          Vitest setup (jest-dom, matchMedia/ResizeObserver stubs)
+  test/render.tsx        renderWithProviders + ok() helper for mocked commands
 ```
 
 ## Features
 
-| Feature           | Responsibility                                            | Doc                                                     |
-| ----------------- | --------------------------------------------------------- | ------------------------------------------------------- |
-| `workspace`       | Tabs store, tab bar, tab hotkeys, welcome tab             | [app-shell](../features/app-shell.md)                   |
-| `command-palette` | Palette UI, open state, Ctrl/Cmd+K                        | [app-shell](../features/app-shell.md)                   |
-| `settings`        | Settings queries, theme preference, theme controller/menu | [settings-and-theme](../features/settings-and-theme.md) |
-| `about`           | App info query, About dialog                              | [app-shell](../features/app-shell.md)                   |
+| Feature           | Responsibility                                                 | Doc                                                     |
+| ----------------- | -------------------------------------------------------------- | ------------------------------------------------------- |
+| `workspace`       | Tabs store, tab bar, tab hotkeys, welcome tab                  | [app-shell](../features/app-shell.md)                   |
+| `command-palette` | Palette UI, open state, Ctrl/Cmd+K                             | [app-shell](../features/app-shell.md)                   |
+| `settings`        | Settings queries, theme preference, theme controller/menu      | [settings-and-theme](../features/settings-and-theme.md) |
+| `about`           | App info query, About dialog                                   | [app-shell](../features/app-shell.md)                   |
+| `connections`     | Sidebar, editor, overview tab, import/export, palette commands | [connections](../features/connections.md)               |
 
 ## State rules
 
@@ -43,7 +45,8 @@ src/
 ## Routing
 
 There is no URL router. Navigation is tab-based: the workspace tab store decides what the
-main area renders. Each new tab `kind` gets a view component in its feature.
+main area renders. Each new tab `kind` gets a view component in its feature and a case in
+`src/app/layout/renderTab.tsx` (the workspace feature never imports other features).
 
 ## Styling
 

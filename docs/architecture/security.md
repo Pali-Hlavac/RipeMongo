@@ -12,9 +12,9 @@
 
 - `src-tauri/build.rs` declares every app command in `APP_COMMANDS`. Tauri generates an
   `allow-<command>` permission for each, and unlisted commands are rejected.
-- `src-tauri/capabilities/default.json` grants the `main` window only `core:event:default`
-  plus the explicit `allow-*` command permissions. No filesystem, shell or HTTP plugins are
-  enabled.
+- `src-tauri/capabilities/default.json` grants the `main` window only `core:event:default`,
+  the explicit `allow-*` command permissions and `dialog:allow-open` / `dialog:allow-save`.
+  No filesystem, shell or HTTP plugins are enabled.
 
 ## Content Security Policy (implemented)
 
@@ -29,14 +29,21 @@ No remote origins are allowed; all assets are bundled. `freezePrototype` is enab
 `src/shared/lib/native-feel.ts` disables the webview context menu (except in editable fields)
 and reload/print shortcuts in production builds.
 
-## Secrets and redaction (planned, milestone 2)
+## Secrets and redaction (implemented)
 
-- Passwords, SSH passphrases and key passphrases are stored with the `keyring` crate under
-  service `com.ripemongo.app` and an opaque per-connection key.
-- Saved connection files contain only a reference to the keychain entry.
-- Connection strings are passed through a `redact()` helper before logging or display
-  (`mongodb://user:****@host`).
+- Passwords, AWS session tokens, TLS key passwords, SSH passwords and key passphrases are
+  stored with the `keyring` crate under service `com.ripemongo.app`, key
+  `connection/<id>/<secret>`. `connections.json` never contains them.
+- Secret values never travel to the webview: the UI receives `StoredSecrets` booleans and sends
+  `SecretUpdates` (`keep`/`set`/`clear`). The only exception is a password the user pastes
+  inside a connection string, which the parser hands back so it can go into the secret field.
+- Displayed connection strings are built without secrets. Driver errors pass through
+  `redact_uri` (`mongodb://user:****@host`) before logging or display.
 - Exported connections either omit secrets or encrypt them with a user password (ADR 0008).
+- SSH host keys are verified against known_hosts with trust on first use; changed keys are
+  rejected (ADR 0013).
+- Import/export paths come from native dialogs (`dialog:allow-open`, `dialog:allow-save`);
+  imports are capped at 10 MiB.
 
 ## Reporting vulnerabilities
 
