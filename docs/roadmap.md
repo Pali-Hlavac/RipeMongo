@@ -49,18 +49,25 @@ password → test → save & connect → overview → edit shows "saved in keych
 the keychain entry; export with an encrypted password through the native save dialog →
 delete → import (wrong password rejected inline, right password restores the keychain entry).
 
-### M3 — Browsing, documents, query bar
+### M3 — Browsing, documents, query bar 🚧 (in progress)
 
 - [ ] Sidebar tree: databases, collections, views with counts and sizes
 - [ ] Create/drop databases, collections, views, capped and time-series collections; rename collections
 - [ ] Confirm-by-typing dialog for destructive actions
 - [ ] Documents: list (JSON tree), JSON and virtualized table views
 - [ ] Query bar: filter, project, sort, collation, skip, limit, maxTimeMS; field/operator autocomplete
+- [ ] Shell-style query syntax (`{_id: ObjectId("…")}`, `ISODate(…)`, unquoted keys, `/regex/`)
 - [ ] Query history and favorite queries per collection
 - [ ] Insert, edit (inline + Monaco JSON editor), clone, delete; bulk update/delete with preview + confirmation
 - [ ] Full BSON/Extended JSON support (ObjectId, Date, Decimal128, Long, Binary, UUID, Regex, …)
-- [ ] Cursor streaming/pagination; never load a whole collection
-- [ ] Replica-set integration tests; ADRs 0011 (cursor streaming), 0012 (Extended JSON)
+- [ ] Paged loading; never load a whole collection
+- [ ] Replica-set integration tests; SSH tunnel test against a real sshd (carried over from M2)
+- [ ] ADRs 0011 (paging), 0012 (Extended JSON); feature docs; user guide pages
+
+Slices, in order: (1) database/collection admin backend + sidebar tree + dialogs;
+(2) Extended JSON + shell-syntax parser; (3) find with paging + document views;
+(4) query bar with autocomplete, history, favorites; (5) CRUD + Monaco editor;
+(6) bulk update/delete with preview; (7) integration tests, docs, user guide, verification.
 
 ### M4 — Tools: dump, restore, import, export, copy
 

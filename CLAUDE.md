@@ -47,6 +47,7 @@ React feature component
 | `src-tauri/capabilities/` | Tauri ACL: which commands the window may call                                             |
 | `scripts/`                | Repo tooling (file-size check, sidecar fetcher)                                           |
 | `docs/`                   | All documentation; start at `docs/README.md`                                              |
+| `docs/user-guide/`        | End-user guide, one page per area; updated with every feature                             |
 
 ## Conventions
 
