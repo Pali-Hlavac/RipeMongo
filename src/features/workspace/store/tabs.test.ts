@@ -49,6 +49,15 @@ describe("tabs store", () => {
     expect(state().activeTabId).toBeNull();
   });
 
+  it("renames and closes tabs matching a predicate", () => {
+    state().openTab(tab("a"));
+    state().openTab(tab("b"));
+    state().renameTabs((t) => t.id === "a", "Renamed");
+    expect(state().tabs.find((t) => t.id === "a")?.title).toBe("Renamed");
+    state().closeTabs((t) => t.id !== "welcome");
+    expect(state().tabs.map((t) => t.id)).toEqual(["welcome"]);
+  });
+
   it("cycles with wrap-around in both directions", () => {
     state().openTab(tab("a"));
     state().cycleTab(1);

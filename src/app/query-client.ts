@@ -4,10 +4,20 @@ import { toast } from "sonner";
 
 import { toIpcError } from "@/shared/ipc/client";
 
+declare module "@tanstack/react-query" {
+  interface Register {
+    mutationMeta: {
+      /** The caller renders the error itself (e.g. inline), so skip the global toast. */
+      silent?: boolean;
+    };
+  }
+}
+
 export function createQueryClient(): QueryClient {
   return new QueryClient({
     mutationCache: new MutationCache({
-      onError: (error) => {
+      onError: (error, _variables, _context, mutation) => {
+        if (mutation.meta?.silent) return;
         const { message, hint } = toIpcError(error);
         toast.error(message, { description: hint ?? undefined });
       },

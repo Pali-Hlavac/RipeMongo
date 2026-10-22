@@ -29,20 +29,49 @@ Legend: `[x]` done · `[ ]` to do · `[~]` partially done / deferred (see note)
 - [x] CI workflow (lint, types, tests on Linux/Windows/macOS)
 - [x] `CLAUDE.md`, docs skeleton, ADRs 0001–0007, CHANGELOG
 
-### M2 — Connections
+### M2 — Connections 🚧 (in progress)
 
-- [ ] Saved connections: create, edit, duplicate, delete
-- [ ] Folders/groups, favorites, color labels
-- [ ] Connection string ⇄ structured form, two-way sync (host/port, `mongodb+srv`, auth, TLS, replica set, read preference)
-- [ ] Auth: SCRAM-SHA-1/256, X.509, LDAP (PLAIN), AWS IAM, OIDC (environment providers; browser flow documented as unsupported)
-- [ ] TLS: CA file, client certificate/key (+ key password), allow invalid certs/hostnames
-- [ ] SSH tunnel: password and private key with passphrase, host-key verification
-- [ ] Secrets in the OS keychain only; redaction of connection strings in logs/errors
-- [ ] Test connection; connect / disconnect; multiple simultaneous connections
+Legend for this milestone: **BE** = backend + IPC done and tested, **UI** = frontend done.
+
+- [~] Saved connections: create, edit, duplicate, delete — BE ✅, UI ⏳
+- [~] Folders/groups, favorites, color labels — BE ✅, UI ⏳ (tree grouping helper done)
+- [~] Connection string ⇄ structured form, two-way sync — BE ✅ (Rust parser/builder, 24 tests), UI ⏳
+- [~] Auth: SCRAM-SHA-1/256, X.509, LDAP (PLAIN), AWS IAM, OIDC (environment providers) — BE ✅, UI ⏳
+- [~] TLS: CA file, client certificate/key (+ key password), allow invalid certs/hostnames — BE ✅, UI ⏳
+- [~] SSH tunnel: password and private key with passphrase, host-key verification — BE ✅ (not yet tested against a real sshd), UI ⏳
+- [x] Secrets in the OS keychain only; redaction of connection strings in logs/errors
+- [~] Test connection; connect / disconnect; multiple simultaneous connections — BE ✅, UI ⏳
 - [ ] Connection overview tab (server version, topology, hosts)
-- [ ] Import/export connections: without secrets, or encrypted with a password
-- [ ] Integration tests with testcontainers (MongoDB with auth)
-- [ ] ADRs 0008 (encrypted export), 0013 (SSH tunnels); docs/features/connections.md
+- [~] Import/export connections: without secrets, or encrypted with a password — BE ✅, UI ⏳
+- [x] Integration tests with testcontainers (MongoDB 8 with SCRAM auth)
+- [ ] ADRs 0008 (encrypted export), 0013 (SSH tunnels); docs/features/connections.md; CHANGELOG entries
+
+#### Where we left off (2026-10-22)
+
+Backend is complete and committed (`src-tauri/src/connections/`, `ssh/`, `secrets/`,
+`storage/`). Frontend work had started in `src/features/connections/`:
+
+- Done: `types.ts`, `api/` (keys, profiles, session, transfer hooks), `lib/` (defaults,
+  colors, secrets, tree + tests); shared form primitives (`shared/ui/input.tsx`,
+  `form-field.tsx`, `tabs.tsx`, `shared/components/ConfirmDialog.tsx`); workspace tabs are a
+  union (`welcome` | `connection`) rendered via `src/app/layout/renderTab.tsx`; mutations can
+  set `meta: { silent: true }` to skip the global error toast.
+- Next, in order:
+  1. `store/` for dialog state (editor open/create/edit, delete target, import/export mode).
+  2. Editor dialog: URI field with debounced parse/build sync (keep `ssh` from the form when a
+     URI is parsed), tabs General / Authentication / TLS / SSH / Advanced, `SecretField`
+     (shows "saved in keychain", Keep/Set/Clear), `FilePathField` (dialog plugin `open`),
+     Test button with inline result.
+  3. Sidebar (`ConnectionSidebar`) replacing `src/app/layout/Sidebar.tsx`: favorites, folders,
+     ungrouped, status dot, per-item actions menu (connect/disconnect, edit, duplicate,
+     favorite, delete), empty state with "New connection".
+  4. Connection overview tab (server info, disconnect) and the `connection` case in
+     `renderTab.tsx` (currently returns `null`; nothing opens connection tabs yet).
+  5. Import/Export dialogs; palette commands (new, import, export, connect to …);
+     Welcome view "New connection" action.
+  6. Component tests; ADRs 0008 + 0013; `docs/features/connections.md`; update
+     `docs/architecture/{ipc,backend-modules,security}.md`, `CLAUDE.md`, `CHANGELOG.md`.
+  7. Run the app against a Docker MongoDB and verify end to end, then tick this list.
 
 ### M3 — Browsing, documents, query bar
 

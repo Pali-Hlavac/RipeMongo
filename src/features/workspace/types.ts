@@ -1,7 +1,18 @@
 /** Workspace tab model. New tab kinds (collection, aggregation, ...) are added per milestone. */
-export interface WorkspaceTab {
+interface TabBase {
   /** Stable identity; opening a tab with an existing id focuses it instead. */
   id: string;
-  kind: "welcome";
   title: string;
 }
+
+export interface WelcomeTab extends TabBase {
+  kind: "welcome";
+}
+
+/** Overview of one saved connection. */
+export interface ConnectionTab extends TabBase {
+  kind: "connection";
+  connectionId: string;
+}
+
+export type WorkspaceTab = WelcomeTab | ConnectionTab;

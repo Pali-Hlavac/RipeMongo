@@ -8,6 +8,7 @@ import { isMacPlatform } from "@/shared/lib/platform";
 import { Button } from "@/shared/ui/button";
 import { Tooltip } from "@/shared/ui/tooltip";
 
+import { renderTab } from "./renderTab";
 import { Sidebar } from "./Sidebar";
 import { StatusBar } from "./StatusBar";
 
@@ -50,7 +51,7 @@ export function AppLayout() {
         />
         <Panel id="workspace" className="min-w-0">
           <main className="h-full">
-            <WorkspaceView paletteHotkey={PALETTE_HOTKEY} tabBarActions={openPalette} />
+            <WorkspaceView renderTab={renderTab} tabBarActions={openPalette} />
           </main>
         </Panel>
       </Group>

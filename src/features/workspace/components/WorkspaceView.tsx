@@ -6,17 +6,18 @@ import { Button } from "@/shared/ui/button";
 
 import { useTabHotkeys } from "../hooks/useTabHotkeys";
 import { WELCOME_TAB, useActiveTab, useTabsStore } from "../store/tabs";
+import type { WorkspaceTab } from "../types";
 import { TabBar } from "./TabBar";
-import { WelcomeTab } from "./WelcomeTab";
 
 interface WorkspaceViewProps {
-  paletteHotkey: string;
+  /** Renders the content of a tab; the app shell maps tab kinds to feature views. */
+  renderTab: (tab: WorkspaceTab) => ReactNode;
   /** Extra controls shown at the right end of the tab bar. */
   tabBarActions?: ReactNode;
 }
 
 /** Tab bar plus the content of the active tab. */
-export function WorkspaceView({ paletteHotkey, tabBarActions }: WorkspaceViewProps) {
+export function WorkspaceView({ renderTab, tabBarActions }: WorkspaceViewProps) {
   useTabHotkeys();
   const activeTab = useActiveTab();
 
@@ -30,7 +31,7 @@ export function WorkspaceView({ paletteHotkey, tabBarActions }: WorkspaceViewPro
         className="min-h-0 flex-1 overflow-auto"
       >
         {activeTab ? (
-          <WelcomeTab paletteHotkey={paletteHotkey} />
+          renderTab(activeTab)
         ) : (
           <EmptyState
             icon={LayoutGridIcon}
