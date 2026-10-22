@@ -96,8 +96,10 @@ Slices, in order: (1) database/collection admin backend + sidebar tree + dialogs
 4. Then slice 4 (query bar, autocomplete, history/favorites), 5 (CRUD + Monaco), 6 (bulk
    update/delete with preview), 7 (replica-set + sshd integration tests, docs, verification).
 
-The catalog UI has not yet been clicked through in the real app (needs the user's OK to
-drive the window); do that alongside slice 3.
+Verified in the real app (2026-10-22) against MongoDB 8 in Docker: auto-expand after
+connect, sizes and counts, view/time-series icons, collection tab statistics, rename (open tab
+follows), capped collection (16 MB confirmed on the server), create database, drop by typing.
+That check found that deleting a connection left its collection tabs open; fixed.
 
 ### M4 — Tools: dump, restore, import, export, copy
 

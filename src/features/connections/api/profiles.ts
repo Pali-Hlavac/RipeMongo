@@ -1,6 +1,7 @@
 /** Queries and mutations for saved connection profiles. */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { catalogKeys } from "@/features/catalog";
 import { useTabsStore } from "@/features/workspace";
 import { commands, unwrap } from "@/shared/ipc/client";
 
@@ -48,7 +49,7 @@ export function useSaveConnection() {
   });
 }
 
-/** Deletes a connection and closes its tabs. */
+/** Deletes a connection, closes all its tabs (overview and collections) and drops its cache. */
 export function useDeleteConnection() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -56,7 +57,8 @@ export function useDeleteConnection() {
     onSuccess: (_result, connectionId) => {
       useTabsStore
         .getState()
-        .closeTabs((tab) => tab.kind === "connection" && tab.connectionId === connectionId);
+        .closeTabs((tab) => "connectionId" in tab && tab.connectionId === connectionId);
+      queryClient.removeQueries({ queryKey: catalogKeys.connection(connectionId) });
       void queryClient.invalidateQueries({ queryKey: connectionKeys.all });
     },
   });

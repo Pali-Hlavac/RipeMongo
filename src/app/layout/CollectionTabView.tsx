@@ -16,7 +16,7 @@ export function CollectionTabView({ tab }: { tab: CollectionTab }) {
       <EmptyState
         icon={FileJsonIcon}
         title="Document browsing is coming soon"
-        description="Viewing, querying and editing documents is the next part of this release. For now this tab shows the collection's statistics."
+        description="Viewing, querying and editing documents is the next part of this release. For now this tab shows the collection's details."
         className="flex-1"
       />
     </div>
