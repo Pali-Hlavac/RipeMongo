@@ -101,7 +101,10 @@ Slices, in order: (1) database/collection admin backend + sidebar tree + dialogs
   Monarch `mongosh` language), `documents/components/actions/` (provider + context, editor
   dialog, card buttons), inline field edit in the list view, table row double-click. Writes
   are hidden on views/read-only collections; whole-document edit/clone is disabled while a
-  projection is applied.
+  projection is applied. Verified in the real app (2026-10-22): edit with Ctrl+Enter,
+  conflict after an external change, parse-error marker, insert of an array, clone without
+  `_id`, inline edit, delete, table row double-click, no write actions on a view. Found and
+  fixed there: Monaco crashed under `freezePrototype` (now patched, guarded in `pnpm lint`).
 
 **Next: slice 6 (bulk update/delete)**
 

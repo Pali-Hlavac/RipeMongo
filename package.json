@@ -15,7 +15,7 @@
     "app:dev": "tauri dev",
     "app:build": "tauri build",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
-    "lint": "eslint . --max-warnings 0 && node scripts/check-file-size.mjs",
+    "lint": "eslint . --max-warnings 0 && node scripts/check-file-size.mjs && node scripts/check-monaco-frozen-prototype.mjs",
     "lint:rust": "cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings",
     "format": "prettier --write . && cargo fmt --manifest-path src-tauri/Cargo.toml",
     "format:check": "prettier --check . && cargo fmt --manifest-path src-tauri/Cargo.toml -- --check",
@@ -86,5 +86,10 @@
     ],
     "*.{js,mjs,json,md,css,yml,yaml,html}": "prettier --write",
     "src-tauri/**/*.rs": "rustfmt --edition 2021"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "monaco-editor@0.57.0": "patches/monaco-editor@0.57.0.patch"
+    }
   }
 }

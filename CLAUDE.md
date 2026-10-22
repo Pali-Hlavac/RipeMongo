@@ -122,7 +122,10 @@ from `index.ts`, add `docs/features/<name>.md`, and register palette commands in
 - **Tauri sync commands run on the main thread**: make any command doing I/O `async`.
 - **`disable_serde_phases()`** in `ipc.rs`: one TS type per Rust type; send full objects.
 - **TypeScript is pinned to 6.0** until `typescript-eslint` supports TS 7.
-- **CSP** is strict (`tauri.conf.json`); Monaco will need `worker-src blob:` (already allowed).
+- **CSP** is strict (`tauri.conf.json`); Monaco workers use `worker-src blob:` (allowed).
+- **Monaco + `freezePrototype`**: Monaco is patched (`patches/`, pnpm `patchedDependencies`)
+  so it loads with a frozen `Object.prototype`. Upgrading Monaco means re-creating the patch
+  (`pnpm patch monaco-editor@<v>`); `pnpm lint` flags new offending assignments.
 - **Linux** dev needs `libwebkit2gtk-4.1-dev` and friends (see docs/getting-started.md).
 
 ## Where to find more

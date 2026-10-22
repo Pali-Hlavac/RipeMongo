@@ -23,6 +23,10 @@ Defined in `tauri.conf.json`:
 Monaco inject styles), `img-src 'self' data: blob:`, `font-src 'self' data:`,
 `worker-src 'self' blob:` (Monaco workers), `connect-src ipc: http://ipc.localhost`.
 No remote origins are allowed; all assets are bundled. `freezePrototype` is enabled.
+Monaco assigns `toString` on a few plain objects, which throws under a frozen
+`Object.prototype`; `patches/monaco-editor@*.patch` (pnpm patch) rewrites those to
+`Object.defineProperty`, and `scripts/check-monaco-frozen-prototype.mjs` (part of `pnpm lint`)
+fails if a Monaco upgrade adds new ones.
 
 ## Production hardening (implemented)
 
