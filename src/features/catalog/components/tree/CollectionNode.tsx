@@ -1,4 +1,5 @@
 import {
+  ArchiveIcon,
   ClockIcon,
   EyeIcon,
   FilePlus2Icon,
@@ -8,6 +9,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { useDumpDialog } from "@/features/tools";
 import { useTabsStore } from "@/features/workspace";
 import { cn } from "@/shared/lib/cn";
 import { formatCompactCount, formatCount } from "@/shared/lib/format";
@@ -108,6 +110,15 @@ export function CollectionNode({ connectionId, database, info, showCount }: Coll
               }}
             >
               <PencilIcon aria-hidden /> Rename…
+            </DropdownMenuItem>
+          )}
+          {kind !== "view" && (
+            <DropdownMenuItem
+              onSelect={() => {
+                useDumpDialog.getState().open({ connectionId, database, collection: name });
+              }}
+            >
+              <ArchiveIcon aria-hidden /> Dump collection…
             </DropdownMenuItem>
           )}
           {kind !== "view" && <DropdownMenuSeparator />}

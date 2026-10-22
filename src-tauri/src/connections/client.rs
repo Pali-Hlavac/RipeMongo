@@ -21,6 +21,8 @@ const DEFAULT_APP_NAME: &str = "RipeMongo";
 pub struct OpenedClient {
     pub client: Client,
     pub tunnel: Option<SshTunnel>,
+    /// The settings the client really uses (through the tunnel, if any), for the tools.
+    pub effective: ConnectionConfig,
 }
 
 /// Opens the SSH tunnel (if configured) and creates a driver client. Does not contact
@@ -63,7 +65,11 @@ pub async fn open_client(
         .app_name
         .or_else(|| Some(DEFAULT_APP_NAME.to_owned()));
     let client = Client::with_options(options)?;
-    Ok(OpenedClient { client, tunnel })
+    Ok(OpenedClient {
+        client,
+        tunnel,
+        effective,
+    })
 }
 
 /// Rewrites the config so the driver talks to the local tunnel endpoint. The tunnel reaches

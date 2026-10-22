@@ -8,10 +8,10 @@
 use std::path::{Path, PathBuf};
 
 use specta_typescript::Typescript;
-use tauri_specta::{collect_commands, Builder};
+use tauri_specta::{collect_commands, collect_events, Builder};
 
 use crate::{
-    app_info, collections, connections, databases, documents, query_history, settings, tools,
+    app_info, collections, connections, databases, documents, jobs, query_history, settings, tools,
 };
 
 /// Location of the generated bindings, relative to the crate root.
@@ -28,6 +28,7 @@ pub fn builder() -> Builder<tauri::Wry> {
     Builder::<tauri::Wry>::new()
         // The UI always sends complete objects, so one shape per type is enough.
         .disable_serde_phases()
+        .events(collect_events![jobs::JobUpdated, jobs::JobLogged])
         .commands(collect_commands![
             app_info::commands::get_app_info,
             settings::commands::get_settings,
@@ -70,6 +71,11 @@ pub fn builder() -> Builder<tauri::Wry> {
             documents::commands::preview_delete_many,
             documents::commands::delete_many,
             tools::commands::get_tools_info,
+            jobs::commands::list_jobs,
+            jobs::commands::get_job_log,
+            jobs::commands::cancel_job,
+            jobs::commands::dismiss_job,
+            tools::commands::start_dump,
         ])
 }
 

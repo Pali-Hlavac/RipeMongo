@@ -8,7 +8,7 @@ use serde::Serialize;
 use specta::Type;
 use tokio::sync::RwLock;
 
-use super::ServerInfo;
+use super::{ConnectionConfig, ServerInfo};
 use crate::ssh::SshTunnel;
 
 /// Public description of a live connection.
@@ -24,14 +24,22 @@ pub struct ActiveConnectionInfo {
 pub struct ActiveConnection {
     pub client: Client,
     pub info: ActiveConnectionInfo,
+    /// Settings that reach the server as the client does (through the tunnel, if any).
+    pub effective: ConnectionConfig,
     _tunnel: Option<SshTunnel>,
 }
 
 impl ActiveConnection {
-    pub fn new(client: Client, info: ActiveConnectionInfo, tunnel: Option<SshTunnel>) -> Self {
+    pub fn new(
+        client: Client,
+        info: ActiveConnectionInfo,
+        effective: ConnectionConfig,
+        tunnel: Option<SshTunnel>,
+    ) -> Self {
         Self {
             client,
             info,
+            effective,
             _tunnel: tunnel,
         }
     }

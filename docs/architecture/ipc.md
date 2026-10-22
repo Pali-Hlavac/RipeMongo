@@ -34,6 +34,11 @@ error toast (`src/app/query-client.ts`).
 | -------------------------- | ----------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
 | `get_app_info`             | `app_info`              | none                                                                                                 | `AppInfo`                                                          | none                                                                                                              |
 | `get_tools_info`           | `tools`                 | none                                                                                                 | `ToolsInfo`                                                        | none                                                                                                              |
+| `start_dump`               | `tools`                 | `connectionId, request: DumpRequest`                                                                 | `JobInfo`                                                          | `NOT_CONNECTED`, `INVALID_INPUT`, `IO`                                                                            |
+| `list_jobs`                | `jobs`                  | none                                                                                                 | `JobInfo[]`                                                        | none                                                                                                              |
+| `get_job_log`              | `jobs`                  | `jobId`                                                                                              | `string[]`                                                         | `NOT_FOUND`                                                                                                       |
+| `cancel_job`               | `jobs`                  | `jobId`                                                                                              | `null`                                                             | `NOT_FOUND`                                                                                                       |
+| `dismiss_job`              | `jobs`                  | `jobId`                                                                                              | `null`                                                             | `NOT_FOUND`, `INVALID_INPUT` (still running)                                                                      |
 | `get_settings`             | `settings`              | none                                                                                                 | `Settings`                                                         | `IO`, `INVALID_DATA`                                                                                              |
 | `update_settings`          | `settings`              | `settings: Settings`                                                                                 | `Settings`                                                         | `IO`, `INTERNAL`                                                                                                  |
 | `list_connections`         | `connections`           | none                                                                                                 | `ConnectionProfile[]`                                              | `IO`, `INVALID_DATA`                                                                                              |
@@ -79,8 +84,15 @@ path is passed to the commands above).
 
 ## Events
 
-None yet. Background jobs (milestone 4) will emit typed `tauri-specta` events; see
-[background-jobs.md](background-jobs.md).
+Typed `tauri-specta` events, registered with `collect_events!` in `ipc.rs` and exposed as
+`events.<name>.listen(...)` in `bindings.ts`:
+
+| Event        | Payload                      | When                                                 |
+| ------------ | ---------------------------- | ---------------------------------------------------- |
+| `JobUpdated` | `{ job: JobInfo }`           | A job starts, changes (at most every 200 ms) or ends |
+| `JobLogged`  | `{ jobId, lines: string[] }` | New output lines of a job, batched like `JobUpdated` |
+
+The frontend subscribes once (`useJobEvents`); see [background-jobs.md](background-jobs.md).
 
 ## Error model
 

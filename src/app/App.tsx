@@ -4,7 +4,9 @@ import { AboutDialog } from "@/features/about";
 import { CatalogDialogs } from "@/features/catalog";
 import { CommandPalette } from "@/features/command-palette";
 import { ConnectionDialogs } from "@/features/connections";
+import { JobsPanel, useJobEvents } from "@/features/jobs";
 import { ThemeController, useSettings, useThemePreference } from "@/features/settings";
+import { DumpDialog } from "@/features/tools";
 import { LoadingState } from "@/shared/components/LoadingState";
 
 import { useAppCommands } from "./commands/useAppCommands";
@@ -18,6 +20,7 @@ export function App() {
   const { isPending } = useSettings();
   const { preference } = useThemePreference();
   const commands = useAppCommands();
+  useJobEvents();
 
   if (isPending) return <LoadingState label="Starting…" className="h-screen" />;
 
@@ -29,6 +32,8 @@ export function App() {
       <AboutDialog />
       <ConnectionDialogs />
       <CatalogDialogs />
+      <DumpDialog />
+      <JobsPanel />
       <Toaster theme={preference} position="bottom-right" richColors closeButton />
     </>
   );

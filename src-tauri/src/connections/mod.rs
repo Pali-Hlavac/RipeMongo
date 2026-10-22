@@ -9,6 +9,7 @@ mod repository;
 mod secrets;
 mod server_info;
 mod service;
+mod tool;
 pub mod transfer;
 mod types;
 pub mod uri;
@@ -22,6 +23,7 @@ pub use secrets::{
 };
 pub use server_info::{fetch_server_info, ServerInfo, TopologyKind};
 pub use service::ConnectionManager;
+pub use tool::ToolConnection;
 pub use types::{ConnectionColor, ConnectionProfile};
 pub use validation::{validate_config, validate_profile};
 

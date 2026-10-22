@@ -1,9 +1,18 @@
 /** Composes command-palette entries contributed by each feature. */
-import { InfoIcon, LayoutGridIcon, MonitorIcon, MoonIcon, SunIcon, XIcon } from "lucide-react";
+import {
+  InfoIcon,
+  LayoutGridIcon,
+  ListChecksIcon,
+  MonitorIcon,
+  MoonIcon,
+  SunIcon,
+  XIcon,
+} from "lucide-react";
 
 import { useAboutStore } from "@/features/about";
 import type { PaletteCommand } from "@/features/command-palette";
 import { useConnectionPaletteCommands } from "@/features/connections";
+import { useJobsPanel } from "@/features/jobs";
 import { THEME_OPTIONS, useThemePreference } from "@/features/settings";
 import { TAB_HOTKEYS, WELCOME_TAB, useTabsStore } from "@/features/workspace";
 import { APP_NAME } from "@/app.config";
@@ -47,6 +56,16 @@ export function useAppCommands(): PaletteCommand[] {
       run: () => {
         const { activeTabId, closeTab } = useTabsStore.getState();
         if (activeTabId) closeTab(activeTabId);
+      },
+    },
+    {
+      id: "jobs.show",
+      group: "Tools",
+      label: "Show background jobs",
+      icon: ListChecksIcon,
+      keywords: ["dump", "restore", "import", "export", "progress"],
+      run: () => {
+        useJobsPanel.getState().setOpen(true);
       },
     },
     ...themeCommands,

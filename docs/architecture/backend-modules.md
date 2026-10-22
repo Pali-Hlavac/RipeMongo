@@ -54,7 +54,8 @@ Every domain module follows the same layout:
   `connections::init`.
 - **Key files:** `config.rs`/`types.rs` (model), `uri/` (parse/build/redact), `secrets.rs`
   (keychain keys, `SecretUpdates`), `validation.rs`, `repository.rs` (`connections.json`),
-  `client.rs` (driver client + tunnel), `registry.rs` (live clients), `server_info.rs`
+  `client.rs` (driver client + tunnel), `registry.rs` (live clients), `tool.rs`
+  (`ToolConnection`: URI with and without secrets for the tools, keeps the tunnel open), `server_info.rs`
   (`hello` + `buildInfo`), `transfer/` (export/import, Argon2id + XChaCha20-Poly1305),
   `commands.rs`.
 - **Errors:** `ConnectionError` → `NOT_FOUND`, `INVALID_INPUT`, `CONNECTION_FAILED`,
@@ -126,16 +127,28 @@ Every domain module follows the same layout:
 - **Purpose:** the bundled MongoDB Database Tools. `locate` finds a binary (next to the app
   executable; in debug builds also `src-tauri/binaries/<tool>-<triple>`), `tool_command`
   starts it (no stdin, piped output, killed on drop, no console window on Windows),
-  `tools_info` runs `--version` on each. See ADR 0009 and
-  [sidecars.md](sidecars.md).
+  `tools_info` runs `--version` on each. `run.rs` runs a tool inside a job (log, progress
+  parser, cancel → kill, `Failed: …` → error); `credentials.rs` writes the temporary
+  `--config` file; `display.rs` renders the equivalent command; `dump/` builds `mongodump`
+  arguments, estimates totals and parses progress. See ADR 0009 and [sidecars.md](sidecars.md).
 - **Errors:** `ToolsError::Missing` → `NOT_FOUND` (hint: reinstall / `pnpm sidecars`),
-  `Start` → `IO`.
+  `Invalid` → `INVALID_INPUT`, `Credentials`/`Start` → `IO`; a failed run →
+  `OPERATION_FAILED` ("mongodump failed: …").
+- **Docs:** [features/tools.md](../features/tools.md).
+
+## `jobs`
+
+- **Purpose:** background jobs. `JobRegistry` (managed state, `jobs::init`) runs work as tokio
+  tasks, keeps snapshots and logs in memory, cancels via `CancellationToken`, and publishes
+  throttled `JobUpdated`/`JobLogged` events through `TauriJobEvents`. See ADR 0010 and
+  [background-jobs.md](background-jobs.md).
+- **Errors:** `JobsError::NotFound` → `NOT_FOUND`, `Running` → `INVALID_INPUT`.
 
 ## Planned modules
 
 | Module                   | Milestone | Purpose                                 |
 | ------------------------ | --------- | --------------------------------------- |
-| `jobs`, `import_export`  | 4         | Background jobs, import/export          |
+| `import_export`          | 4         | JSON/CSV import and export              |
 | `aggregation`            | 5         | Pipeline execution and previews         |
 | `indexes`, `validation`  | 6         | Index and validator management, explain |
 | `schema`, `server_stats` | 7         | Schema sampling, performance metrics    |

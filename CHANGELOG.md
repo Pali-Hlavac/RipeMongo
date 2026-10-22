@@ -63,11 +63,17 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Bundled MongoDB Database Tools 100.19.1 (`mongodump`, `mongorestore`, `mongoexport`,
   `mongoimport`) for Windows, macOS and Linux, fetched by `pnpm sidecars` with SHA-256
   verification and listed with their version in the About dialog (milestone 4); ADR 0009.
+- Dump (milestone 4): back up a whole server, a database or a collection from the sidebar into
+  a folder or a single archive file, optionally gzip-compressed, with the bundled `mongodump`.
+- Background jobs (milestone 4): dumps run in the background with live progress, cancel, a
+  summary or readable error at the end, the full tool log and the equivalent command (both
+  copyable); a Jobs button in the status bar and a toast when a job ends; ADR 0010.
 
 ### Security
 
 - Connection secrets are stored only in the OS keychain and never sent back to the webview;
   connection strings are redacted in logs and error messages.
+- The bundled tools receive credentials in a private temporary file, never on the command line.
 
 ### Not yet implemented
 

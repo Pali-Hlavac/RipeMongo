@@ -36,6 +36,8 @@ src/
 | `connections`     | Sidebar, editor, overview tab, import/export, palette commands | [connections](../features/connections.md)               |
 | `catalog`         | Database tree, collection header, create/rename/drop dialogs   | [navigation](../features/navigation.md)                 |
 | `documents`       | Paged documents, views, query bar, insert/edit/clone/delete    | [documents](../features/documents.md)                   |
+| `jobs`            | Jobs list/log caches, job events, status-bar button, panel     | [tools](../features/tools.md)                           |
+| `tools`           | Dump dialog (later restore, import, export, copy)              | [tools](../features/tools.md)                           |
 
 ## State rules
 

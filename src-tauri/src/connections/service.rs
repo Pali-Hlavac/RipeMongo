@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 use super::client::open_client;
 use super::registry::{ActiveConnection, ConnectionRegistry};
 use super::repository::ConnectionRepository;
+use super::tool::ToolConnection;
 use super::{
     delete_secrets, fetch_server_info, validate_config, validate_profile, ActiveConnectionInfo,
     ConnectionConfig, ConnectionError, ConnectionProfile, ConnectionSecrets, SecretUpdates,
@@ -128,6 +129,7 @@ impl ConnectionManager {
             .insert(ActiveConnection::new(
                 opened.client,
                 info.clone(),
+                opened.effective,
                 opened.tunnel,
             ))
             .await;
@@ -149,6 +151,18 @@ impl ConnectionManager {
             .await
             .map(|active| active.client.clone())
             .ok_or_else(|| ConnectionError::NotConnected(id.to_owned()))
+    }
+
+    /// Connection details for a bundled tool; the connection must be open. Holding the
+    /// result keeps its SSH tunnel open, even if the user disconnects meanwhile.
+    pub async fn tool_connection(&self, id: &str) -> Result<ToolConnection> {
+        let active = self
+            .registry
+            .get(id)
+            .await
+            .ok_or_else(|| ConnectionError::NotConnected(id.to_owned()))?;
+        let secrets = ConnectionSecrets::load(self.secrets.as_ref(), id)?;
+        Ok(ToolConnection::new(active, &secrets))
     }
 
     /// All live connections.

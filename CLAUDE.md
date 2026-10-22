@@ -27,8 +27,10 @@ React feature component
   `src-tauri/src/ipc.rs` are exported to `src/shared/ipc/bindings.ts` (`pnpm bindings`).
 - **Errors**: each domain has a `thiserror` enum; it converts into the single serializable
   `AppError { code, message, hint }` (`src-tauri/src/error.rs`). Messages are for end users.
-- **Background jobs** (milestone 4): cancellable tokio tasks in a job registry that report
-  progress through Tauri events. See [docs/architecture/background-jobs.md](docs/architecture/background-jobs.md).
+- **Background jobs**: `jobs::JobRegistry` runs cancellable tokio tasks that report progress
+  and log lines through typed events (`JobUpdated`, `JobLogged`); the frontend keeps jobs in
+  TanStack Query. Tools run inside jobs via `tools::run::run_tool`, credentials in a temp
+  `--config` file. See [docs/architecture/background-jobs.md](docs/architecture/background-jobs.md).
 - **Sidecars**: mongo-tools binaries in `src-tauri/binaries/` (git-ignored), fetched by
   `pnpm sidecars` with a pinned version + SHA-256 checks, found and started by the `tools`
   module. See [docs/architecture/sidecars.md](docs/architecture/sidecars.md).

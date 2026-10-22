@@ -130,10 +130,10 @@ favorite summary wrapping, and history removal when a connection is deleted.
 ### M4 — Tools: dump, restore, import, export, copy
 
 - [x] Sidecar fetch script (pinned version, SHA-256 verification), bundling for all 4 targets (installers built and checked on Windows; macOS/Linux packages come with the M8 release workflow)
-- [ ] Background job registry: progress events, cancel, logs — ADR 0010
+- [x] Background job registry: progress events, cancel, logs — ADR 0010
 - [ ] Dump UI: server / databases / collections, query filter, gzip, archive, oplog, include/exclude, parallelism
 - [ ] Restore UI: drop before restore, `nsFrom`/`nsTo`, dry run
-- [ ] Live progress, cancel, readable errors, copyable log, equivalent CLI command
+- [x] Live progress, cancel, readable errors, copyable log, equivalent CLI command
 - [ ] Saved dump profiles (one-click re-run)
 - [ ] JSON/CSV import and export per collection with field selection and type mapping
 - [ ] Copy collection/database between connections
@@ -169,8 +169,15 @@ Decisions for M4 (details in ADRs 0009 and 0010 as they are written):
   `tool_command`, `get_tools_info`), About shows the tools version, CI fetches the tools,
   ADR 0009. `pnpm app:build` verified on Windows: the tools and licenses land next to
   `ripemongo.exe`; NSIS 21.4 MiB, MSI 28.6 MiB.
-- Slice 2 next: `jobs` module (registry, events, commands), `tools/run.rs` + credentials file,
-  `ConnectionManager::tool_connection`, dump job, jobs panel and dump dialog.
+- Slice 2 complete: `jobs` module (registry, throttled `JobUpdated`/`JobLogged` events,
+  commands, tests), `tools/run.rs` (log, progress parser, cancel → kill, `Failed:` → error),
+  credentials in a temp `--config` file, `ConnectionManager::tool_connection` (keeps the SSH
+  tunnel open), `tools/dump/` + `start_dump`, `tests/dump.rs` (SCRAM auth, folder, gzip
+  archive, failure). Frontend `features/jobs` (events → TanStack Query, status-bar button,
+  panel, log dialog) and `features/tools` (dump dialog from the sidebar menus). ADR 0010,
+  user guide `backups.md`, feature doc `tools.md`.
+- Slice 3 next: dump query filter, `--oplog`, include/exclude namespaces, parallelism, saved
+  dump profiles (one-click re-run).
 
 ### M5 — Aggregation
 
@@ -208,7 +215,7 @@ Decisions for M4 (details in ADRs 0009 and 0010 as they are written):
 | 0001–0007 | Tauri, Rust owns DB, tauri-specta, frontend stack, organization, error model, keychain | M1        | Accepted |
 | 0008      | Encrypted connection export                                                            | M2        | Accepted |
 | 0009      | Bundled mongo-tools sidecars                                                           | M4        | Accepted |
-| 0010      | Background job model                                                                   | M4        | Planned  |
+| 0010      | Background job model                                                                   | M4        | Accepted |
 | 0011      | Cursor streaming and pagination                                                        | M3        | Accepted |
 | 0012      | Extended JSON as the editing format                                                    | M3        | Accepted |
 | 0013      | SSH tunnels via russh, forcing `directConnection`                                      | M2        | Accepted |

@@ -46,6 +46,11 @@ const APP_COMMANDS: &[&str] = &[
     "preview_delete_many",
     "delete_many",
     "get_tools_info",
+    "list_jobs",
+    "get_job_log",
+    "cancel_job",
+    "dismiss_job",
+    "start_dump",
 ];
 
 /// Common-Controls v6 manifest, embedded into every linked artifact on Windows.

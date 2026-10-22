@@ -10,8 +10,9 @@ flow), key files, edge cases and limitations, and how to test it.
 | [Connections](connections.md)                                | Implemented (M2) |
 | [Navigation](navigation.md): databases and collections       | Implemented (M3) |
 | [Documents](documents.md): views, paging, query bar, history | Implemented (M3) |
-| Editing documents                                            | Planned (M3)     |
-| Import / export, dump / restore, copy data                   | Planned (M4)     |
+| Editing documents (in [documents](documents.md))             | Implemented (M3) |
+| [Tools](tools.md): dump with background jobs                 | Partial (M4)     |
+| Import / export, restore, copy data                          | Planned (M4)     |
 | Aggregation                                                  | Planned (M5)     |
 | Indexes, explain, validation                                 | Planned (M6)     |
 | Schema, performance                                          | Planned (M7)     |

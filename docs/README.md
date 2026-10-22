@@ -19,7 +19,7 @@ the architecture overview, then the docs for the feature they are touching.
 | [ipc.md](architecture/ipc.md)                               | Command list, events, error model, type generation |
 | [backend-modules.md](architecture/backend-modules.md)       | One section per Rust module                        |
 | [frontend-structure.md](architecture/frontend-structure.md) | Features, shared code, state, styling              |
-| [background-jobs.md](architecture/background-jobs.md)       | Cancellable jobs with progress events (planned M4) |
+| [background-jobs.md](architecture/background-jobs.md)       | Cancellable jobs with progress and log events      |
 | [sidecars.md](architecture/sidecars.md)                     | Bundled mongo-tools: versions, checksums, bundling |
 | [security.md](architecture/security.md)                     | Secrets, capabilities, CSP, redaction              |
 

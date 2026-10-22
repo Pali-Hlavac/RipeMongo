@@ -47,6 +47,11 @@
     "allow-update-many",
     "allow-preview-delete-many",
     "allow-delete-many",
-    "allow-get-tools-info"
+    "allow-get-tools-info",
+    "allow-list-jobs",
+    "allow-get-job-log",
+    "allow-cancel-job",
+    "allow-dismiss-job",
+    "allow-start-dump"
   ]
 }

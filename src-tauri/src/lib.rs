@@ -8,6 +8,7 @@ pub mod documents;
 pub mod ejson;
 pub mod error;
 mod ipc;
+pub mod jobs;
 mod logging;
 pub mod mongo;
 pub mod query_history;
@@ -35,6 +36,7 @@ pub fn run() {
             settings::init(app)?;
             connections::init(app)?;
             query_history::init(app)?;
+            jobs::init(app);
             Ok(())
         })
         .run(tauri::generate_context!());

@@ -48,6 +48,11 @@ and reload/print shortcuts in production builds.
   rejected (ADR 0013).
 - Query history and favorites (`query-history.json`) stay on this computer; they may contain
   values typed into filters, never credentials.
+- The bundled tools receive the connection string (with password) in a temporary YAML file
+  passed as `--config`, created readable only by the user (`0600` on Unix, the per-user temp
+  folder on Windows) and deleted when the tool exits, so it never appears in a process list.
+  The command shown in the app is built without secrets. Tools are started from Rust only;
+  the webview has no shell or process permission.
 - Import/export paths come from native dialogs (`dialog:allow-open`, `dialog:allow-save`);
   imports are capped at 10 MiB.
 

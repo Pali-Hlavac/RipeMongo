@@ -14,11 +14,12 @@ that supersedes the old one, and update the old one's status.
 | [0007](0007-secrets-in-os-keychain.md)               | Secrets only in the OS keychain                    | Accepted |
 | [0008](0008-encrypted-connection-export.md)          | Encrypted connection export                        | Accepted |
 | [0009](0009-bundled-mongo-tools.md)                  | Bundle the MongoDB Database Tools as sidecars      | Accepted |
+| [0010](0010-background-jobs.md)                      | Background jobs as cancellable tokio tasks         | Accepted |
 | [0011](0011-paging-documents.md)                     | Page documents with skip/limit plus one            | Accepted |
 | [0012](0012-extended-json.md)                        | Canonical Extended JSON on the wire, shell syntax  | Accepted |
 | [0013](0013-ssh-tunnels.md)                          | SSH tunnels via russh, forcing a direct connection | Accepted |
 
-Planned: 0010 background job model ·
+Planned:
 0014 no mongosh in v1 · 0015 testing strategy ·
 0016 pipeline code export in the frontend.
 

@@ -1,7 +1,15 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { ChevronRightIcon, DatabaseIcon, PlusIcon, RefreshCwIcon, Trash2Icon } from "lucide-react";
+import {
+  ArchiveIcon,
+  ChevronRightIcon,
+  DatabaseIcon,
+  PlusIcon,
+  RefreshCwIcon,
+  Trash2Icon,
+} from "lucide-react";
 import { useId } from "react";
 
+import { useDumpDialog } from "@/features/tools";
 import { cn } from "@/shared/lib/cn";
 import { formatBytes } from "@/shared/lib/format";
 import { DropdownMenuItem, DropdownMenuSeparator } from "@/shared/ui/dropdown-menu";
@@ -67,6 +75,13 @@ export function DatabaseNode({ connectionId, info }: DatabaseNodeProps) {
             }}
           >
             <PlusIcon aria-hidden /> Create collection…
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onSelect={() => {
+              useDumpDialog.getState().open({ connectionId, database: name, collection: null });
+            }}
+          >
+            <ArchiveIcon aria-hidden /> Dump database…
           </DropdownMenuItem>
           <DropdownMenuItem
             onSelect={() => {
