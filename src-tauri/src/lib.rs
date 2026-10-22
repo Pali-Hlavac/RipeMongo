@@ -2,6 +2,7 @@
 
 mod app_info;
 pub mod connections;
+pub mod ejson;
 pub mod error;
 mod ipc;
 mod logging;
