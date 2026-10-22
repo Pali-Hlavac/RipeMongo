@@ -10,7 +10,7 @@ use std::path::{Path, PathBuf};
 use specta_typescript::Typescript;
 use tauri_specta::{collect_commands, Builder};
 
-use crate::{app_info, settings};
+use crate::{app_info, connections, settings};
 
 /// Location of the generated bindings, relative to the crate root.
 const BINDINGS_RELATIVE_PATH: &str = "../src/shared/ipc/bindings.ts";
@@ -21,11 +21,25 @@ const BINDINGS_HEADER: &str =
 
 /// Builds the tauri-specta registry of every command the frontend may call.
 pub fn builder() -> Builder<tauri::Wry> {
-    Builder::<tauri::Wry>::new().commands(collect_commands![
-        app_info::commands::get_app_info,
-        settings::commands::get_settings,
-        settings::commands::update_settings,
-    ])
+    Builder::<tauri::Wry>::new()
+        // The UI always sends complete objects, so one shape per type is enough.
+        .disable_serde_phases()
+        .commands(collect_commands![
+            app_info::commands::get_app_info,
+            settings::commands::get_settings,
+            settings::commands::update_settings,
+            connections::commands::list_connections,
+            connections::commands::save_connection,
+            connections::commands::delete_connection,
+            connections::commands::duplicate_connection,
+            connections::commands::get_stored_secrets,
+            connections::commands::parse_connection_string,
+            connections::commands::build_connection_string,
+            connections::commands::test_connection,
+            connections::commands::open_connection,
+            connections::commands::close_connection,
+            connections::commands::list_active_connections,
+        ])
 }
 
 /// Absolute path of the generated TypeScript bindings.

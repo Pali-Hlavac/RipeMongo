@@ -8,27 +8,46 @@ export const commands = {
 	/**  Returns the app name, version and platform. */
 	getAppInfo: () => __TAURI_INVOKE<AppInfo>("get_app_info"),
 	/**  Returns the persisted settings, or defaults on first launch. */
-	getSettings: () => typedError<Settings_Serialize, AppError_Serialize>(__TAURI_INVOKE("get_settings")),
+	getSettings: () => typedError<Settings, AppError>(__TAURI_INVOKE("get_settings")),
 	/**  Replaces the persisted settings and returns what was saved. */
-	updateSettings: (settings: Settings_Deserialize) => typedError<Settings_Serialize, AppError_Serialize>(__TAURI_INVOKE("update_settings", { settings })),
+	updateSettings: (settings: Settings) => typedError<Settings, AppError>(__TAURI_INVOKE("update_settings", { settings })),
+	/**  All saved connections. */
+	listConnections: () => typedError<ConnectionProfile[], AppError>(__TAURI_INVOKE("list_connections")),
+	/**  Creates (empty `id`) or updates a connection and its keychain secrets. */
+	saveConnection: (profile: ConnectionProfile, secrets: SecretUpdates) => typedError<ConnectionProfile, AppError>(__TAURI_INVOKE("save_connection", { profile, secrets })),
+	/**  Deletes a connection, its secrets, and closes it if connected. */
+	deleteConnection: (connectionId: string) => typedError<null, AppError>(__TAURI_INVOKE("delete_connection", { connectionId })),
+	/**  Copies a connection (including secrets) as "<name> (copy)". */
+	duplicateConnection: (connectionId: string) => typedError<ConnectionProfile, AppError>(__TAURI_INVOKE("duplicate_connection", { connectionId })),
+	/**  Which secrets are stored for a connection. Secret values never leave the backend. */
+	getStoredSecrets: (connectionId: string) => typedError<StoredSecrets, AppError>(__TAURI_INVOKE("get_stored_secrets", { connectionId })),
+	/**  Parses a connection string into structured settings plus any secrets it contained. */
+	parseConnectionString: (uri: string) => typedError<ParsedConnectionString, AppError>(__TAURI_INVOKE("parse_connection_string", { uri })),
+	/**  Renders settings as a connection string without secrets (safe to display). */
+	buildConnectionString: (config: ConnectionConfig) => __TAURI_INVOKE<string>("build_connection_string", { config }),
+	/**
+	 *  Tries unsaved settings and reports the server. `connection_id` lets unchanged secret
+	 *  fields fall back to the stored values of an existing connection.
+	 */
+	testConnection: (config: ConnectionConfig, connectionId: string | null, secrets: SecretUpdates) => typedError<ServerInfo, AppError>(__TAURI_INVOKE("test_connection", { config, connectionId, secrets })),
+	/**  Connects a saved connection (no-op if already connected). */
+	openConnection: (connectionId: string) => typedError<ActiveConnectionInfo, AppError>(__TAURI_INVOKE("open_connection", { connectionId })),
+	/**  Disconnects a connection. */
+	closeConnection: (connectionId: string) => typedError<null, AppError>(__TAURI_INVOKE("close_connection", { connectionId })),
+	/**  All live connections. */
+	listActiveConnections: () => typedError<ActiveConnectionInfo[], AppError>(__TAURI_INVOKE("list_active_connections")),
 };
 
 /* Types */
-/**  Serializable error returned by every fallible Tauri command. */
-export type AppError = AppError_Serialize | AppError_Deserialize;
-
-/**  Serializable error returned by every fallible Tauri command. */
-export type AppError_Deserialize = {
-	/**  Category used by the UI to pick an icon, retry policy, etc. */
-	code: ErrorCode,
-	/**  What happened, phrased for an end user. */
-	message: string,
-	/**  What the user can do next, if there is anything useful to suggest. */
-	hint?: string | null,
+/**  Public description of a live connection. */
+export type ActiveConnectionInfo = {
+	connectionId: string,
+	server: ServerInfo,
+	viaSsh: boolean,
 };
 
 /**  Serializable error returned by every fallible Tauri command. */
-export type AppError_Serialize = {
+export type AppError = {
 	/**  Category used by the UI to pick an icon, retry policy, etc. */
 	code: ErrorCode,
 	/**  What happened, phrased for an end user. */
@@ -49,6 +68,59 @@ export type AppInfo = {
 	arch: string,
 };
 
+/**  Authentication mechanism and its non-secret parameters. */
+export type AuthConfig = { mechanism: "none" } | 
+/**  Username/password (SCRAM-SHA-1/256). Password lives in the keychain. */
+{ mechanism: "scram"; username: string; authSource: string | null; variant: ScramVariant } | 
+/**  Client-certificate authentication (requires TLS with a client certificate). */
+{ mechanism: "x509"; username: string | null } | 
+/**  LDAP proxy authentication (`PLAIN`, `authSource=$external`). */
+{ mechanism: "ldap"; username: string } | 
+/**  AWS IAM. Without an access key id the driver uses environment/instance credentials. */
+{ mechanism: "aws"; accessKeyId: string | null } | 
+/**  OIDC machine workflow via a cloud environment provider. */
+{ mechanism: "oidc"; username: string | null; environment: OidcEnvironment | null; tokenResource: string | null };
+
+/**  Color label shown next to a connection (e.g. red for production). */
+export type ConnectionColor = "red" | "orange" | "amber" | "green" | "teal" | "blue" | "purple" | "pink";
+
+/**  Everything needed to reach a deployment, minus secrets. */
+export type ConnectionConfig = {
+	scheme: Scheme,
+	hosts: HostPort[],
+	auth: AuthConfig,
+	tls: TlsConfig,
+	replicaSet: string | null,
+	readPreference: ReadPreferenceMode | null,
+	directConnection: boolean | null,
+	appName: string | null,
+	/**  Database in the URI path; also the default auth database for SCRAM. */
+	defaultDatabase: string | null,
+	extraOptions: UriOption[],
+	ssh: SshConfig | null,
+};
+
+/**  A saved connection as stored in `connections.json` (secrets live in the keychain). */
+export type ConnectionProfile = {
+	/**  Stable unique id (UUID v4). Empty when the UI creates a new connection. */
+	id: string,
+	name: string,
+	/**  Folder the connection is grouped under in the sidebar; `None` = top level. */
+	folder: string | null,
+	favorite: boolean,
+	color: ConnectionColor | null,
+	config: ConnectionConfig,
+};
+
+/**  Secrets a connection may need. Only lives in memory while connecting or editing. */
+export type ConnectionSecrets = {
+	password: string | null,
+	awsSessionToken: string | null,
+	tlsKeyPassword: string | null,
+	sshPassword: string | null,
+	sshKeyPassphrase: string | null,
+};
+
 /**  Stable, machine-readable error category the frontend can branch on. */
 export type ErrorCode = 
 /**  An unexpected failure inside the app; usually a bug. */
@@ -56,34 +128,129 @@ export type ErrorCode =
 /**  Reading or writing a local file failed. */
 "IO" | 
 /**  Data on disk or from the user could not be parsed. */
-"INVALID_DATA";
+"INVALID_DATA" | 
+/**  The user-provided input is incomplete or contradictory. */
+"INVALID_INPUT" | 
+/**  The requested item (e.g. a saved connection) does not exist. */
+"NOT_FOUND" | 
+/**  The OS keychain is unavailable or refused access. */
+"KEYCHAIN" | 
+/**  The MongoDB server could not be reached or selected. */
+"CONNECTION_FAILED" | 
+/**  The server rejected the credentials. */
+"AUTH_FAILED" | 
+/**  Establishing or using the SSH tunnel failed. */
+"SSH_FAILED";
+
+/**  One seed host. `port` is `None` for SRV records or when the default port is meant. */
+export type HostPort = {
+	host: string,
+	port: number | null,
+};
+
+/**  Built-in OIDC machine-workflow providers supported by the driver. */
+export type OidcEnvironment = "azure" | "gcp" | "k8s";
 
 /**
- *  All persisted user preferences. Unknown fields are ignored and missing fields
- *  fall back to defaults, so older and newer app versions can share the file.
+ *  Result of parsing a pasted connection string. Secrets found in the URI (password,
+ *  session token, key password) are returned separately so the UI can route them into the
+ *  keychain-backed secret fields instead of the saved config.
  */
-export type Settings = Settings_Serialize | Settings_Deserialize;
+export type ParsedConnectionString = {
+	config: ConnectionConfig,
+	secrets: ConnectionSecrets,
+};
 
-/**
- *  All persisted user preferences. Unknown fields are ignored and missing fields
- *  fall back to defaults, so older and newer app versions can share the file.
- */
-export type Settings_Deserialize = {
-	theme?: ThemePreference,
+/**  Read preference modes. */
+export type ReadPreferenceMode = "primary" | "primaryPreferred" | "secondary" | "secondaryPreferred" | "nearest";
+
+/**  `mongodb://` or `mongodb+srv://`. */
+export type Scheme = "standard" | "srv";
+
+/**  SCRAM flavour; `Auto` lets the server negotiate. */
+export type ScramVariant = "auto" | "sha1" | "sha256";
+
+/**  What to do with one stored secret when saving a connection. */
+export type SecretUpdate = 
+/**  Leave the stored value untouched. */
+{ action: "keep" } | 
+/**  Store a new value. */
+{ action: "set"; value: string } | 
+/**  Remove the stored value. */
+{ action: "clear" };
+
+/**  Updates for every secret of a connection. */
+export type SecretUpdates = {
+	password: SecretUpdate,
+	awsSessionToken: SecretUpdate,
+	tlsKeyPassword: SecretUpdate,
+	sshPassword: SecretUpdate,
+	sshKeyPassphrase: SecretUpdate,
+};
+
+/**  What the overview tab shows about a connected server. */
+export type ServerInfo = {
+	/**  MongoDB server version, e.g. `8.0.4`. */
+	version: string,
+	topology: TopologyKind,
+	replicaSetName: string | null,
+	/**  Replica set members as reported by the server (`host:port`). */
+	hosts: string[],
+	primary: string | null,
+	/**  Whether the member we talk to accepts writes. */
+	writable: boolean,
 };
 
 /**
  *  All persisted user preferences. Unknown fields are ignored and missing fields
  *  fall back to defaults, so older and newer app versions can share the file.
  */
-export type Settings_Serialize = {
-	theme: ThemePreference,
+export type Settings = {
+	theme?: ThemePreference,
+};
+
+/**  How to authenticate against the SSH server. Secrets live in the keychain. */
+export type SshAuthMethod = { method: "password" } | { method: "privateKey"; keyFile: string };
+
+/**  SSH tunnel through a bastion host. Only single-host, non-SRV targets are supported. */
+export type SshConfig = {
+	host: string,
+	port: number,
+	username: string,
+	auth: SshAuthMethod,
+};
+
+/**  Which secrets are stored for a connection; lets the UI show "saved" placeholders. */
+export type StoredSecrets = {
+	password: boolean,
+	awsSessionToken: boolean,
+	tlsKeyPassword: boolean,
+	sshPassword: boolean,
+	sshKeyPassphrase: boolean,
 };
 
 /**  Which color scheme the UI uses. */
 export type ThemePreference = 
 /**  Follow the operating system setting. */
 "system" | "light" | "dark";
+
+/**  TLS settings. `enabled: None` keeps the driver default (on for SRV, off otherwise). */
+export type TlsConfig = {
+	enabled: boolean | null,
+	caFile: string | null,
+	certificateKeyFile: string | null,
+	allowInvalidCertificates: boolean,
+	allowInvalidHostnames: boolean,
+};
+
+/**  Deployment shape as seen from the connected member. */
+export type TopologyKind = "standalone" | "replicaSet" | "sharded";
+
+/**  A URI option RipeMongo has no dedicated field for; preserved verbatim and in order. */
+export type UriOption = {
+	key: string,
+	value: string,
+};
 
 /* Tauri Specta runtime */
 async function typedError<T, E>(result: Promise<T>): Promise<{ status: "ok"; data: T } | { status: "error"; error: E }> {

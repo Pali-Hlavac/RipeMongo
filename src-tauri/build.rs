@@ -4,7 +4,22 @@
 //! `allow-<command>` permission that has to be granted in `capabilities/`.
 //! Unlisted commands are rejected at runtime.
 
-const APP_COMMANDS: &[&str] = &["get_app_info", "get_settings", "update_settings"];
+const APP_COMMANDS: &[&str] = &[
+    "get_app_info",
+    "get_settings",
+    "update_settings",
+    "list_connections",
+    "save_connection",
+    "delete_connection",
+    "duplicate_connection",
+    "get_stored_secrets",
+    "parse_connection_string",
+    "build_connection_string",
+    "test_connection",
+    "open_connection",
+    "close_connection",
+    "list_active_connections",
+];
 
 /// Common-Controls v6 manifest, embedded into every linked artifact on Windows.
 const WINDOWS_MANIFEST: &str = "windows-app-manifest.xml";

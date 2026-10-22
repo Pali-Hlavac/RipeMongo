@@ -1,10 +1,13 @@
 //! Library root: wires domain modules, the typed IPC builder and the Tauri runtime together.
 
 mod app_info;
-mod error;
+pub mod connections;
+pub mod error;
 mod ipc;
 mod logging;
+pub mod secrets;
 mod settings;
+pub mod ssh;
 mod storage;
 
 /// Starts the desktop application. Blocks until the last window closes.
@@ -22,6 +25,7 @@ pub fn run() {
         .setup(move |app| {
             builder.mount_events(app);
             settings::init(app)?;
+            connections::init(app)?;
             Ok(())
         })
         .run(tauri::generate_context!());

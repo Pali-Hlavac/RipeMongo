@@ -1,7 +1,7 @@
 /** TanStack Query hooks for user settings persisted by the backend. */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import type { Settings_Serialize as Settings } from "@/shared/ipc/bindings";
+import type { Settings } from "@/shared/ipc/bindings";
 import { commands, unwrap } from "@/shared/ipc/client";
 
 export const settingsQueryKey = ["settings"] as const;

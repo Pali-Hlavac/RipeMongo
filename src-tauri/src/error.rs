@@ -16,6 +16,18 @@ pub enum ErrorCode {
     Io,
     /// Data on disk or from the user could not be parsed.
     InvalidData,
+    /// The user-provided input is incomplete or contradictory.
+    InvalidInput,
+    /// The requested item (e.g. a saved connection) does not exist.
+    NotFound,
+    /// The OS keychain is unavailable or refused access.
+    Keychain,
+    /// The MongoDB server could not be reached or selected.
+    ConnectionFailed,
+    /// The server rejected the credentials.
+    AuthFailed,
+    /// Establishing or using the SSH tunnel failed.
+    SshFailed,
 }
 
 /// Serializable error returned by every fallible Tauri command.

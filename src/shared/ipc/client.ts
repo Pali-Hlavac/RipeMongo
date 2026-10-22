@@ -3,7 +3,7 @@
  * {@link unwrap} (fallible commands) or {@link call} (infallible ones). Both convert
  * every failure into an {@link IpcError}, so UI code handles exactly one error type.
  */
-import type { AppError_Serialize, ErrorCode } from "./bindings";
+import type { AppError, ErrorCode } from "./bindings";
 
 export { commands } from "./bindings";
 
@@ -28,7 +28,7 @@ export class IpcError extends Error {
 }
 
 /** Narrows an unknown value to the backend error shape. */
-export function isAppError(value: unknown): value is AppError_Serialize {
+export function isAppError(value: unknown): value is AppError {
   if (typeof value !== "object" || value === null) return false;
   const candidate = value as Record<string, unknown>;
   return typeof candidate.code === "string" && typeof candidate.message === "string";
