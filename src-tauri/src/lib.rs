@@ -5,6 +5,7 @@ mod error;
 mod ipc;
 mod logging;
 mod settings;
+mod storage;
 
 /// Starts the desktop application. Blocks until the last window closes.
 pub fn run() {
