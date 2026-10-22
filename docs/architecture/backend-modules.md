@@ -104,7 +104,8 @@ Every domain module follows the same layout:
 - **Purpose:** recent (30) and favorite (100, unique names) queries per
   `<connectionId>/<db>.<collection>`, in `query-history.json` in the app-config directory.
   `QueryHistory` does a locked read-modify-write through `storage::JsonFile`; `init` registers
-  it as managed state.
+  it as managed state. Deleting a connection also removes its saved queries
+  (`forget_connection`).
 - **Errors:** `QueryHistoryError::{Storage, Invalid}` → `IO`/`INVALID_DATA`/`INVALID_INPUT`.
 - **Docs:** [features/documents.md](../features/documents.md).
 

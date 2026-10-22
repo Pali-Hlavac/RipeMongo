@@ -26,13 +26,17 @@ export function FieldRow({ name, value, depth }: FieldRowProps) {
   const [expanded, setExpanded] = useState(false);
   const nested = children(value);
   const indent = { paddingLeft: depth * INDENT_PX };
-  const key = <span className="font-mono text-syntax-key">{name}</span>;
+  const key = (
+    <span className="shrink-0 font-mono">
+      <span className="text-syntax-key">{name}</span>
+      <span className="text-muted-foreground">:</span>
+    </span>
+  );
 
   if (nested === null || nested.length === 0) {
     return (
       <li className="flex min-w-0 items-baseline gap-1.5 py-px pl-5" style={indent}>
         {key}
-        <span className="text-muted-foreground">:</span>
         <ValueText value={value} mode="shell" className="min-w-0 truncate" />
       </li>
     );
@@ -57,7 +61,6 @@ export function FieldRow({ name, value, depth }: FieldRowProps) {
           aria-hidden
         />
         {key}
-        <span className="text-muted-foreground">:</span>
         <ValueText value={value} mode="preview" />
       </button>
       {expanded && (

@@ -9,6 +9,7 @@ use super::{
     SecretUpdates, ServerInfo, StoredSecrets,
 };
 use crate::error::CommandResult;
+use crate::query_history::QueryHistory;
 
 /// All saved connections.
 #[tauri::command]
@@ -30,14 +31,20 @@ pub async fn save_connection(
     Ok(manager.save(profile, &secrets)?)
 }
 
-/// Deletes a connection, its secrets, and closes it if connected.
+/// Deletes a connection, its secrets and its saved queries, and closes it if connected.
 #[tauri::command]
 #[specta::specta]
 pub async fn delete_connection(
     manager: State<'_, ConnectionManager>,
+    history: State<'_, QueryHistory>,
     connection_id: String,
 ) -> CommandResult<()> {
-    Ok(manager.delete(&connection_id).await?)
+    manager.delete(&connection_id).await?;
+    // The connection is gone either way; leftover history is never shown, so only log.
+    if let Err(error) = history.forget_connection(&connection_id) {
+        tracing::warn!(%error, "could not remove the query history of a deleted connection");
+    }
+    Ok(())
 }
 
 /// Copies a connection (including secrets) as "<name> (copy)".

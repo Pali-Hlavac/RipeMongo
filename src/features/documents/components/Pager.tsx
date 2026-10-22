@@ -15,11 +15,13 @@ interface PagerProps {
   shown: number;
   hasMore: boolean;
   count: DocumentCount | undefined;
+  /** False while the page is loading for the first time or failed: no range is shown. */
+  ready: boolean;
   onChange: (patch: { skip?: number; pageSize?: number }) => void;
 }
 
 /** "1–20 of 1,500", page size, previous / next. */
-export function Pager({ skip, pageSize, shown, hasMore, count, onChange }: PagerProps) {
+export function Pager({ skip, pageSize, shown, hasMore, count, ready, onChange }: PagerProps) {
   const sizeId = useId();
   const range = shown === 0 ? "0" : `${formatCount(skip + 1)}–${formatCount(skip + shown)}`;
   const total =
@@ -45,8 +47,8 @@ export function Pager({ skip, pageSize, shown, hasMore, count, onChange }: Pager
         ))}
       </NativeSelect>
       <span aria-live="polite" className="whitespace-nowrap text-muted-foreground tabular-nums">
-        {range}
-        {total}
+        {ready && range}
+        {ready && total}
       </span>
       <Button
         variant="ghost"

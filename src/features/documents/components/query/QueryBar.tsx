@@ -154,7 +154,7 @@ export function QueryBar({ target, applied, onApply, fields, error }: QueryBarPr
                   min={0}
                   step={step}
                   placeholder={placeholder}
-                  className={cn(fieldClassName, "h-8")}
+                  className={cn(fieldClassName, "h-8 placeholder:text-muted-foreground/50")}
                   value={draft[key] === 0 ? "" : draft[key]}
                   onChange={(event) => {
                     const value = Math.round(Number(event.target.value));

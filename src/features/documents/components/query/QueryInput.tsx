@@ -106,7 +106,7 @@ export function QueryInput({
         aria-invalid={invalid ? true : undefined}
         autoComplete="off"
         spellCheck={false}
-        className={cn(fieldClassName, "h-8 font-mono")}
+        className={cn(fieldClassName, "h-8 font-mono placeholder:text-muted-foreground/50")}
         value={value}
         onChange={(event) => {
           onChange(event.target.value);

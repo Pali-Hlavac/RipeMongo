@@ -15,7 +15,7 @@ export const commands = {
 	listConnections: () => typedError<ConnectionProfile[], AppError>(__TAURI_INVOKE("list_connections")),
 	/**  Creates (empty `id`) or updates a connection and its keychain secrets. */
 	saveConnection: (profile: ConnectionProfile, secrets: SecretUpdates) => typedError<ConnectionProfile, AppError>(__TAURI_INVOKE("save_connection", { profile, secrets })),
-	/**  Deletes a connection, its secrets, and closes it if connected. */
+	/**  Deletes a connection, its secrets and its saved queries, and closes it if connected. */
 	deleteConnection: (connectionId: string) => typedError<null, AppError>(__TAURI_INVOKE("delete_connection", { connectionId })),
 	/**  Copies a connection (including secrets) as "<name> (copy)". */
 	duplicateConnection: (connectionId: string) => typedError<ConnectionProfile, AppError>(__TAURI_INVOKE("duplicate_connection", { connectionId })),

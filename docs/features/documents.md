@@ -75,7 +75,6 @@ CollectionTabView (app) → CollectionDocuments (documents)
   `{ $date: { $numberLong: "…" } }`.
 - Suggestions only know fields of the documents on screen.
 - History keeps the text parts (filter, projection, sort, collation), not skip/limit/time.
-- History of a deleted connection stays in `query-history.json` (never shown again).
 - The table shows the fields of the loaded page only; a field that appears only on other pages
   has no column until you get there.
 

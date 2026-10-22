@@ -139,6 +139,22 @@ impl QueryHistory {
         })
     }
 
+    /// Removes every saved query of a connection (after the connection is deleted).
+    pub fn forget_connection(&self, connection_id: &str) -> Result<(), QueryHistoryError> {
+        let _guard = self
+            .update_lock
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let mut file = self.file.load()?;
+        let prefix = format!("{connection_id}/");
+        let before = file.collections.len();
+        file.collections.retain(|key, _| !key.starts_with(&prefix));
+        if file.collections.len() != before {
+            self.file.save(&file)?;
+        }
+        Ok(())
+    }
+
     fn update(
         &self,
         namespace: Namespace<'_>,

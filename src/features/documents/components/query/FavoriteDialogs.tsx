@@ -42,7 +42,7 @@ function SaveFavoriteForm({ onClose, target, query }: Omit<SaveFavoriteDialogPro
       open
       onClose={onClose}
       title="Save as favorite"
-      description={<span className="font-mono break-all">{describeQuery(parts)}</span>}
+      description={<span className="font-mono wrap-break-word">{describeQuery(parts)}</span>}
       submitLabel="Save favorite"
       canSubmit={name.trim() !== ""}
       pending={save.isPending}

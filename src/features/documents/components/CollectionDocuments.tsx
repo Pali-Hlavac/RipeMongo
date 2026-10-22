@@ -74,6 +74,7 @@ export function CollectionDocuments({ tabId, ...target }: CollectionDocumentsPro
         shown={documents.length}
         hasMore={pageHasMore(query, state.skip, documents.length, page.data?.hasMore ?? false)}
         count={visibleCount(query, count.data)}
+        ready={page.data !== undefined && !page.error}
       />
       <div
         className={cn(

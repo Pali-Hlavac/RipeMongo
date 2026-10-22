@@ -60,4 +60,4 @@ Click one to run it again. To keep the query that is in the bar now, choose **Sa
 favorite…** and give it a name. **Manage favorites…** lets you delete favorites.
 
 History and favorites are stored on this computer only, separately for each connection and
-collection.
+collection. Deleting a connection also deletes its history and favorites.

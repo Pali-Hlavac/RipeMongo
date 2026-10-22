@@ -17,6 +17,7 @@ interface DocumentsToolbarProps {
   shown: number;
   hasMore: boolean;
   count: DocumentCount | undefined;
+  ready: boolean;
 }
 
 /** View switcher, reload and pager above the documents. */
@@ -28,6 +29,7 @@ export function DocumentsToolbar({
   shown,
   hasMore,
   count,
+  ready,
 }: DocumentsToolbarProps) {
   return (
     <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-1.5">
@@ -55,6 +57,7 @@ export function DocumentsToolbar({
           shown={shown}
           hasMore={hasMore}
           count={count}
+          ready={ready}
           onChange={onChange}
         />
       </div>

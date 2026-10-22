@@ -108,8 +108,10 @@ Slices, in order: (1) database/collection admin backend + sidebar tree + dialogs
 4. Then slices 6 (bulk update/delete with preview + confirm-by-typing) and 7 (replica-set and
    sshd integration tests, docs, user guide, verification).
 
-The document views and query bar have not yet been clicked through in the real app; do it
-before slice 5 (ask the user first: it takes over the mouse).
+Verified in the real app (2026-10-22, MongoDB 8 in Docker, 120 nested sample documents): list,
+JSON and table views, paging, filter with field suggestions, sort, inline query errors, history
+and favorites. Fixed afterwards: colon spacing, dimmer placeholders, no pager range on errors,
+favorite summary wrapping, and history removal when a connection is deleted.
 
 ### M4 — Tools: dump, restore, import, export, copy
 

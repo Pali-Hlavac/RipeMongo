@@ -76,3 +76,18 @@ fn favorites_are_named_replaced_by_name_and_deleted() {
     let id = queries.favorites[0].id.clone();
     assert!(store.delete_favorite(NS, &id).unwrap().favorites.is_empty());
 }
+
+#[test]
+fn forgetting_a_connection_removes_only_its_queries() {
+    let dir = tempfile::tempdir().unwrap();
+    let store = history(&dir);
+    let other = Namespace {
+        connection_id: "c2",
+        ..NS
+    };
+    store.record(NS, filter("{ a: 1 }")).unwrap();
+    store.record(other, filter("{ b: 1 }")).unwrap();
+    store.forget_connection("c1").unwrap();
+    assert!(store.list(NS).unwrap().recent.is_empty());
+    assert_eq!(store.list(other).unwrap().recent.len(), 1);
+}
