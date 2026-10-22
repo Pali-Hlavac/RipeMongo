@@ -1,0 +1,34 @@
+# Architecture Decision Records
+
+Numbered, immutable records of significant decisions. To change a decision, write a new ADR
+that supersedes the old one, and update the old one's status.
+
+| ADR                                                  | Title                                           | Status   |
+| ---------------------------------------------------- | ----------------------------------------------- | -------- |
+| [0001](0001-use-tauri.md)                            | Use Tauri 2 for the desktop shell               | Accepted |
+| [0002](0002-rust-owns-database-access.md)            | Rust owns all database access                   | Accepted |
+| [0003](0003-generate-ipc-types-with-tauri-specta.md) | Generate IPC types with tauri-specta            | Accepted |
+| [0004](0004-frontend-stack.md)                       | Frontend stack                                  | Accepted |
+| [0005](0005-feature-and-domain-organization.md)      | Organize by feature (FE) and domain module (BE) | Accepted |
+| [0006](0006-error-model.md)                          | Single serializable error model                 | Accepted |
+| [0007](0007-secrets-in-os-keychain.md)               | Secrets only in the OS keychain                 | Accepted |
+
+Planned: 0008 encrypted connection export · 0009 bundled mongo-tools sidecars ·
+0010 background job model · 0011 cursor streaming · 0012 Extended JSON editing ·
+0013 SSH tunnels with `directConnection` · 0014 no mongosh in v1 · 0015 testing strategy ·
+0016 pipeline code export in the frontend.
+
+## Template
+
+```md
+# NNNN. Title
+
+- Status: Proposed | Accepted | Superseded by NNNN
+- Date: YYYY-MM-DD
+
+## Context
+
+## Decision
+
+## Consequences
+```
