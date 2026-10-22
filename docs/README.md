@@ -3,6 +3,10 @@
 Start here. New contributors (human or AI) should read [CLAUDE.md](../CLAUDE.md) first, then
 the architecture overview, then the docs for the feature they are touching.
 
+## User guide
+
+- [user-guide/](user-guide/README.md): how to use RipeMongo, written for end users
+
 ## Getting started
 
 - [getting-started.md](getting-started.md): set up a dev environment from zero, per OS

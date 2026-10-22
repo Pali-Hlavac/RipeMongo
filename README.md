@@ -39,5 +39,5 @@ See [docs/getting-started.md](docs/getting-started.md) for the full setup per OS
 
 ## Documentation
 
-Everything else lives in [docs/](docs/README.md): architecture, features, development guides and
+The [user guide](docs/user-guide/README.md) explains how to use the app. Everything else lives in [docs/](docs/README.md): architecture, features, development guides and
 decision records.

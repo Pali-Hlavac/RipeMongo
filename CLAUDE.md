@@ -137,7 +137,8 @@ from `index.ts`, add `docs/features/<name>.md`, and register palette commands in
 
 1. Read this file and the relevant `docs/features/*.md` before changing code.
 2. Follow the vertical slice order: backend → IPC → UI → tests → docs → changelog.
-3. Update the docs and `CHANGELOG.md` (`[Unreleased]`) with every change, and tick the
+3. Update the docs, the end-user guide (`docs/user-guide/`, plain language, no internals) and
+   `CHANGELOG.md` (`[Unreleased]`) with every change, and tick the
    checklist in `docs/roadmap.md` when a scope item is done.
 4. Never commit secrets, connection strings with passwords or sidecar binaries.
 5. Run `pnpm check` (lint, types, tests, clippy) before declaring work done.
