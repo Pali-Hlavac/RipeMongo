@@ -13,5 +13,8 @@ export function renderTab(tab: WorkspaceTab): ReactNode {
       return <WelcomeView paletteHotkey={PALETTE_HOTKEY} actions={<WelcomeActions />} />;
     case "connection":
       return <ConnectionOverview connectionId={tab.connectionId} />;
+    case "collection":
+      // Nothing opens collection tabs yet; the catalog/documents views are wired in M3.
+      return null;
   }
 }

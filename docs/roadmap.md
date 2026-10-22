@@ -69,6 +69,56 @@ Slices, in order: (1) database/collection admin backend + sidebar tree + dialogs
 (4) query bar with autocomplete, history, favorites; (5) CRUD + Monaco editor;
 (6) bulk update/delete with preview; (7) integration tests, docs, user guide, verification.
 
+#### Where we left off (2026-10-22, handoff)
+
+**Done and committed**
+
+- Slice 2 (done early, everything depends on it): `src-tauri/src/ejson/`: `parse_document`,
+  `parse_documents`, `parse_value` accept JSON, Extended JSON and mongosh syntax (unquoted keys,
+  single quotes, comments, trailing commas, `/re/i`, `ObjectId`, `ISODate`/`new Date`,
+  `NumberLong/Int/Decimal`, `UUID`, `BinData`, `Timestamp`, `MinKey/MaxKey`, `NaN`,
+  `Infinity`, `undefined`); errors carry line/column. `to_canonical_json` is the output format
+  for documents (lossless types). `serde_json` has `preserve_order` (field order matters).
+- Slice 1 backend: `src-tauri/src/mongo/` (`client`/`database` lookup via
+  `ConnectionManager::client`, `require_name`, `MongoError`, `driver_error` with server-code
+  mapping), `databases/` (list/create/drop), `collections/` (list, `$collStats` stats,
+  create standard/capped/time-series, create view, rename, drop). New error codes:
+  `NOT_CONNECTED`, `FORBIDDEN`, `TIMEOUT`, `OPERATION_FAILED`. Integration test
+  `src-tauri/tests/catalog.rs` passes against MongoDB 8 (note: MongoDB 7+ accepts re-creating an
+  identical collection).
+- Slice 1 frontend groundwork: `shared/components/ConfirmByTypingDialog.tsx` (+test),
+  `shared/lib/format.ts` (`formatBytes`, `formatCount`, `formatCompactCount`), workspace
+  `CollectionTab` type (`renderTab` returns `null` for it until the view exists).
+- End-user guide started in `docs/user-guide/` (README, getting-started, interface,
+  connections, keyboard-shortcuts). Keep it updated with every feature.
+
+**Next steps (slice 1 frontend), in order**
+
+1. New feature `src/features/catalog/`: `api/keys.ts` (`["catalog", connectionId, …]`),
+   `api/queries.ts` (`useDatabases`, `useCollections`, `useCollectionStats`, enabled only when
+   connected), `api/mutations.ts` (create/drop database, create collection/view, rename, drop;
+   invalidate `["catalog", connectionId]`; close or rename affected collection tabs via
+   `useTabsStore().closeTabs/renameTabs`).
+2. `store/dialogs.ts` for create-database / create-collection (kinds: standard, capped,
+   time-series, view) / rename / drop dialogs; drops use `ConfirmByTypingDialog`.
+3. Tree components: `DatabaseTree` → `DatabaseNode` (expand, size, ⋯ menu: create collection,
+   refresh, drop) → `CollectionNode` (icon by kind, compact doc count from stats, click opens
+   a `collection` tab with id `collection:<connectionId>:<db>.<coll>`, ⋯ menu: rename
+   (not for views), drop). Export a `CatalogConnectionMenuItems` (create database, refresh).
+4. Wire into `connections`: a per-connection expanded flag (small Zustand store), chevron in
+   `ConnectionItem`, render `DatabaseTree` under connected+expanded items, add the catalog
+   menu items to `ConnectionActionsMenu`, auto-expand after a successful connect.
+5. A `CollectionHeader` (name, kind, stats) for the collection tab; `renderTab` renders it
+   (documents come in slice 3).
+6. Tests (tree rendering with mocked `listDatabases`/`listCollections`, dialogs), docs
+   (`docs/features/navigation.md`, IPC table, backend-modules), user guide page
+   (`docs/user-guide/databases-and-collections.md`), CHANGELOG, then tick the checklist.
+
+Then continue with slice 3 (find with paging, ADR 0011) and the remaining slices above.
+Commands are registered with the helper pattern: list each new command in `ipc.rs`
+`collect_commands!`, `build.rs` `APP_COMMANDS` and `capabilities/default.json`, then
+`pnpm bindings`.
+
 ### M4 — Tools: dump, restore, import, export, copy
 
 - [ ] Sidecar fetch script (pinned version, SHA-256 verification), bundling for all 4 targets

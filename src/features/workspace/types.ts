@@ -15,4 +15,12 @@ export interface ConnectionTab extends TabBase {
   connectionId: string;
 }
 
-export type WorkspaceTab = WelcomeTab | ConnectionTab;
+/** Documents of one collection or view. */
+export interface CollectionTab extends TabBase {
+  kind: "collection";
+  connectionId: string;
+  database: string;
+  collection: string;
+}
+
+export type WorkspaceTab = WelcomeTab | ConnectionTab | CollectionTab;
