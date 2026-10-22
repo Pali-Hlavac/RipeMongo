@@ -88,6 +88,8 @@ export const commands = {
 	previewDeleteMany: (connectionId: string, database: string, collection: string, filter: string) => typedError<DeletePreview, AppError>(__TAURI_INVOKE("preview_delete_many", { connectionId, database, collection, filter })),
 	/**  Deletes every document matching the filter; returns how many were deleted. */
 	deleteMany: (connectionId: string, database: string, collection: string, filter: string) => typedError<number | null, AppError>(__TAURI_INVOKE("delete_many", { connectionId, database, collection, filter })),
+	/**  Which bundled tools are available, with their versions. */
+	getToolsInfo: () => __TAURI_INVOKE<ToolsInfo>("get_tools_info"),
 };
 
 /* Types */
@@ -444,6 +446,21 @@ export type TlsConfig = {
 	certificateKeyFile: string | null,
 	allowInvalidCertificates: boolean,
 	allowInvalidHostnames: boolean,
+};
+
+/**  One of the bundled MongoDB Database Tools. */
+export type Tool = "mongodump" | "mongorestore" | "mongoexport" | "mongoimport";
+
+/**  Whether a tool was found and which version it reports. */
+export type ToolStatus = {
+	tool: Tool,
+	/**  `None` when the binary is missing or could not be run. */
+	version: string | null,
+};
+
+/**  The bundled tools and their versions (shown in the About dialog). */
+export type ToolsInfo = {
+	tools: ToolStatus[],
 };
 
 /**  Deployment shape as seen from the connected member. */

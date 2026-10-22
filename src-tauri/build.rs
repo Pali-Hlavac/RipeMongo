@@ -45,12 +45,20 @@ const APP_COMMANDS: &[&str] = &[
     "update_many",
     "preview_delete_many",
     "delete_many",
+    "get_tools_info",
 ];
 
 /// Common-Controls v6 manifest, embedded into every linked artifact on Windows.
 const WINDOWS_MANIFEST: &str = "windows-app-manifest.xml";
 
+/// Environment variable carrying the target triple, which is part of sidecar file names.
+const TARGET_TRIPLE_ENV: &str = "RIPEMONGO_TARGET_TRIPLE";
+
 fn main() {
+    // `src/tools/locate.rs` finds `binaries/<tool>-<triple>` in development builds.
+    let target = std::env::var("TARGET").unwrap_or_default();
+    println!("cargo:rustc-env={TARGET_TRIPLE_ENV}={target}");
+
     let mut windows = tauri_build::WindowsAttributes::new();
     if is_windows_msvc_target() {
         // Tauri only embeds the manifest into the app binary, so `cargo test` executables

@@ -16,7 +16,8 @@
 `.github/workflows/release.yml`, triggered by a `v*` tag:
 
 1. Matrix: `windows-latest` (x64), `macos-13` (x64), `macos-14` (arm64), `ubuntu-22.04` (x64).
-2. Fetch and verify sidecars for the target triple (`pnpm sidecars`).
+2. Fetch and verify sidecars for the target triple (`pnpm sidecars --target <triple>`;
+   `pnpm app:build` does it for the host and merges `src-tauri/tauri.sidecars.conf.json`).
 3. `tauri-action` builds the installers (NSIS/MSI, DMG/app, AppImage/deb).
 4. Sign and notarize, then upload to a draft GitHub release.
 

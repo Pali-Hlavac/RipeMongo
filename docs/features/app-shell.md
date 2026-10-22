@@ -29,7 +29,8 @@ status bar, a command palette, an About dialog and global keyboard shortcuts.
 - **Hotkeys:** `useHotkey(combo, handler)` (`src/shared/hooks`) on top of pure helpers in
   `src/shared/lib/hotkeys.ts` (`parseHotkey`, `matchesHotkey`, `formatHotkey`).
 - **About:** `src/features/about` queries `get_app_info` once (`staleTime: Infinity`). The
-  status bar shows the same data.
+  status bar shows the same data. When the dialog opens, `ToolsVersion` queries
+  `get_tools_info` once and shows the bundled tools version (or which tools are missing).
 - **Native feel:** in production, `installNativeFeel()` blocks the webview context menu
   (except in editable fields) and reload/print shortcuts.
 - **States:** shared `EmptyState`, `ErrorState` (shows `message` and `hint` from

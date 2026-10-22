@@ -46,6 +46,7 @@
     "allow-preview-update-many",
     "allow-update-many",
     "allow-preview-delete-many",
-    "allow-delete-many"
+    "allow-delete-many",
+    "allow-get-tools-info"
   ]
 }

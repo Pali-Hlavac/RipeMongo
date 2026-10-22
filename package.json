@@ -13,7 +13,7 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "app:dev": "tauri dev",
-    "app:build": "tauri build",
+    "app:build": "node scripts/fetch-sidecars.mjs && tauri build --config src-tauri/tauri.sidecars.conf.json",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
     "lint": "eslint . --max-warnings 0 && node scripts/check-file-size.mjs && node scripts/check-monaco-frozen-prototype.mjs",
     "lint:rust": "cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings",
@@ -23,6 +23,7 @@
     "test:watch": "vitest",
     "test:rust": "cargo test --manifest-path src-tauri/Cargo.toml",
     "bindings": "cargo test --manifest-path src-tauri/Cargo.toml --lib export_bindings",
+    "sidecars": "node scripts/fetch-sidecars.mjs",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm lint:rust && pnpm test:rust",
     "prepare": "husky"
   },

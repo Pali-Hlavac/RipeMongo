@@ -60,6 +60,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `ISODate(…)`, unquoted keys, `/regex/`, `NumberLong(…)`, …) with line/column errors.
 - End-user guide in `docs/user-guide/`.
 - Integration tests through a real OpenSSH server and against a replica set.
+- Bundled MongoDB Database Tools 100.19.1 (`mongodump`, `mongorestore`, `mongoexport`,
+  `mongoimport`) for Windows, macOS and Linux, fetched by `pnpm sidecars` with SHA-256
+  verification and listed with their version in the About dialog (milestone 4); ADR 0009.
 
 ### Security
 

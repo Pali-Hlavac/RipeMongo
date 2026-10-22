@@ -120,9 +120,7 @@ Slices, in order: (1) database/collection admin backend + sidebar tree + dialogs
   Docker network: password, generated private key, wrong password, changed host key), docs pass
   (ADR 0013 consequences, navigation doc, user guide note on direct connections).
 
-**Milestone 3 is complete.** Next: milestone 4 (background jobs, bundled mongo-tools,
-import/export); start by reading `docs/architecture/background-jobs.md` and
-`docs/architecture/sidecars.md`, then plan its slices here.
+**Milestone 3 is complete.**
 
 Verified in the real app (2026-10-22, MongoDB 8 in Docker, 120 nested sample documents): list,
 JSON and table views, paging, filter with field suggestions, sort, inline query errors, history
@@ -131,7 +129,7 @@ favorite summary wrapping, and history removal when a connection is deleted.
 
 ### M4 — Tools: dump, restore, import, export, copy
 
-- [ ] Sidecar fetch script (pinned version, SHA-256 verification), bundling for all 4 targets
+- [x] Sidecar fetch script (pinned version, SHA-256 verification), bundling for all 4 targets (installers built and checked on Windows; macOS/Linux packages come with the M8 release workflow)
 - [ ] Background job registry: progress events, cancel, logs — ADR 0010
 - [ ] Dump UI: server / databases / collections, query filter, gzip, archive, oplog, include/exclude, parallelism
 - [ ] Restore UI: drop before restore, `nsFrom`/`nsTo`, dry run
@@ -139,7 +137,40 @@ favorite summary wrapping, and history removal when a connection is deleted.
 - [ ] Saved dump profiles (one-click re-run)
 - [ ] JSON/CSV import and export per collection with field selection and type mapping
 - [ ] Copy collection/database between connections
-- [ ] Measure installer size — ADR 0009
+- [x] Measure installer size — ADR 0009 (Windows, with the tools: NSIS 21.4 MiB, MSI 28.6 MiB)
+
+Slices, in order: (1) sidecar fetch script, lock file, bundling config and the `tools` module
+that finds the binaries (tools version in About), ADR 0009; (2) job registry with progress and
+log events, cancel, jobs panel, process runner, plus a basic dump (server / database /
+collection to a folder or archive) as its first job, ADR 0010; (3) all dump options and saved
+dump profiles; (4) restore; (5) JSON/CSV export and import with field selection and type
+mapping; (6) copy a collection or database between connections (dump piped into restore);
+(7) installer size, docs pass, user guide, verification in the real app.
+
+Decisions for M4 (details in ADRs 0009 and 0010 as they are written):
+
+- Tools version **100.19.1** (latest on 2026-10-22). Linux uses the `ubuntu2204` build, the
+  same baseline the Linux installers are built on.
+- `externalBin` lives in `src-tauri/tauri.sidecars.conf.json`, merged only by `pnpm app:build`,
+  so `cargo build`/`test`/`clippy` work without downloaded binaries. Debug builds fall back to
+  `src-tauri/binaries/<tool>-<target>`; release builds look next to the app executable.
+- Credentials reach the tools through a temporary `--config` file readable only by the user,
+  never on the command line (visible to other processes). The displayed CLI command is redacted.
+- Tools connect through the app's existing SSH tunnel when the connection uses one, so a
+  connection must be open to run a tool job.
+- Job state is server data: the frontend keeps it in TanStack Query and patches the cache
+  from events (instead of the Zustand store the first design note sketched).
+
+#### Where we left off (M4)
+
+- Slice 1 complete: `scripts/fetch-sidecars.mjs` + `sidecars.lock.json` (100.19.1, four
+  targets, checksums cross-checked with MongoDB's feed), pure-Node archive readers with tests,
+  `src-tauri/tauri.sidecars.conf.json` merged by `pnpm app:build`, `tools` module (`locate`,
+  `tool_command`, `get_tools_info`), About shows the tools version, CI fetches the tools,
+  ADR 0009. `pnpm app:build` verified on Windows: the tools and licenses land next to
+  `ripemongo.exe`; NSIS 21.4 MiB, MSI 28.6 MiB.
+- Slice 2 next: `jobs` module (registry, events, commands), `tools/run.rs` + credentials file,
+  `ConnectionManager::tool_connection`, dump job, jobs panel and dump dialog.
 
 ### M5 — Aggregation
 
@@ -175,12 +206,12 @@ favorite summary wrapping, and history removal when a connection is deleted.
 | ADR       | Topic                                                                                  | Milestone | Status   |
 | --------- | -------------------------------------------------------------------------------------- | --------- | -------- |
 | 0001–0007 | Tauri, Rust owns DB, tauri-specta, frontend stack, organization, error model, keychain | M1        | Accepted |
-| 0008      | Encrypted connection export                                                            | M2        | Planned  |
-| 0009      | Bundled mongo-tools sidecars                                                           | M4        | Planned  |
+| 0008      | Encrypted connection export                                                            | M2        | Accepted |
+| 0009      | Bundled mongo-tools sidecars                                                           | M4        | Accepted |
 | 0010      | Background job model                                                                   | M4        | Planned  |
 | 0011      | Cursor streaming and pagination                                                        | M3        | Accepted |
 | 0012      | Extended JSON as the editing format                                                    | M3        | Accepted |
-| 0013      | SSH tunnels via russh, forcing `directConnection`                                      | M2        | Planned  |
+| 0013      | SSH tunnels via russh, forcing `directConnection`                                      | M2        | Accepted |
 | 0014      | No mongosh port in v1                                                                  | M8        | Planned  |
 | 0015      | Testing strategy                                                                       | M8        | Planned  |
 | 0016      | Pipeline code export in the frontend                                                   | M5        | Planned  |

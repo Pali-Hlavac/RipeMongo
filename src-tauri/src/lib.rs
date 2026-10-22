@@ -15,6 +15,7 @@ pub mod secrets;
 mod settings;
 pub mod ssh;
 pub mod storage;
+pub mod tools;
 
 /// Starts the desktop application. Blocks until the last window closes.
 pub fn run() {

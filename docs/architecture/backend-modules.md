@@ -121,12 +121,22 @@ Every domain module follows the same layout:
   known_hosts, then RipeMongo's own; trust on first use; changed keys rejected). See ADR 0013.
 - **Errors:** `SshError` → `SSH_FAILED` with a specific hint per cause.
 
+## `tools`
+
+- **Purpose:** the bundled MongoDB Database Tools. `locate` finds a binary (next to the app
+  executable; in debug builds also `src-tauri/binaries/<tool>-<triple>`), `tool_command`
+  starts it (no stdin, piped output, killed on drop, no console window on Windows),
+  `tools_info` runs `--version` on each. See ADR 0009 and
+  [sidecars.md](sidecars.md).
+- **Errors:** `ToolsError::Missing` → `NOT_FOUND` (hint: reinstall / `pnpm sidecars`),
+  `Start` → `IO`.
+
 ## Planned modules
 
-| Module                           | Milestone | Purpose                                        |
-| -------------------------------- | --------- | ---------------------------------------------- |
-| `jobs`, `tools`, `import_export` | 4         | Background jobs, sidecar runner, import/export |
-| `aggregation`                    | 5         | Pipeline execution and previews                |
-| `indexes`, `validation`          | 6         | Index and validator management, explain        |
-| `schema`, `server_stats`         | 7         | Schema sampling, performance metrics           |
-| `console`                        | 8         | `runCommand` console                           |
+| Module                   | Milestone | Purpose                                 |
+| ------------------------ | --------- | --------------------------------------- |
+| `jobs`, `import_export`  | 4         | Background jobs, import/export          |
+| `aggregation`            | 5         | Pipeline execution and previews         |
+| `indexes`, `validation`  | 6         | Index and validator management, explain |
+| `schema`, `server_stats` | 7         | Schema sampling, performance metrics    |
+| `console`                | 8         | `runCommand` console                    |

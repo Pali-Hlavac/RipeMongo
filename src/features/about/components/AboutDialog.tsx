@@ -11,6 +11,7 @@ import {
 
 import { useAppInfo } from "../api/appInfo";
 import { useAboutStore } from "../store/about";
+import { ToolsVersion } from "./ToolsVersion";
 
 /** Shows the app version and platform; handy for bug reports. */
 export function AboutDialog() {
@@ -42,6 +43,7 @@ export function AboutDialog() {
             <dd className="font-mono">
               {info.os} / {info.arch}
             </dd>
+            <ToolsVersion />
           </dl>
         )}
       </DialogContent>

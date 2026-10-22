@@ -29,8 +29,9 @@ React feature component
   `AppError { code, message, hint }` (`src-tauri/src/error.rs`). Messages are for end users.
 - **Background jobs** (milestone 4): cancellable tokio tasks in a job registry that report
   progress through Tauri events. See [docs/architecture/background-jobs.md](docs/architecture/background-jobs.md).
-- **Sidecars** (milestone 4): mongo-tools binaries in `src-tauri/binaries/`, fetched by script
-  with pinned versions + SHA-256 checks. See [docs/architecture/sidecars.md](docs/architecture/sidecars.md).
+- **Sidecars**: mongo-tools binaries in `src-tauri/binaries/` (git-ignored), fetched by
+  `pnpm sidecars` with a pinned version + SHA-256 checks, found and started by the `tools`
+  module. See [docs/architecture/sidecars.md](docs/architecture/sidecars.md).
 
 ## Directory map
 
@@ -98,7 +99,7 @@ from `index.ts`, add `docs/features/<name>.md`, and register palette commands in
 | Format / check formatting  | `pnpm format` / `pnpm format:check`                      |
 | Regenerate IPC bindings    | `pnpm bindings`                                          |
 | Everything CI runs         | `pnpm check`                                             |
-| Fetch sidecars             | milestone 4 (`pnpm sidecars`)                            |
+| Fetch sidecars (tools)     | `pnpm sidecars` (once; needed to run dump/restore)       |
 | Integration tests (Docker) | `pnpm test:rust` (start Docker first; skipped otherwise) |
 
 ## Gotchas
@@ -126,6 +127,10 @@ from `index.ts`, add `docs/features/<name>.md`, and register palette commands in
 - **Monaco + `freezePrototype`**: Monaco is patched (`patches/`, pnpm `patchedDependencies`)
   so it loads with a frozen `Object.prototype`. Upgrading Monaco means re-creating the patch
   (`pnpm patch monaco-editor@<v>`); `pnpm lint` flags new offending assignments.
+- **Sidecars and `externalBin`**: `externalBin` is only in `src-tauri/tauri.sidecars.conf.json`
+  (merged by `pnpm app:build`); putting it in `tauri.conf.json` breaks every cargo build that
+  has not run `pnpm sidecars`. Start tools with `tools::tool_command` (no console window,
+  killed on drop), never the shell plugin.
 - **Linux** dev needs `libwebkit2gtk-4.1-dev` and friends (see docs/getting-started.md).
 
 ## Where to find more

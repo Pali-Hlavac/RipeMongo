@@ -41,6 +41,14 @@ pnpm app:dev        # starts Vite on :1420 and the Tauri window
 
 The first Rust build takes a few minutes; later builds are incremental.
 
+To run dump, restore, import or export locally, fetch the bundled MongoDB tools once
+(about 40–80 MB download, checksum-verified; see
+[architecture/sidecars.md](architecture/sidecars.md)):
+
+```sh
+pnpm sidecars
+```
+
 ## Everyday commands
 
 See the command table in [CLAUDE.md](../CLAUDE.md#commands). Before pushing, run:

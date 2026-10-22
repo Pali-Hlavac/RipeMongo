@@ -1,0 +1,18 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "bundle": {
+    "externalBin": [
+      "binaries/mongodump",
+      "binaries/mongorestore",
+      "binaries/mongoexport",
+      "binaries/mongoimport"
+    ],
+    "resources": {
+      "binaries/licenses/mongodb-database-tools/": "licenses/mongodb-database-tools/"
+    },
+    "linux": {
+      "deb": { "depends": ["libgssapi-krb5-2"] },
+      "rpm": { "depends": ["krb5-libs"] }
+    }
+  }
+}

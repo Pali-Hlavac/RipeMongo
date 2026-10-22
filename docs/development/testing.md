@@ -22,6 +22,9 @@
   unavailable. Replica-set features use a single-node replica set container
   (`common::start_replica_set`, initiated through the driver). SSH tests run OpenSSH
   (`panubo/sshd`, pinned) with a generated key, next to a MongoDB on a private Docker network.
+- Tests that run the bundled MongoDB tools (`tests/tools.rs`, later dump/restore) skip with a
+  message until `pnpm sidecars` has fetched them; CI fetches them first.
+- `scripts/**/*.test.mjs` (for example the sidecar archive readers) run with `pnpm test`.
 
 ## Notes
 
