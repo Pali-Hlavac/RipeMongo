@@ -104,7 +104,9 @@ function Overview({ profile }: { profile: ConnectionProfile }) {
         </section>
       )}
       <p className="rounded-md bg-muted/60 p-3 text-sm text-muted-foreground">
-        Browsing databases, collections and documents is planned for milestone 3.
+        {status === "connected"
+          ? "Databases and collections are listed under this connection in the sidebar."
+          : "Connect to browse this server's databases and collections in the sidebar."}
       </p>
     </div>
   );

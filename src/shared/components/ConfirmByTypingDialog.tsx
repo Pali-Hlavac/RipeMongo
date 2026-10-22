@@ -10,6 +10,8 @@ import {
 } from "@/shared/ui/dialog";
 import { Input } from "@/shared/ui/input";
 
+import { InlineError } from "./InlineError";
+
 interface ConfirmByTypingDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -19,6 +21,8 @@ interface ConfirmByTypingDialogProps {
   confirmText: string;
   confirmLabel: string;
   pending?: boolean;
+  /** Error of the last attempt, shown above the buttons. */
+  error?: unknown;
   onConfirm: () => void;
 }
 
@@ -34,20 +38,21 @@ export function ConfirmByTypingDialog({
   confirmText,
   confirmLabel,
   pending = false,
+  error = null,
   onConfirm,
 }: ConfirmByTypingDialogProps) {
   const [typed, setTyped] = useState("");
+  // Forget the typed text whenever the dialog closes, however it was closed.
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (!open) setTyped("");
+  }
   const inputId = useId();
   const matches = typed === confirmText;
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(next) => {
-        if (!next) setTyped("");
-        onOpenChange(next);
-      }}
-    >
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
@@ -74,6 +79,7 @@ export function ConfirmByTypingDialog({
               }}
             />
           </div>
+          {error ? <InlineError error={error} /> : null}
           <div className="flex justify-end gap-2">
             <Button
               type="button"

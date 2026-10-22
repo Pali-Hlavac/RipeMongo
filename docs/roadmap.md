@@ -51,9 +51,9 @@ delete → import (wrong password rejected inline, right password restores the k
 
 ### M3 — Browsing, documents, query bar 🚧 (in progress)
 
-- [ ] Sidebar tree: databases, collections, views with counts and sizes
-- [ ] Create/drop databases, collections, views, capped and time-series collections; rename collections
-- [ ] Confirm-by-typing dialog for destructive actions
+- [x] Sidebar tree: databases, collections, views with counts and sizes
+- [x] Create/drop databases, collections, views, capped and time-series collections; rename collections
+- [x] Confirm-by-typing dialog for destructive actions
 - [ ] Documents: list (JSON tree), JSON and virtualized table views
 - [ ] Query bar: filter, project, sort, collation, skip, limit, maxTimeMS; field/operator autocomplete
 - [ ] Shell-style query syntax (`{_id: ObjectId("…")}`, `ISODate(…)`, unquoted keys, `/regex/`)
@@ -69,55 +69,35 @@ Slices, in order: (1) database/collection admin backend + sidebar tree + dialogs
 (4) query bar with autocomplete, history, favorites; (5) CRUD + Monaco editor;
 (6) bulk update/delete with preview; (7) integration tests, docs, user guide, verification.
 
-#### Where we left off (2026-10-22, handoff)
+#### Where we left off (2026-10-22)
 
 **Done and committed**
 
-- Slice 2 (done early, everything depends on it): `src-tauri/src/ejson/`: `parse_document`,
-  `parse_documents`, `parse_value` accept JSON, Extended JSON and mongosh syntax (unquoted keys,
-  single quotes, comments, trailing commas, `/re/i`, `ObjectId`, `ISODate`/`new Date`,
-  `NumberLong/Int/Decimal`, `UUID`, `BinData`, `Timestamp`, `MinKey/MaxKey`, `NaN`,
-  `Infinity`, `undefined`); errors carry line/column. `to_canonical_json` is the output format
-  for documents (lossless types). `serde_json` has `preserve_order` (field order matters).
-- Slice 1 backend: `src-tauri/src/mongo/` (`client`/`database` lookup via
-  `ConnectionManager::client`, `require_name`, `MongoError`, `driver_error` with server-code
-  mapping), `databases/` (list/create/drop), `collections/` (list, `$collStats` stats,
-  create standard/capped/time-series, create view, rename, drop). New error codes:
-  `NOT_CONNECTED`, `FORBIDDEN`, `TIMEOUT`, `OPERATION_FAILED`. Integration test
-  `src-tauri/tests/catalog.rs` passes against MongoDB 8 (note: MongoDB 7+ accepts re-creating an
-  identical collection).
-- Slice 1 frontend groundwork: `shared/components/ConfirmByTypingDialog.tsx` (+test),
-  `shared/lib/format.ts` (`formatBytes`, `formatCount`, `formatCompactCount`), workspace
-  `CollectionTab` type (`renderTab` returns `null` for it until the view exists).
-- End-user guide started in `docs/user-guide/` (README, getting-started, interface,
-  connections, keyboard-shortcuts). Keep it updated with every feature.
+- Slice 2: `src-tauri/src/ejson/` parses JSON, Extended JSON and mongosh syntax with
+  line/column errors; `to_canonical_json` is the lossless output format for documents.
+  `serde_json` has `preserve_order` (field order matters).
+- Slice 1 complete: backend `mongo/`, `databases/`, `collections/` (+ `tests/catalog.rs`);
+  frontend feature `src/features/catalog/` (tree under connected connections, create/rename/
+  drop dialogs, `CollectionHeader`), `ConfirmByTypingDialog`, `InlineError`, tabs store
+  `replaceTab`. Collection tabs render `src/app/layout/CollectionTabView.tsx` (header + a
+  labelled "document browsing is coming" placeholder). Docs: `docs/features/navigation.md`,
+  user guide `databases-and-collections.md`.
 
-**Next steps (slice 1 frontend), in order**
+**Next: slice 3 (find with paging + document views)**
 
-1. New feature `src/features/catalog/`: `api/keys.ts` (`["catalog", connectionId, …]`),
-   `api/queries.ts` (`useDatabases`, `useCollections`, `useCollectionStats`, enabled only when
-   connected), `api/mutations.ts` (create/drop database, create collection/view, rename, drop;
-   invalidate `["catalog", connectionId]`; close or rename affected collection tabs via
-   `useTabsStore().closeTabs/renameTabs`).
-2. `store/dialogs.ts` for create-database / create-collection (kinds: standard, capped,
-   time-series, view) / rename / drop dialogs; drops use `ConfirmByTypingDialog`.
-3. Tree components: `DatabaseTree` → `DatabaseNode` (expand, size, ⋯ menu: create collection,
-   refresh, drop) → `CollectionNode` (icon by kind, compact doc count from stats, click opens
-   a `collection` tab with id `collection:<connectionId>:<db>.<coll>`, ⋯ menu: rename
-   (not for views), drop). Export a `CatalogConnectionMenuItems` (create database, refresh).
-4. Wire into `connections`: a per-connection expanded flag (small Zustand store), chevron in
-   `ConnectionItem`, render `DatabaseTree` under connected+expanded items, add the catalog
-   menu items to `ConnectionActionsMenu`, auto-expand after a successful connect.
-5. A `CollectionHeader` (name, kind, stats) for the collection tab; `renderTab` renders it
-   (documents come in slice 3).
-6. Tests (tree rendering with mocked `listDatabases`/`listCollections`, dialogs), docs
-   (`docs/features/navigation.md`, IPC table, backend-modules), user guide page
-   (`docs/user-guide/databases-and-collections.md`), CHANGELOG, then tick the checklist.
+1. ADR 0011 (paging): skip/limit pages with a page size setting (default 20, max ~1000),
+   `maxTimeMS` default, an estimated/exact count on demand; never load a whole collection.
+2. Backend `documents/` module: `find_documents(connectionId, db, coll, FindRequest)` with
+   filter/projection/sort/collation as text parsed by `ejson`, skip, limit, maxTimeMS →
+   `{ documents: string[] (canonical EJSON), hasMore }`; `count_documents`. Integration test.
+3. Frontend `src/features/documents/`: document list (expandable JSON tree with type-aware
+   rendering of `$oid`, `$date`, `$numberLong`, …), JSON view, virtualized table view
+   (TanStack Table + virtual), pager. Replace the placeholder in `CollectionTabView`.
+4. Then slice 4 (query bar, autocomplete, history/favorites), 5 (CRUD + Monaco), 6 (bulk
+   update/delete with preview), 7 (replica-set + sshd integration tests, docs, verification).
 
-Then continue with slice 3 (find with paging, ADR 0011) and the remaining slices above.
-Commands are registered with the helper pattern: list each new command in `ipc.rs`
-`collect_commands!`, `build.rs` `APP_COMMANDS` and `capabilities/default.json`, then
-`pnpm bindings`.
+The catalog UI has not yet been clicked through in the real app (needs the user's OK to
+drive the window); do that alongside slice 3.
 
 ### M4 — Tools: dump, restore, import, export, copy
 

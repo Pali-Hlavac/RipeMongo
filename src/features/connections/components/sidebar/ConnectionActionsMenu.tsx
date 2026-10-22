@@ -9,6 +9,7 @@ import {
   UnplugIcon,
 } from "lucide-react";
 
+import { CatalogConnectionMenuItems } from "@/features/catalog";
 import { Button } from "@/shared/ui/button";
 import {
   DropdownMenu,
@@ -29,7 +30,10 @@ interface ConnectionActionsMenuProps {
   status: ConnectionStatus;
 }
 
-/** "⋯" menu of a sidebar item: connect/disconnect, edit, duplicate, favorite, delete. */
+/**
+ * "⋯" menu of a sidebar item: connect/disconnect, database actions while connected, edit,
+ * duplicate, favorite, delete.
+ */
 export function ConnectionActionsMenu({ profile, status }: ConnectionActionsMenuProps) {
   const { connect, disconnect } = useConnectionSession();
   const duplicate = useDuplicateConnection();
@@ -51,9 +55,14 @@ export function ConnectionActionsMenu({ profile, status }: ConnectionActionsMenu
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
         {connected ? (
-          <DropdownMenuItem onSelect={() => void disconnect(profile.id)}>
-            <UnplugIcon aria-hidden /> Disconnect
-          </DropdownMenuItem>
+          <>
+            <DropdownMenuItem onSelect={() => void disconnect(profile.id)}>
+              <UnplugIcon aria-hidden /> Disconnect
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <CatalogConnectionMenuItems connectionId={profile.id} />
+            <DropdownMenuSeparator />
+          </>
         ) : (
           <DropdownMenuItem
             disabled={status === "connecting"}

@@ -61,6 +61,35 @@ Every domain module follows the same layout:
   `AUTH_FAILED`, plus storage/keychain/SSH codes. Driver messages are shortened and redacted.
 - **Docs:** [features/connections.md](../features/connections.md).
 
+## `mongo`
+
+- **Purpose:** shared plumbing for modules that talk to a live server: `client(manager, id)` and
+  `database(manager, id, db)` look up the open client (`NOT_CONNECTED` otherwise),
+  `require_name`, and `MongoError` with `driver_error()`, which maps server error codes
+  (13/18 → `FORBIDDEN`, 26 → `NOT_FOUND`, 48 → already exists, 50 → `TIMEOUT`, 73 → invalid
+  name, 121 → validation, 11000 → duplicate key) to user-facing errors.
+
+## `ejson`
+
+- **Purpose:** parse what users type (JSON, Extended JSON, mongosh syntax such as unquoted
+  keys, `ObjectId(…)`, `ISODate(…)`, `/re/i`) into BSON with line/column errors, and serialize
+  documents as canonical Extended JSON (`to_canonical_json`). See ADR 0012 (planned).
+- **Errors:** `EjsonError` → `INVALID_INPUT`.
+
+## `databases`
+
+- **Purpose:** `list_databases` (with `authorizedDatabases`), `create_database` (creates the
+  first collection, since MongoDB stores databases lazily), `drop_database`.
+- **Docs:** [features/navigation.md](../features/navigation.md).
+
+## `collections`
+
+- **Purpose:** list collections and views (`system.*` hidden), `$collStats` statistics summed
+  over shards, create standard/capped/time-series collections (`options.rs` validates
+  `NewCollectionOptions`), create views from a pipeline, rename (`renameCollection`, never
+  dropping the target), drop.
+- **Docs:** [features/navigation.md](../features/navigation.md).
+
 ## `ssh`
 
 - **Purpose:** `SshTunnel::open` forwards a random loopback port to the MongoDB host through a
@@ -70,11 +99,11 @@ Every domain module follows the same layout:
 
 ## Planned modules
 
-| Module                                  | Milestone | Purpose                                        |
-| --------------------------------------- | --------- | ---------------------------------------------- |
-| `databases`, `collections`, `documents` | 3         | Browsing and CRUD                              |
-| `jobs`, `tools`, `import_export`        | 4         | Background jobs, sidecar runner, import/export |
-| `aggregation`                           | 5         | Pipeline execution and previews                |
-| `indexes`, `validation`                 | 6         | Index and validator management, explain        |
-| `schema`, `server_stats`                | 7         | Schema sampling, performance metrics           |
-| `console`                               | 8         | `runCommand` console                           |
+| Module                           | Milestone | Purpose                                        |
+| -------------------------------- | --------- | ---------------------------------------------- |
+| `documents`                      | 3         | Find with paging, document CRUD                |
+| `jobs`, `tools`, `import_export` | 4         | Background jobs, sidecar runner, import/export |
+| `aggregation`                    | 5         | Pipeline execution and previews                |
+| `indexes`, `validation`          | 6         | Index and validator management, explain        |
+| `schema`, `server_stats`         | 7         | Schema sampling, performance metrics           |
+| `console`                        | 8         | `runCommand` console                           |

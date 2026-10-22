@@ -14,12 +14,15 @@ The dot next to each connection shows its state:
 | Green    | Connected                          |
 | Red      | The last attempt to connect failed |
 
+Click the arrow next to a connected connection to see its databases and collections; see
+[Databases and collections](databases-and-collections.md).
+
 Drag the border between the sidebar and the main area to resize it.
 
 ## Tabs
 
-Everything you open appears as a tab: the Welcome tab, connection overviews, and later
-collections and queries. Open the same item twice and RipeMongo switches to the existing tab.
+Everything you open appears as a tab: the Welcome tab, connection overviews and collections
+(later also queries). Open the same item twice and RipeMongo switches to the existing tab.
 
 - Close a tab with its **×** button or **Ctrl+W** (**⌘W** on macOS).
 - Move between tabs with **Ctrl+Tab** and **Ctrl+Shift+Tab**, or with the arrow keys when the

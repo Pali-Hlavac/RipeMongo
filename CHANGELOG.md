@@ -34,6 +34,18 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   - command-palette and welcome-screen actions for connections.
 - Integration tests against MongoDB 8 in Docker (testcontainers).
 - ADR 0008 (encrypted connection export) and ADR 0013 (SSH tunnels); `docs/roadmap.md`.
+- Databases and collections (milestone 3):
+  - sidebar tree under each connected connection: databases with sizes, collections and views
+    with document counts; expands automatically after connecting;
+  - create databases (with their first collection), standard, capped and time-series
+    collections, and views from an aggregation pipeline; rename collections;
+  - drop databases, collections and views after typing the exact name (confirm-by-typing);
+  - collection tab with document count, data, storage and index sizes (document browsing
+    follows later in milestone 3);
+  - clear errors for missing privileges, existing names, invalid names and timeouts.
+- Query parsing in the backend: JSON, Extended JSON and mongosh syntax (`ObjectId(…)`,
+  `ISODate(…)`, unquoted keys, `/regex/`, `NumberLong(…)`, …) with line/column errors.
+- End-user guide in `docs/user-guide/`.
 
 ### Security
 
@@ -42,8 +54,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Not yet implemented
 
-- Browsing databases, collections and documents (milestone 3). The connection overview tab
-  says so.
+- Browsing, querying and editing documents (later in milestone 3). Collection tabs say so.
 - Interactive browser OIDC sign-in and Kerberos (GSSAPI) authentication.
 - SSH tunnels have not yet been verified against a real SSH server in automated tests.
 

@@ -6,11 +6,12 @@ import { ok, renderWithProviders } from "@/test/render";
 
 import { newProfile } from "../../lib/defaults";
 import { useConnectionDialogs } from "../../store/dialogs";
+import { useExpandedConnections } from "../../store/expanded";
 import type { ActiveConnectionInfo, ConnectionProfile } from "../../types";
 import { ConnectionSidebar } from "./ConnectionSidebar";
 
 vi.mock("@/shared/ipc/bindings", () => ({
-  commands: { listConnections: vi.fn(), listActiveConnections: vi.fn() },
+  commands: { listConnections: vi.fn(), listActiveConnections: vi.fn(), listDatabases: vi.fn() },
 }));
 
 const profile = (id: string, extra: Partial<ConnectionProfile> = {}): ConnectionProfile => ({
@@ -35,6 +36,7 @@ const active: ActiveConnectionInfo = {
 
 beforeEach(() => {
   useConnectionDialogs.setState({ editor: { mode: "closed" } });
+  useExpandedConnections.setState({ expanded: {} });
   vi.mocked(commands.listActiveConnections).mockReturnValue(ok([active]));
 });
 
@@ -77,5 +79,22 @@ describe("ConnectionSidebar", () => {
     await user.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     expect(screen.queryByRole("list", { name: "Dev" })).not.toBeInTheDocument();
+  });
+
+  it("expands a connected connection into its databases", async () => {
+    vi.mocked(commands.listConnections).mockReturnValue(ok([profile("prod"), profile("local")]));
+    vi.mocked(commands.listDatabases).mockReturnValue(
+      ok([{ name: "shop", sizeOnDisk: 0, empty: true }]),
+    );
+    const user = userEvent.setup();
+    renderWithProviders(<ConnectionSidebar />);
+
+    await user.click(await screen.findByRole("button", { name: "Show databases of prod" }));
+    const databases = await screen.findByRole("list", { name: "Databases in prod" });
+    expect(within(databases).getByText("shop")).toBeInTheDocument();
+    // Disconnected connections have nothing to expand.
+    expect(
+      screen.queryByRole("button", { name: "Show databases of local" }),
+    ).not.toBeInTheDocument();
   });
 });

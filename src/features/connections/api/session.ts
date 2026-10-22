@@ -2,9 +2,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+import { catalogKeys } from "@/features/catalog";
 import { useTabsStore } from "@/features/workspace";
 import { commands, toIpcError, unwrap } from "@/shared/ipc/client";
 
+import { useExpandedConnections } from "../store/expanded";
 import { useConnectionStatusStore } from "../store/status";
 import type { ConnectionConfig, ConnectionProfile, SecretUpdates } from "../types";
 import { connectionKeys } from "./keys";
@@ -34,7 +36,8 @@ export function openConnectionTab(profile: ConnectionProfile): void {
 
 /**
  * Connect and disconnect actions. Connecting opens the overview tab right away; progress
- * and errors are tracked per connection so the sidebar and tab can show them.
+ * and errors are tracked per connection so the sidebar and tab can show them. A successful
+ * connect expands the connection's database tree; disconnecting drops its cached catalog.
  */
 export function useConnectionSession() {
   const queryClient = useQueryClient();
@@ -47,6 +50,7 @@ export function useConnectionSession() {
     try {
       await unwrap(commands.openConnection(profile.id));
       setPending(profile.id, null);
+      useExpandedConnections.getState().setExpanded(profile.id, true);
     } catch (error) {
       setPending(profile.id, { state: "failed", error: toIpcError(error) });
     } finally {
@@ -63,6 +67,8 @@ export function useConnectionSession() {
       toast.error(message, { description: hint ?? undefined });
     } finally {
       await refreshActive();
+      // After the refresh, so the tree has unmounted and nothing refetches the dropped data.
+      queryClient.removeQueries({ queryKey: catalogKeys.connection(connectionId) });
     }
   };
 

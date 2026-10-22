@@ -1,6 +1,7 @@
 import { Toaster } from "sonner";
 
 import { AboutDialog } from "@/features/about";
+import { CatalogDialogs } from "@/features/catalog";
 import { CommandPalette } from "@/features/command-palette";
 import { ConnectionDialogs } from "@/features/connections";
 import { ThemeController, useSettings, useThemePreference } from "@/features/settings";
@@ -27,6 +28,7 @@ export function App() {
       <CommandPalette commands={commands} />
       <AboutDialog />
       <ConnectionDialogs />
+      <CatalogDialogs />
       <Toaster theme={preference} position="bottom-right" richColors closeButton />
     </>
   );

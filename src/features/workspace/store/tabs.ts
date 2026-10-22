@@ -19,6 +19,8 @@ interface TabsState {
   renameTabs: (predicate: (tab: WorkspaceTab) => boolean, title: string) => void;
   /** Closes every open tab matching `predicate` (e.g. after deleting a connection). */
   closeTabs: (predicate: (tab: WorkspaceTab) => boolean) => void;
+  /** Swaps tab `id` for `tab` in place, keeping its position and focus (e.g. after a rename). */
+  replaceTab: (id: string, tab: WorkspaceTab) => void;
 }
 
 export const useTabsStore = create<TabsState>()((set) => ({
@@ -68,6 +70,13 @@ export const useTabsStore = create<TabsState>()((set) => ({
     tabs.filter(predicate).forEach((tab) => {
       closeTab(tab.id);
     });
+  },
+
+  replaceTab: (id, tab) => {
+    set((state) => ({
+      tabs: state.tabs.map((open) => (open.id === id ? tab : open)),
+      activeTabId: state.activeTabId === id ? tab.id : state.activeTabId,
+    }));
   },
 }));
 

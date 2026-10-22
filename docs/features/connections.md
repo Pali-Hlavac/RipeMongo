@@ -69,7 +69,8 @@ Sidebar / Editor / Overview (src/features/connections/components)
   install one. Connections without passwords still work.
 - Deleting a connection only removes local settings and keychain entries, never server data.
 - Importing the same file twice creates duplicates.
-- Database browsing starts in milestone 3; the overview tab says so.
+- Databases and collections of a connected connection are covered in
+  [navigation.md](navigation.md).
 
 ## How to test
 

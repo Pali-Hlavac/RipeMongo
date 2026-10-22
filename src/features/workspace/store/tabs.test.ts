@@ -58,6 +58,15 @@ describe("tabs store", () => {
     expect(state().tabs.map((t) => t.id)).toEqual(["welcome"]);
   });
 
+  it("replaces a tab in place and keeps it active", () => {
+    state().openTab(tab("a"));
+    state().openTab(tab("b"));
+    state().activateTab("a");
+    state().replaceTab("a", tab("c"));
+    expect(state().tabs.map((t) => t.id)).toEqual(["welcome", "c", "b"]);
+    expect(state().activeTabId).toBe("c");
+  });
+
   it("cycles with wrap-around in both directions", () => {
     state().openTab(tab("a"));
     state().cycleTab(1);
