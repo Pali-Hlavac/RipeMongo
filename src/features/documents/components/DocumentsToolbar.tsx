@@ -1,4 +1,4 @@
-import { RefreshCwIcon } from "lucide-react";
+import { PlusIcon, RefreshCwIcon } from "lucide-react";
 
 import { cn } from "@/shared/lib/cn";
 import { Button } from "@/shared/ui/button";
@@ -6,6 +6,7 @@ import { Tooltip } from "@/shared/ui/tooltip";
 
 import type { CollectionViewState, DocumentView } from "../store/view";
 import type { DocumentCount } from "../types";
+import { useDocumentActions } from "./actions/context";
 import { Pager } from "./Pager";
 import { ViewSwitcher } from "./ViewSwitcher";
 
@@ -31,6 +32,7 @@ export function DocumentsToolbar({
   count,
   ready,
 }: DocumentsToolbarProps) {
+  const actions = useDocumentActions();
   return (
     <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-1.5">
       <ViewSwitcher
@@ -50,6 +52,11 @@ export function DocumentsToolbar({
           <RefreshCwIcon aria-hidden className={cn(reloading && "animate-spin")} />
         </Button>
       </Tooltip>
+      {!actions.readOnly && (
+        <Button variant="outline" size="sm" className="h-7" onClick={actions.insert}>
+          <PlusIcon aria-hidden /> Insert
+        </Button>
+      )}
       <div className="ml-auto">
         <Pager
           skip={state.skip}

@@ -58,7 +58,8 @@ delete → import (wrong password rejected inline, right password restores the k
 - [x] Query bar: filter, project, sort, collation, skip, limit, maxTimeMS; field/operator autocomplete
 - [x] Shell-style query syntax (`{_id: ObjectId("…")}`, `ISODate(…)`, unquoted keys, `/regex/`)
 - [x] Query history and favorite queries per collection
-- [ ] Insert, edit (inline + Monaco JSON editor), clone, delete; bulk update/delete with preview + confirmation
+- [x] Insert, edit (inline + Monaco JSON editor), clone, delete
+- [ ] Bulk update/delete with preview + confirmation
 - [x] Full BSON/Extended JSON support (ObjectId, Date, Decimal128, Long, Binary, UUID, Regex, …)
 - [x] Paged loading; never load a whole collection
 - [ ] Replica-set integration tests; SSH tunnel test against a real sshd (carried over from M2)
@@ -94,19 +95,23 @@ Slices, in order: (1) database/collection admin backend + sidebar tree + dialogs
   `query_history/` (recent + favorites in `query-history.json`, 4 commands), per-tab applied
   query in `store/view.ts`, `FormDialog` moved to `shared/components`.
 
-**Next: slice 5 (CRUD + Monaco)**
+- Slice 5 complete: backend `documents/writes.rs` (`insert_documents`, `replace_document`
+  and `set_document_field` with optimistic conflict checks → `CONFLICT`, `delete_document`;
+  `tests/document_writes.rs`), `shared/editor/` (lazy Monaco core with a local worker and a
+  Monarch `mongosh` language), `documents/components/actions/` (provider + context, editor
+  dialog, card buttons), inline field edit in the list view, table row double-click. Writes
+  are hidden on views/read-only collections; whole-document edit/clone is disabled while a
+  projection is applied.
 
-1. Backend `documents` writes: `insert_documents` (one or many, parsed by `ejson`),
-   `replace_document` (by `_id`, the edited text), `update_document` for inline field edits
-   (`$set`/`$unset` by `_id`), `delete_document`; clone = insert without `_id`. Integration
-   tests incl. validation errors (121) and duplicate keys (11000).
-2. Monaco editor (local `monaco-editor` with a worker; CSP already allows `worker-src blob:`)
-   in "Edit document" / "Insert documents" dialogs, prefilled with `toShell`, errors shown
-   with line/column markers.
-3. Document card actions: Edit, Clone, Delete (confirm), plus inline edit of a scalar field in
-   the list view; no write actions on views.
-4. Then slices 6 (bulk update/delete with preview + confirm-by-typing) and 7 (replica-set and
-   sshd integration tests, docs, user guide, verification).
+**Next: slice 6 (bulk update/delete)**
+
+1. Backend: `update_many` (filter + update document or pipeline, shell syntax) and
+   `delete_many` (filter), each with a preview: matched count plus a sample of documents
+   before/after (update via a dry-run aggregation `$match` + `$set`-style preview or by applying
+   the update to sampled documents in memory).
+2. UI: "Update documents" / "Delete documents" from the toolbar, prefilled with the current
+   filter; preview first; confirm-by-typing the collection name; result toast with counts.
+3. Then slice 7 (replica-set and sshd integration tests, docs, user guide, verification).
 
 Verified in the real app (2026-10-22, MongoDB 8 in Docker, 120 nested sample documents): list,
 JSON and table views, paging, filter with field suggestions, sort, inline query errors, history

@@ -13,6 +13,7 @@ import { cn } from "@/shared/lib/cn";
 import { getField, type BsonValue } from "../lib/bson";
 import { columnNames } from "../lib/columns";
 import type { LoadedDocument } from "../types";
+import { useDocumentActions } from "./actions/context";
 import { ValueText } from "./ValueText";
 
 const ROW_HEIGHT = 32;
@@ -35,6 +36,8 @@ export function TableView({
   firstRow: number;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const actions = useDocumentActions();
+  const canEdit = !actions.readOnly && !actions.projected;
   const columns = useMemo(
     () =>
       column.columns(
@@ -133,7 +136,16 @@ export function TableView({
                 key={row.id}
                 role="row"
                 aria-rowindex={item.index + 2}
-                className="absolute inset-x-0 flex border-b border-border hover:bg-accent/60"
+                title={canEdit ? "Double-click to edit" : undefined}
+                // Focusable without adding hundreds of tab stops; editing is also in List view.
+                tabIndex={-1}
+                onDoubleClick={() => {
+                  if (canEdit) actions.edit(row.original);
+                }}
+                onKeyDown={(event) => {
+                  if (canEdit && event.key === "Enter") actions.edit(row.original);
+                }}
+                className="absolute inset-x-0 flex border-b border-border outline-none hover:bg-accent/60 focus-visible:bg-accent/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
                 style={{ height: ROW_HEIGHT, transform: `translateY(${item.start}px)` }}
               >
                 <div

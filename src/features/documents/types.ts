@@ -4,6 +4,7 @@ import type { BsonDocument } from "./lib/bson";
 export type {
   CollectionQueries,
   DocumentCount,
+  FieldEdit,
   FindPage,
   FindRequest,
   QueryParts,

@@ -57,6 +57,10 @@ pub fn builder() -> Builder<tauri::Wry> {
             query_history::commands::record_query,
             query_history::commands::save_favorite_query,
             query_history::commands::delete_favorite_query,
+            documents::commands::insert_documents,
+            documents::commands::replace_document,
+            documents::commands::set_document_field,
+            documents::commands::delete_document,
         ])
 }
 

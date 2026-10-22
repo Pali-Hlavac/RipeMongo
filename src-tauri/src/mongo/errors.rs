@@ -40,6 +40,12 @@ pub enum MongoError {
     },
     #[error("{0}")]
     Invalid(String),
+    /// The target (e.g. a document) does not exist.
+    #[error("{0}")]
+    Missing(String),
+    /// The target changed since the UI loaded it.
+    #[error("{0}")]
+    Conflict(String),
 }
 
 impl From<MongoError> for AppError {
@@ -56,6 +62,9 @@ impl From<MongoError> for AppError {
                 }
             }
             MongoError::Invalid(message) => AppError::new(ErrorCode::InvalidInput, message),
+            MongoError::Missing(message) => AppError::new(ErrorCode::NotFound, message)
+                .with_hint("Reload the documents to see the current data."),
+            MongoError::Conflict(message) => AppError::new(ErrorCode::Conflict, message),
         }
     }
 }

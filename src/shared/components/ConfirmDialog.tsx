@@ -9,6 +9,8 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog";
 
+import { InlineError } from "./InlineError";
+
 interface ConfirmDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -18,6 +20,8 @@ interface ConfirmDialogProps {
   /** Use for irreversible actions; renders the confirm button in red. */
   destructive?: boolean;
   pending?: boolean;
+  /** Error of the last attempt, shown above the buttons. */
+  error?: unknown;
   onConfirm: () => void;
 }
 
@@ -30,6 +34,7 @@ export function ConfirmDialog({
   confirmLabel,
   destructive = false,
   pending = false,
+  error = null,
   onConfirm,
 }: ConfirmDialogProps) {
   return (
@@ -39,6 +44,7 @@ export function ConfirmDialog({
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
+        {error ? <InlineError error={error} /> : null}
         <div className="flex justify-end gap-2">
           <Button
             variant="outline"

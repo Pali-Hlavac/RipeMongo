@@ -38,6 +38,10 @@
     "allow-list-queries",
     "allow-record-query",
     "allow-save-favorite-query",
-    "allow-delete-favorite-query"
+    "allow-delete-favorite-query",
+    "allow-insert-documents",
+    "allow-replace-document",
+    "allow-set-document-field",
+    "allow-delete-document"
   ]
 }

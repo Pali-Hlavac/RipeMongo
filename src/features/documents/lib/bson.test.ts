@@ -1,4 +1,5 @@
 import { getField, parseDocument } from "./bson";
+import { toCanonicalJson } from "./canonical";
 import { previewText, toShell, typeLabel } from "./format";
 import { parseOrderedJson } from "./ordered-json";
 
@@ -70,5 +71,11 @@ describe("parseDocument", () => {
   it("keeps unknown $-wrappers as raw JSON", () => {
     const odd = parseDocument('{"x":{"$foo":1,"$bar":2}}');
     expect(getField(odd, "x")).toEqual({ type: "unknown", json: '{"$foo":1,"$bar":2}' });
+  });
+});
+
+describe("toCanonicalJson", () => {
+  it("writes back exactly the canonical JSON the backend sent", () => {
+    expect(toCanonicalJson(parseDocument(CANONICAL))).toBe(CANONICAL);
   });
 });

@@ -39,6 +39,6 @@ after another program changed the data.
 Use the query bar above the documents to filter, sort and choose fields; see
 [Finding documents](querying.md).
 
-## Coming next
+## Change documents
 
-Adding, editing and deleting documents are coming in the next updates.
+To add, edit, copy or delete documents, see [Editing documents](editing-documents.md).

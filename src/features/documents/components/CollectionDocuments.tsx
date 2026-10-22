@@ -15,6 +15,7 @@ import { fieldPaths } from "../lib/fields";
 import { pageHasMore, pageWindow, visibleCount } from "../lib/query";
 import { useCollectionView, type DocumentView } from "../store/view";
 import type { FindRequest, LoadedDocument } from "../types";
+import { DocumentActionsProvider } from "./actions/DocumentActionsProvider";
 import { DocumentsToolbar } from "./DocumentsToolbar";
 import { JsonView } from "./JsonView";
 import { DocumentListView } from "./list/DocumentListView";
@@ -24,10 +25,12 @@ import { TableView } from "./TableView";
 interface CollectionDocumentsProps extends CollectionTarget {
   /** Workspace tab id; view settings and the query are kept per tab. */
   tabId: string;
+  /** Views and read-only collections: no insert, edit or delete. */
+  readOnly: boolean;
 }
 
 /** Documents of a collection: query bar, view switcher, paging and the selected view. */
-export function CollectionDocuments({ tabId, ...target }: CollectionDocumentsProps) {
+export function CollectionDocuments({ tabId, readOnly, ...target }: CollectionDocumentsProps) {
   const queryClient = useQueryClient();
   const [state, update] = useCollectionView(tabId);
   const { query } = state;
@@ -53,53 +56,59 @@ export function CollectionDocuments({ tabId, ...target }: CollectionDocumentsPro
     page.error && toIpcError(page.error).code === "INVALID_INPUT" ? page.error : null;
 
   return (
-    <section aria-label="Documents" className="flex min-h-0 flex-1 flex-col">
-      <QueryBar
-        target={target}
-        applied={query}
-        fields={fields}
-        error={queryError}
-        onApply={(next) => {
-          const unchanged = JSON.stringify(next) === JSON.stringify(query) && state.skip === 0;
-          update({ query: next, skip: 0 });
-          // Find always runs, even when the query did not change.
-          if (unchanged) reload();
-        }}
-      />
-      <DocumentsToolbar
-        state={state}
-        onChange={update}
-        onReload={reload}
-        reloading={page.isFetching}
-        shown={documents.length}
-        hasMore={pageHasMore(query, state.skip, documents.length, page.data?.hasMore ?? false)}
-        count={visibleCount(query, count.data)}
-        ready={page.data !== undefined && !page.error}
-      />
-      <div
-        className={cn(
-          "min-h-0 flex-1",
-          state.view === "table" ? "overflow-hidden" : "overflow-auto",
-        )}
-        aria-busy={page.isFetching}
-      >
-        {page.isPending && <LoadingState label="Loading documents…" />}
-        {page.error && !queryError && (
-          <ErrorState
-            error={page.error}
-            title="Could not load documents"
-            onRetry={() => void page.refetch()}
-          />
-        )}
-        {page.data &&
-          !page.error &&
-          (documents.length === 0 ? (
-            <NoDocuments filtered={query.filter.trim() !== ""} pastEnd={state.skip > 0} />
-          ) : (
-            <DocumentsBody view={state.view} documents={documents} firstRow={state.skip + 1} />
-          ))}
-      </div>
-    </section>
+    <DocumentActionsProvider
+      target={target}
+      readOnly={readOnly}
+      projected={query.projection.trim() !== ""}
+    >
+      <section aria-label="Documents" className="flex min-h-0 flex-1 flex-col">
+        <QueryBar
+          target={target}
+          applied={query}
+          fields={fields}
+          error={queryError}
+          onApply={(next) => {
+            const unchanged = JSON.stringify(next) === JSON.stringify(query) && state.skip === 0;
+            update({ query: next, skip: 0 });
+            // Find always runs, even when the query did not change.
+            if (unchanged) reload();
+          }}
+        />
+        <DocumentsToolbar
+          state={state}
+          onChange={update}
+          onReload={reload}
+          reloading={page.isFetching}
+          shown={documents.length}
+          hasMore={pageHasMore(query, state.skip, documents.length, page.data?.hasMore ?? false)}
+          count={visibleCount(query, count.data)}
+          ready={page.data !== undefined && !page.error}
+        />
+        <div
+          className={cn(
+            "min-h-0 flex-1",
+            state.view === "table" ? "overflow-hidden" : "overflow-auto",
+          )}
+          aria-busy={page.isFetching}
+        >
+          {page.isPending && <LoadingState label="Loading documents…" />}
+          {page.error && !queryError && (
+            <ErrorState
+              error={page.error}
+              title="Could not load documents"
+              onRetry={() => void page.refetch()}
+            />
+          )}
+          {page.data &&
+            !page.error &&
+            (documents.length === 0 ? (
+              <NoDocuments filtered={query.filter.trim() !== ""} pastEnd={state.skip > 0} />
+            ) : (
+              <DocumentsBody view={state.view} documents={documents} firstRow={state.skip + 1} />
+            ))}
+        </div>
+      </section>
+    </DocumentActionsProvider>
   );
 }
 

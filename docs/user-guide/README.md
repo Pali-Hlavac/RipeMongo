@@ -15,11 +15,12 @@ are not available yet are listed at the bottom.
 - [Databases and collections](databases-and-collections.md): browse, create, rename and drop
 - [Viewing documents](documents.md): list, JSON and table views, paging, copying
 - [Finding documents](querying.md): filters, suggestions, sort and projection, history
+- [Editing documents](editing-documents.md): insert, edit, clone and delete documents
 - [Keyboard shortcuts](keyboard-shortcuts.md)
 
 ## Coming later
 
-Editing documents, aggregations, indexes, schema analysis,
+Updating or deleting many documents at once, aggregations, indexes, schema analysis,
 performance monitoring, and dump/restore/import/export are being built. See the
 [roadmap](../roadmap.md) for the plan.
 

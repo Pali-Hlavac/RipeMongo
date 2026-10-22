@@ -24,6 +24,12 @@ export function useCollections(connectionId: string, database: string) {
   });
 }
 
+/** One collection's entry from the list (kind, view source, read-only), once loaded. */
+export function useCollectionInfo(connectionId: string, database: string, collection: string) {
+  const { data } = useCollections(connectionId, database);
+  return data?.find((candidate) => candidate.name === collection);
+}
+
 /** Document count and sizes; `enabled: false` for views, which have no storage. */
 export function useCollectionStats(
   connectionId: string,

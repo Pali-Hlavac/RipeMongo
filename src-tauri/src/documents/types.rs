@@ -38,3 +38,16 @@ pub struct DocumentCount {
     /// `true` when taken from collection metadata (fast, may be slightly off).
     pub estimated: bool,
 }
+
+/// An inline edit of one field. Values are shell syntax / Extended JSON; `original_value`
+/// guards against overwriting a change made since the document was loaded.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct FieldEdit {
+    /// `_id` of the document as canonical Extended JSON.
+    pub id: String,
+    /// Dotted path, e.g. `address.city` or `tags.0`.
+    pub path: String,
+    pub original_value: String,
+    pub value: String,
+}

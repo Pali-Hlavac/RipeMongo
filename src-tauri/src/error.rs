@@ -36,6 +36,8 @@ pub enum ErrorCode {
     Timeout,
     /// The server rejected the operation for another reason (message explains why).
     OperationFailed,
+    /// The data changed since it was loaded; reload before trying again.
+    Conflict,
 }
 
 /// Serializable error returned by every fallible Tauri command.

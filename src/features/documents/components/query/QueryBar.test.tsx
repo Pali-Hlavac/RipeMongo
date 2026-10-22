@@ -17,7 +17,13 @@ vi.mock("@/shared/ipc/bindings", () => ({
   },
 }));
 
-const target = { tabId: "t1", connectionId: "c1", database: "shop", collection: "items" };
+const target = {
+  tabId: "t1",
+  connectionId: "c1",
+  database: "shop",
+  collection: "items",
+  readOnly: false,
+};
 const DOC = JSON.stringify({ _id: { $oid: "65a1b2c3d4e5f60718293a00" }, name: "Ann", age: 30 });
 const recent: SavedQuery = {
   id: "r1",

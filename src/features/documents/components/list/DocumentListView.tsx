@@ -1,11 +1,8 @@
-import { CopyIcon } from "lucide-react";
 import { useState } from "react";
 
-import { copyText } from "@/shared/lib/clipboard";
-import { Button } from "@/shared/ui/button";
-
-import { toShell } from "../../lib/format";
 import type { LoadedDocument } from "../../types";
+import { CurrentDocumentContext } from "../actions/context";
+import { DocumentActionButtons } from "../actions/DocumentActionButtons";
 import { FieldRow } from "./FieldRow";
 
 /** Top-level fields shown before "Show more"; very wide documents stay readable. */
@@ -33,20 +30,14 @@ function DocumentCard({ document, position }: { document: LoadedDocument; positi
       aria-label={`Document ${position}`}
       className="group relative rounded-md border border-border bg-background px-3 py-2 text-sm"
     >
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute top-1 right-1 size-7 opacity-0 group-focus-within:opacity-100 group-hover:opacity-100"
-        aria-label={`Copy document ${position}`}
-        onClick={() => void copyText(toShell(document.value), "Document")}
-      >
-        <CopyIcon aria-hidden />
-      </Button>
-      <ul>
-        {visible.map(([name, value]) => (
-          <FieldRow key={name} name={name} value={value} depth={0} />
-        ))}
-      </ul>
+      <DocumentActionButtons document={document} position={position} />
+      <CurrentDocumentContext.Provider value={document}>
+        <ul>
+          {visible.map(([name, value]) => (
+            <FieldRow key={name} name={name} path={name} value={value} depth={0} />
+          ))}
+        </ul>
+      </CurrentDocumentContext.Provider>
       {hidden > 0 && (
         <button
           type="button"

@@ -17,7 +17,8 @@ src/
   shared/
     ipc/                 bindings.ts (generated), client.ts (unwrap, call, IpcError)
     ui/                  shadcn/ui primitives: button, dialog, dropdown-menu, command, tooltip, kbd
-    components/          EmptyState, ErrorState, LoadingState
+    components/          EmptyState, ErrorState, LoadingState, dialogs (Confirm, FormDialog, ...)
+    editor/              LazyCodeEditor: Monaco (core only, local worker), mongosh highlighting
     hooks/               useHotkey, usePrefersDark
     lib/                 cn, hotkeys, platform, native-feel
   test/setup.ts          Vitest setup (jest-dom, matchMedia/ResizeObserver stubs)
@@ -34,7 +35,7 @@ src/
 | `about`           | App info query, About dialog                                   | [app-shell](../features/app-shell.md)                   |
 | `connections`     | Sidebar, editor, overview tab, import/export, palette commands | [connections](../features/connections.md)               |
 | `catalog`         | Database tree, collection header, create/rename/drop dialogs   | [navigation](../features/navigation.md)                 |
-| `documents`       | Paged documents, list/JSON/table views, BSON model and format  | [documents](../features/documents.md)                   |
+| `documents`       | Paged documents, views, query bar, insert/edit/clone/delete    | [documents](../features/documents.md)                   |
 
 ## State rules
 

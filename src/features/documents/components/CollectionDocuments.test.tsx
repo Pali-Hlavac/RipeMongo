@@ -24,7 +24,13 @@ const doc = (n: number) =>
     address: { city: "Bratislava", zip: "81101" },
   });
 
-const target = { tabId: "t1", connectionId: "c1", database: "shop", collection: "items" };
+const target = {
+  tabId: "t1",
+  connectionId: "c1",
+  database: "shop",
+  collection: "items",
+  readOnly: false,
+};
 
 beforeEach(() => {
   useCollectionViewStore.setState({ states: {} });

@@ -37,6 +37,10 @@ const APP_COMMANDS: &[&str] = &[
     "record_query",
     "save_favorite_query",
     "delete_favorite_query",
+    "insert_documents",
+    "replace_document",
+    "set_document_field",
+    "delete_document",
 ];
 
 /// Common-Controls v6 manifest, embedded into every linked artifact on Windows.

@@ -49,6 +49,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Query bar (milestone 3): filter, projection, sort, collation, skip, limit and time limit in
   mongosh syntax; autocomplete for field names, operators and value constructors; errors
   shown next to the query; recent queries and named favorites per collection.
+- Editing documents (milestone 3): insert one or many documents, edit a whole document or a
+  single field inline, clone and delete, in a built-in code editor (Monaco, loaded on demand,
+  with shell-syntax highlighting and error markers); refused on views and read-only
+  collections; a document changed by someone else since it was loaded is never overwritten.
 - Query parsing in the backend: JSON, Extended JSON and mongosh syntax (`ObjectId(…)`,
   `ISODate(…)`, unquoted keys, `/regex/`, `NumberLong(…)`, …) with line/column errors.
 - End-user guide in `docs/user-guide/`.
@@ -60,7 +64,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Not yet implemented
 
-- Inserting, editing and deleting documents (later in milestone 3).
+- Updating and deleting many documents at once (later in milestone 3).
 - Interactive browser OIDC sign-in and Kerberos (GSSAPI) authentication.
 - SSH tunnels have not yet been verified against a real SSH server in automated tests.
 

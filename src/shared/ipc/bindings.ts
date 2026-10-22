@@ -72,6 +72,14 @@ export const commands = {
 	saveFavoriteQuery: (connectionId: string, database: string, collection: string, name: string, query: QueryParts) => typedError<CollectionQueries, AppError>(__TAURI_INVOKE("save_favorite_query", { connectionId, database, collection, name, query })),
 	/**  Deletes a favorite query. */
 	deleteFavoriteQuery: (connectionId: string, database: string, collection: string, id: string) => typedError<CollectionQueries, AppError>(__TAURI_INVOKE("delete_favorite_query", { connectionId, database, collection, id })),
+	/**  Inserts one document or an array of documents; returns how many were inserted. */
+	insertDocuments: (connectionId: string, database: string, collection: string, text: string) => typedError<number, AppError>(__TAURI_INVOKE("insert_documents", { connectionId, database, collection, text })),
+	/**  Replaces a document with edited text, unless it changed since `original` was loaded. */
+	replaceDocument: (connectionId: string, database: string, collection: string, id: string, original: string, text: string) => typedError<null, AppError>(__TAURI_INVOKE("replace_document", { connectionId, database, collection, id, original, text })),
+	/**  Sets one field of a document, unless its value changed since it was loaded. */
+	setDocumentField: (connectionId: string, database: string, collection: string, edit: FieldEdit) => typedError<null, AppError>(__TAURI_INVOKE("set_document_field", { connectionId, database, collection, edit })),
+	/**  Deletes one document by `_id`. */
+	deleteDocument: (connectionId: string, database: string, collection: string, id: string) => typedError<null, AppError>(__TAURI_INVOKE("delete_document", { connectionId, database, collection, id })),
 };
 
 /* Types */
@@ -238,7 +246,22 @@ export type ErrorCode =
 /**  The operation exceeded its time limit. */
 "TIMEOUT" | 
 /**  The server rejected the operation for another reason (message explains why). */
-"OPERATION_FAILED";
+"OPERATION_FAILED" | 
+/**  The data changed since it was loaded; reload before trying again. */
+"CONFLICT";
+
+/**
+ *  An inline edit of one field. Values are shell syntax / Extended JSON; `original_value`
+ *  guards against overwriting a change made since the document was loaded.
+ */
+export type FieldEdit = {
+	/**  `_id` of the document as canonical Extended JSON. */
+	id: string,
+	/**  Dotted path, e.g. `address.city` or `tags.0`. */
+	path: string,
+	originalValue: string,
+	value: string,
+};
 
 /**  A page of documents. */
 export type FindPage = {
