@@ -9,8 +9,8 @@
   while the app runs, even when the connection row is collapsed.
 - Clicking a collection opens (or focuses) its **collection tab**. The tab header shows the
   namespace, kind (capped, read-only, view source) and statistics: documents, data size,
-  average document size, storage size and index size. Document browsing arrives in the next M3
-  slice; until then the tab says so.
+  average document size, storage size and index size, followed by the documents (see
+  [documents.md](documents.md)).
 - "⋯" menus:
   - connection (while connected): **Create database…**, **Refresh databases**;
   - database: **Create collection…**, **Refresh**, **Drop database…**;

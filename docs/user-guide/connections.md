@@ -66,6 +66,10 @@ several hosts. Use the host name of the server you want to work with.
 Replica set name, read preference, direct connection, default database, application name, and
 any other connection-string option (for example `retryWrites` = `false`).
 
+Turn on **direct connection** (or add `directConnection=true` to the connection string) to talk
+to exactly the server you entered. You need it, for example, for a replica set running in
+Docker on your computer whose members have names your computer cannot reach.
+
 ## Passwords are kept safe
 
 RipeMongo stores passwords, passphrases and tokens in your operating system's secure storage

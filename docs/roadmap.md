@@ -36,7 +36,7 @@ Legend: `[x]` done · `[ ]` to do · `[~]` partially done / deferred (see note)
 - [x] Connection string ⇄ structured form, two-way sync (host/port, `mongodb+srv`, auth, TLS, replica set, read preference)
 - [x] Auth: SCRAM-SHA-1/256, X.509, LDAP (PLAIN), AWS IAM, OIDC (environment providers; browser flow documented as unsupported)
 - [x] TLS: CA file, client certificate/key (+ key password), allow invalid certs/hostnames
-- [~] SSH tunnel: password and private key with passphrase, host-key verification — implemented and unit tested; not yet verified against a real SSH server (add an sshd container test in M3)
+- [x] SSH tunnel: password and private key with passphrase, host-key verification — verified against a real OpenSSH server in M3 (`tests/ssh_tunnel.rs`)
 - [x] Secrets in the OS keychain only; redaction of connection strings in logs/errors
 - [x] Test connection; connect / disconnect; multiple simultaneous connections
 - [x] Connection overview tab (server version, topology, hosts)
@@ -49,7 +49,7 @@ password → test → save & connect → overview → edit shows "saved in keych
 the keychain entry; export with an encrypted password through the native save dialog →
 delete → import (wrong password rejected inline, right password restores the keychain entry).
 
-### M3 — Browsing, documents, query bar 🚧 (in progress)
+### M3 — Browsing, documents, query bar ✅
 
 - [x] Sidebar tree: databases, collections, views with counts and sizes
 - [x] Create/drop databases, collections, views, capped and time-series collections; rename collections
@@ -62,8 +62,8 @@ delete → import (wrong password rejected inline, right password restores the k
 - [x] Bulk update/delete with preview + confirmation
 - [x] Full BSON/Extended JSON support (ObjectId, Date, Decimal128, Long, Binary, UUID, Regex, …)
 - [x] Paged loading; never load a whole collection
-- [ ] Replica-set integration tests; SSH tunnel test against a real sshd (carried over from M2)
-- [ ] ADRs 0011 (paging), 0012 (Extended JSON); feature docs; user guide pages
+- [x] Replica-set integration tests; SSH tunnel test against a real sshd (carried over from M2)
+- [x] ADRs 0011 (paging), 0012 (Extended JSON); feature docs; user guide pages
 
 Slices, in order: (1) database/collection admin backend + sidebar tree + dialogs;
 (2) Extended JSON + shell-syntax parser; (3) find with paging + document views;
@@ -115,11 +115,14 @@ Slices, in order: (1) database/collection admin backend + sidebar tree + dialogs
   preview blocks the update, server error (`$inc` on a string) shown in the preview, update of 8
   and delete of 4 after typing the collection name. Fixed: "Delete no documents" button label.
 
-**Next: slice 7 (finish M3)**
+- Slice 7 complete: `tests/replica_set.rs` (topology, catalog, paging, edits on
+  `start_replica_set`), `tests/ssh_tunnel.rs` (real OpenSSH container, MongoDB only on a private
+  Docker network: password, generated private key, wrong password, changed host key), docs pass
+  (ADR 0013 consequences, navigation doc, user guide note on direct connections).
 
-1. Replica-set integration tests beyond bulk (catalog, documents on `start_replica_set`);
-   SSH tunnel test against a real sshd container (carried over from M2).
-2. Docs pass: tick "ADRs 0011, 0012; feature docs; user guide pages", review the user guide.
+**Milestone 3 is complete.** Next: milestone 4 (background jobs, bundled mongo-tools,
+import/export); start by reading `docs/architecture/background-jobs.md` and
+`docs/architecture/sidecars.md`, then plan its slices here.
 
 Verified in the real app (2026-10-22, MongoDB 8 in Docker, 120 nested sample documents): list,
 JSON and table views, paging, filter with field suggestions, sort, inline query errors, history

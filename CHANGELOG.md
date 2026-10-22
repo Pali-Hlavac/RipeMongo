@@ -59,6 +59,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Query parsing in the backend: JSON, Extended JSON and mongosh syntax (`ObjectId(…)`,
   `ISODate(…)`, unquoted keys, `/regex/`, `NumberLong(…)`, …) with line/column errors.
 - End-user guide in `docs/user-guide/`.
+- Integration tests through a real OpenSSH server and against a replica set.
 
 ### Security
 
@@ -68,6 +69,5 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Not yet implemented
 
 - Interactive browser OIDC sign-in and Kerberos (GSSAPI) authentication.
-- SSH tunnels have not yet been verified against a real SSH server in automated tests.
 
 <!-- The first release will be tagged 0.1.0. -->

@@ -32,5 +32,5 @@ support, and requiring an external `ssh` binary would break "no command line nee
 
 - Works on all platforms without extra software.
 - Replica-set failover through a tunnel is not possible; users tunnel to the member they need.
-- Not yet verified against a real SSH server in automated tests (planned: an sshd container in
-  the integration suite).
+- Verified against a real OpenSSH server in `tests/ssh_tunnel.rs` (password and key auth,
+  wrong password, changed host key) with MongoDB reachable only on a private Docker network.

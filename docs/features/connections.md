@@ -77,7 +77,10 @@ Sidebar / Editor / Overview (src/features/connections/components)
 - Rust unit tests: `pnpm test:rust` (URI parsing/building/redaction, secrets, repository,
   validation, transfer encryption).
 - Integration tests (Docker required): `cargo test --manifest-path src-tauri/Cargo.toml --test connections`
-  — MongoDB 8 without auth, with SCRAM auth (right and wrong password), unreachable server.
+  — MongoDB 8 without auth, with SCRAM auth (right and wrong password), unreachable server;
+  `--test ssh_tunnel` — through a real OpenSSH container to a MongoDB on a private network
+  (password, private key, wrong password, changed host key); `--test replica_set` — topology,
+  catalog, paging and edits on a single-node replica set.
 - Frontend: `pnpm test` (sidebar grouping/status, editor URI sync and save, secret field,
   helpers).
 - Manual: `docker run --rm -p 27027:27017 -e MONGO_INITDB_ROOT_USERNAME=root -e MONGO_INITDB_ROOT_PASSWORD=secret mongo:8.0`,

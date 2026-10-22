@@ -20,7 +20,8 @@
 - New bugs get a regression test.
 - Integration tests that need Docker are skipped with a clear message when Docker is
   unavailable. Replica-set features use a single-node replica set container
-  (`common::start_replica_set`, initiated through the driver).
+  (`common::start_replica_set`, initiated through the driver). SSH tests run OpenSSH
+  (`panubo/sshd`, pinned) with a generated key, next to a MongoDB on a private Docker network.
 
 ## Notes
 
