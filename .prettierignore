@@ -6,4 +6,4 @@ src-tauri/target
 src-tauri/gen
 src-tauri/binaries
 src/shared/ipc/bindings.ts
-claude-code-prompt.md
+docs/project-brief.md

@@ -1,5 +1,8 @@
 # Project brief: a cross-platform MongoDB GUI (Compass replacement + built-in tools)
 
+> **Original project brief, kept for reference.** The app was renamed to **RipeMongo**, and the
+> approved plan, milestones and agreed deviations are in [roadmap.md](roadmap.md).
+
 You are a senior software engineer starting a brand-new project from an empty repository. Build a **desktop MongoDB client** that fully replaces MongoDB Compass. It should be pleasant, fast and small, and it should ship the MongoDB database tools (dump, restore, import, export) **inside the app**, so users never need the command line.
 
 Working name: **Mongo Studio** (keep it in one constant/config so it can be renamed easily).

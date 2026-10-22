@@ -5,8 +5,8 @@
 RipeMongo is a cross-platform desktop MongoDB client: a full MongoDB Compass replacement that
 also bundles the official database tools (`mongodump`, `mongorestore`, `mongoexport`,
 `mongoimport`) so users never need a terminal. It is built with Tauri 2 (Rust backend) and
-React + TypeScript (frontend). Status and roadmap: [CHANGELOG.md](CHANGELOG.md) and
-[docs/README.md](docs/README.md).
+React + TypeScript (frontend). Plan and milestone status: [docs/roadmap.md](docs/roadmap.md); original
+requirements: [docs/project-brief.md](docs/project-brief.md).
 
 ## Architecture
 
@@ -118,6 +118,7 @@ from `index.ts`, add `docs/features/<name>.md`, and register palette commands in
 ## Where to find more
 
 - [docs/README.md](docs/README.md): index of all docs
+- [docs/roadmap.md](docs/roadmap.md): milestones, scope checklists, agreed decisions
 - [docs/architecture/](docs/architecture/): overview, IPC, modules, security
 - [docs/features/](docs/features/): one file per user-facing feature
 - [docs/adr/](docs/adr/): architecture decisions
@@ -127,7 +128,8 @@ from `index.ts`, add `docs/features/<name>.md`, and register palette commands in
 
 1. Read this file and the relevant `docs/features/*.md` before changing code.
 2. Follow the vertical slice order: backend → IPC → UI → tests → docs → changelog.
-3. Update the docs and `CHANGELOG.md` (`[Unreleased]`) with every change.
+3. Update the docs and `CHANGELOG.md` (`[Unreleased]`) with every change, and tick the
+   checklist in `docs/roadmap.md` when a scope item is done.
 4. Never commit secrets, connection strings with passwords or sidecar binaries.
 5. Run `pnpm check` (lint, types, tests, clippy) before declaring work done.
 6. Don't fake features: stubs must be labelled in the UI, the docs and the changelog.

@@ -34,15 +34,7 @@ See [features/README.md](features/README.md) for the full list with implementati
 
 - [adr/](adr/README.md): Architecture Decision Records
 
-## Roadmap
+## Plan and roadmap
 
-| Milestone | Scope                                                     | Status  |
-| --------- | --------------------------------------------------------- | ------- |
-| 1         | Scaffold, tooling, CI, app shell, docs                    | Done    |
-| 2         | Connections (keychain, TLS, SSH, import/export)           | Planned |
-| 3         | Browsing, documents CRUD, query bar                       | Planned |
-| 4         | Dump / restore / import / export with sidecars, copy data | Planned |
-| 5         | Aggregation builder                                       | Planned |
-| 6         | Indexes, explain, validation                              | Planned |
-| 7         | Schema analysis, performance dashboard                    | Planned |
-| 8         | Console, polish, accessibility, packaging and signing     | Planned |
+- [roadmap.md](roadmap.md): approved plan, milestones M1–M8 with checklists, agreed decisions
+- [project-brief.md](project-brief.md): the original requirements
