@@ -8,7 +8,12 @@ import { useCollectionViewStore } from "../store/view";
 import { CollectionDocuments } from "./CollectionDocuments";
 
 vi.mock("@/shared/ipc/bindings", () => ({
-  commands: { findDocuments: vi.fn(), countDocuments: vi.fn() },
+  commands: {
+    findDocuments: vi.fn(),
+    countDocuments: vi.fn(),
+    listQueries: vi.fn(),
+    recordQuery: vi.fn(),
+  },
 }));
 
 const doc = (n: number) =>
@@ -32,6 +37,8 @@ beforeEach(() => {
     }),
   );
   vi.mocked(commands.countDocuments).mockReturnValue(ok({ count: 1500, estimated: true }));
+  vi.mocked(commands.listQueries).mockReturnValue(ok({ recent: [], favorites: [] }));
+  vi.mocked(commands.recordQuery).mockReturnValue(ok({ recent: [], favorites: [] }));
 });
 
 describe("CollectionDocuments", () => {

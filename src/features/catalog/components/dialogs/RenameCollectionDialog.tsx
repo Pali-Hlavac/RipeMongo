@@ -6,7 +6,7 @@ import { Input } from "@/shared/ui/input";
 import { useRenameCollection } from "../../api/mutations";
 import { collectionNameError } from "../../lib/names";
 import { useCatalogDialog, useCatalogDialogs, type CatalogDialog } from "../../store/dialogs";
-import { FormDialog } from "./FormDialog";
+import { FormDialog } from "@/shared/components/FormDialog";
 
 type Target = Extract<CatalogDialog, { type: "renameCollection" }>;
 

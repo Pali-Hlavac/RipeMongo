@@ -64,6 +64,14 @@ export const commands = {
 	findDocuments: (connectionId: string, database: string, collection: string, request: FindRequest) => typedError<FindPage, AppError>(__TAURI_INVOKE("find_documents", { connectionId, database, collection, request })),
 	/**  Number of documents matching a filter (estimated when the filter is empty). */
 	countDocuments: (connectionId: string, database: string, collection: string, filter: string, maxTimeMs: number | null) => typedError<DocumentCount, AppError>(__TAURI_INVOKE("count_documents", { connectionId, database, collection, filter, maxTimeMs })),
+	/**  Recent and favorite queries of a collection. */
+	listQueries: (connectionId: string, database: string, collection: string) => typedError<CollectionQueries, AppError>(__TAURI_INVOKE("list_queries", { connectionId, database, collection })),
+	/**  Remembers a query that ran successfully. */
+	recordQuery: (connectionId: string, database: string, collection: string, query: QueryParts) => typedError<CollectionQueries, AppError>(__TAURI_INVOKE("record_query", { connectionId, database, collection, query })),
+	/**  Saves (or replaces, by name) a favorite query. */
+	saveFavoriteQuery: (connectionId: string, database: string, collection: string, name: string, query: QueryParts) => typedError<CollectionQueries, AppError>(__TAURI_INVOKE("save_favorite_query", { connectionId, database, collection, name, query })),
+	/**  Deletes a favorite query. */
+	deleteFavoriteQuery: (connectionId: string, database: string, collection: string, id: string) => typedError<CollectionQueries, AppError>(__TAURI_INVOKE("delete_favorite_query", { connectionId, database, collection, id })),
 };
 
 /* Types */
@@ -121,6 +129,13 @@ export type CollectionInfo = {
 
 /**  What kind of namespace a collection entry is. */
 export type CollectionKind = "collection" | "view" | "timeseries";
+
+/**  Recent and favorite queries of one collection. */
+export type CollectionQueries = {
+	/**  Most recent first. */
+	recent: SavedQuery[],
+	favorites: SavedQuery[],
+};
 
 /**
  *  Size information from `$collStats` (summed over shards). Floats because JS numbers
@@ -290,8 +305,26 @@ export type ParsedConnectionString = {
 	secrets: ConnectionSecrets,
 };
 
+/**  The text parts of a `find` query, as typed by the user. */
+export type QueryParts = {
+	filter: string,
+	projection: string,
+	sort: string,
+	collation: string,
+};
+
 /**  Read preference modes. */
 export type ReadPreferenceMode = "primary" | "primaryPreferred" | "secondary" | "secondaryPreferred" | "nearest";
+
+/**  A remembered query: a recent run, or a named favorite. */
+export type SavedQuery = {
+	id: string,
+	/**  Favorites only. */
+	name: string | null,
+	query: QueryParts,
+	/**  RFC 3339 time of the last run or save. */
+	savedAt: string,
+};
 
 /**  `mongodb://` or `mongodb+srv://`. */
 export type Scheme = "standard" | "srv";

@@ -10,7 +10,7 @@ use std::path::{Path, PathBuf};
 use specta_typescript::Typescript;
 use tauri_specta::{collect_commands, Builder};
 
-use crate::{app_info, collections, connections, databases, documents, settings};
+use crate::{app_info, collections, connections, databases, documents, query_history, settings};
 
 /// Location of the generated bindings, relative to the crate root.
 const BINDINGS_RELATIVE_PATH: &str = "../src/shared/ipc/bindings.ts";
@@ -53,6 +53,10 @@ pub fn builder() -> Builder<tauri::Wry> {
             collections::commands::rename_collection,
             documents::commands::find_documents,
             documents::commands::count_documents,
+            query_history::commands::list_queries,
+            query_history::commands::record_query,
+            query_history::commands::save_favorite_query,
+            query_history::commands::delete_favorite_query,
         ])
 }
 

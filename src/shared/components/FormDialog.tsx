@@ -26,7 +26,7 @@ interface FormDialogProps {
   children: ReactNode;
 }
 
-/** Modal form used by the catalog's create and rename dialogs; Enter submits. */
+/** Modal form with inline submit errors (create/rename dialogs, saving favorites); Enter submits. */
 export function FormDialog({
   open,
   onClose,

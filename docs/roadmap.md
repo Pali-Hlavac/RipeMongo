@@ -55,11 +55,11 @@ delete → import (wrong password rejected inline, right password restores the k
 - [x] Create/drop databases, collections, views, capped and time-series collections; rename collections
 - [x] Confirm-by-typing dialog for destructive actions
 - [x] Documents: list (JSON tree), JSON and virtualized table views
-- [ ] Query bar: filter, project, sort, collation, skip, limit, maxTimeMS; field/operator autocomplete
-- [ ] Shell-style query syntax (`{_id: ObjectId("…")}`, `ISODate(…)`, unquoted keys, `/regex/`)
-- [ ] Query history and favorite queries per collection
+- [x] Query bar: filter, project, sort, collation, skip, limit, maxTimeMS; field/operator autocomplete
+- [x] Shell-style query syntax (`{_id: ObjectId("…")}`, `ISODate(…)`, unquoted keys, `/regex/`)
+- [x] Query history and favorite queries per collection
 - [ ] Insert, edit (inline + Monaco JSON editor), clone, delete; bulk update/delete with preview + confirmation
-- [ ] Full BSON/Extended JSON support (ObjectId, Date, Decimal128, Long, Binary, UUID, Regex, …)
+- [x] Full BSON/Extended JSON support (ObjectId, Date, Decimal128, Long, Binary, UUID, Regex, …)
 - [x] Paged loading; never load a whole collection
 - [ ] Replica-set integration tests; SSH tunnel test against a real sshd (carried over from M2)
 - [ ] ADRs 0011 (paging), 0012 (Extended JSON); feature docs; user guide pages
@@ -89,28 +89,27 @@ Slices, in order: (1) database/collection admin backend + sidebar tree + dialogs
   tested against the Rust parser, list/JSON/virtualized table views, pager, per-tab view
   store). TanStack Table is **v9** (`useTable`, `tableFeatures`, `table.FlexRender`).
 
-**Next: slice 4 (query bar)**
+- Slice 4 complete: query bar (`documents/components/query/`: filter + options incl.
+  skip/limit/max time, combobox autocomplete from `lib/completion.ts`, inline errors), backend
+  `query_history/` (recent + favorites in `query-history.json`, 4 commands), per-tab applied
+  query in `store/view.ts`, `FormDialog` moved to `shared/components`.
 
-1. Per-tab query state (filter, projection, sort, collation, maxTimeMS, skip/limit override)
-   in `documents/store`; `CollectionDocuments` builds `FindRequest` from it (today the query
-   parts are empty strings).
-2. `QueryBar` component: filter input always visible, "Options" expands projection / sort /
-   collation / maxTimeMS; Enter or "Find" applies, "Reset" clears; parse errors from the
-   backend (named part, line/column) shown inline.
-3. Autocomplete: field names sampled from the loaded page (and nested paths), `$` operators,
-   shell constructors (ObjectId, ISODate, …). Decide CodeMirror-lite vs. a small custom
-   input with a popup (Monaco is reserved for the CRUD editor in slice 5).
-4. History and favorites per collection: persisted (JSON file via a small backend
-   `query_history` module, or settings), recent N runs plus named favorites.
-5. Then slices 5 (CRUD + Monaco), 6 (bulk update/delete with preview), 7 (replica-set + sshd
-   integration tests, docs, verification).
+**Next: slice 5 (CRUD + Monaco)**
 
-The documents views have not yet been clicked through in the real app; do it with slice 4.
+1. Backend `documents` writes: `insert_documents` (one or many, parsed by `ejson`),
+   `replace_document` (by `_id`, the edited text), `update_document` for inline field edits
+   (`$set`/`$unset` by `_id`), `delete_document`; clone = insert without `_id`. Integration
+   tests incl. validation errors (121) and duplicate keys (11000).
+2. Monaco editor (local `monaco-editor` with a worker; CSP already allows `worker-src blob:`)
+   in "Edit document" / "Insert documents" dialogs, prefilled with `toShell`, errors shown
+   with line/column markers.
+3. Document card actions: Edit, Clone, Delete (confirm), plus inline edit of a scalar field in
+   the list view; no write actions on views.
+4. Then slices 6 (bulk update/delete with preview + confirm-by-typing) and 7 (replica-set and
+   sshd integration tests, docs, user guide, verification).
 
-Verified in the real app (2026-10-22) against MongoDB 8 in Docker: auto-expand after
-connect, sizes and counts, view/time-series icons, collection tab statistics, rename (open tab
-follows), capped collection (16 MB confirmed on the server), create database, drop by typing.
-That check found that deleting a connection left its collection tabs open; fixed.
+The document views and query bar have not yet been clicked through in the real app; do it
+before slice 5 (ask the user first: it takes over the mouse).
 
 ### M4 — Tools: dump, restore, import, export, copy
 

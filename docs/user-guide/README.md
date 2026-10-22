@@ -14,11 +14,12 @@ are not available yet are listed at the bottom.
 - [Connections](connections.md): save, organize, secure and share connections
 - [Databases and collections](databases-and-collections.md): browse, create, rename and drop
 - [Viewing documents](documents.md): list, JSON and table views, paging, copying
+- [Finding documents](querying.md): filters, suggestions, sort and projection, history
 - [Keyboard shortcuts](keyboard-shortcuts.md)
 
 ## Coming later
 
-Editing documents, the query bar, aggregations, indexes, schema analysis,
+Editing documents, aggregations, indexes, schema analysis,
 performance monitoring, and dump/restore/import/export are being built. See the
 [roadmap](../roadmap.md) for the plan.
 

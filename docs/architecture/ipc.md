@@ -60,6 +60,10 @@ error toast (`src/app/query-client.ts`).
 | `drop_collection`          | `collections`           | `connectionId`, `database`, `collection`                                   | `null`                                          | `FORBIDDEN`, `NOT_CONNECTED`                                                           |
 | `find_documents`           | `documents`             | `connectionId`, `database`, `collection`, `request: FindRequest`           | `FindPage` (canonical EJSON strings, `hasMore`) | `INVALID_INPUT` (named query part, page size), `TIMEOUT`, `FORBIDDEN`, `NOT_CONNECTED` |
 | `count_documents`          | `documents`             | `connectionId`, `database`, `collection`, `filter`, `maxTimeMs` (nullable) | `DocumentCount`                                 | `INVALID_INPUT`, `TIMEOUT`, `FORBIDDEN`, `NOT_CONNECTED`                               |
+| `list_queries`             | `query_history`         | `connectionId`, `database`, `collection`                                   | `CollectionQueries`                             | `IO`, `INVALID_DATA`                                                                   |
+| `record_query`             | `query_history`         | `connectionId`, `database`, `collection`, `query: QueryParts`              | `CollectionQueries`                             | `IO`                                                                                   |
+| `save_favorite_query`      | `query_history`         | `connectionId`, `database`, `collection`, `name`, `query`                  | `CollectionQueries`                             | `INVALID_INPUT` (no name, empty query, too many), `IO`                                 |
+| `delete_favorite_query`    | `query_history`         | `connectionId`, `database`, `collection`, `id`                             | `CollectionQueries`                             | `IO`                                                                                   |
 
 Plugin permissions: `dialog:allow-open`, `dialog:allow-save` (native file pickers; the chosen
 path is passed to the commands above).

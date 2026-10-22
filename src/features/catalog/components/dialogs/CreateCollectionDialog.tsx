@@ -12,7 +12,7 @@ import {
 } from "../../lib/new-collection";
 import { useCatalogDialog, useCatalogDialogs, type CatalogDialog } from "../../store/dialogs";
 import { CollectionKindFields, KindPicker } from "./CollectionKindFields";
-import { FormDialog } from "./FormDialog";
+import { FormDialog } from "@/shared/components/FormDialog";
 
 type Target = Extract<CatalogDialog, { type: "createCollection" }>;
 

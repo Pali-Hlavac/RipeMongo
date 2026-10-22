@@ -34,6 +34,10 @@
     "allow-drop-collection",
     "allow-rename-collection",
     "allow-find-documents",
-    "allow-count-documents"
+    "allow-count-documents",
+    "allow-list-queries",
+    "allow-record-query",
+    "allow-save-favorite-query",
+    "allow-delete-favorite-query"
   ]
 }

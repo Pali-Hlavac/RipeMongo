@@ -10,10 +10,11 @@ pub mod error;
 mod ipc;
 mod logging;
 pub mod mongo;
+pub mod query_history;
 pub mod secrets;
 mod settings;
 pub mod ssh;
-mod storage;
+pub mod storage;
 
 /// Starts the desktop application. Blocks until the last window closes.
 pub fn run() {
@@ -32,6 +33,7 @@ pub fn run() {
             builder.mount_events(app);
             settings::init(app)?;
             connections::init(app)?;
+            query_history::init(app)?;
             Ok(())
         })
         .run(tauri::generate_context!());

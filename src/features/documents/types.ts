@@ -1,7 +1,14 @@
 /** Document types: generated IPC types plus the parsed form the views render. */
 import type { BsonDocument } from "./lib/bson";
 
-export type { DocumentCount, FindPage, FindRequest } from "@/shared/ipc/bindings";
+export type {
+  CollectionQueries,
+  DocumentCount,
+  FindPage,
+  FindRequest,
+  QueryParts,
+  SavedQuery,
+} from "@/shared/ipc/bindings";
 
 /** One loaded document. */
 export interface LoadedDocument {

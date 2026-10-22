@@ -42,6 +42,8 @@ and reload/print shortcuts in production builds.
 - Exported connections either omit secrets or encrypt them with a user password (ADR 0008).
 - SSH host keys are verified against known_hosts with trust on first use; changed keys are
   rejected (ADR 0013).
+- Query history and favorites (`query-history.json`) stay on this computer; they may contain
+  values typed into filters, never credentials.
 - Import/export paths come from native dialogs (`dialog:allow-open`, `dialog:allow-save`);
   imports are capped at 10 MiB.
 

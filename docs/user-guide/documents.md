@@ -34,7 +34,11 @@ The document is copied as text that you can paste into a query or another tool.
 Click the circular arrow next to the view buttons to load the current page again, for example
 after another program changed the data.
 
+## Find specific documents
+
+Use the query bar above the documents to filter, sort and choose fields; see
+[Finding documents](querying.md).
+
 ## Coming next
 
-Filtering, sorting and choosing fields with the query bar, and adding, editing and deleting
-documents, are coming in the next updates.
+Adding, editing and deleting documents are coming in the next updates.

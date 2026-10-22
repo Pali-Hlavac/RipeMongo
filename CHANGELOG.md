@@ -46,6 +46,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   list (expandable, type-colored), JSON (mongosh syntax) and virtualized table views; exact
   BSON types preserved end to end (Int64, Decimal128, dates, UUIDs, …); copy a document;
   ADR 0011 (paging) and ADR 0012 (Extended JSON).
+- Query bar (milestone 3): filter, projection, sort, collation, skip, limit and time limit in
+  mongosh syntax; autocomplete for field names, operators and value constructors; errors
+  shown next to the query; recent queries and named favorites per collection.
 - Query parsing in the backend: JSON, Extended JSON and mongosh syntax (`ObjectId(…)`,
   `ISODate(…)`, unquoted keys, `/regex/`, `NumberLong(…)`, …) with line/column errors.
 - End-user guide in `docs/user-guide/`.
@@ -57,7 +60,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Not yet implemented
 
-- Query bar and editing documents (later in milestone 3).
+- Inserting, editing and deleting documents (later in milestone 3).
 - Interactive browser OIDC sign-in and Kerberos (GSSAPI) authentication.
 - SSH tunnels have not yet been verified against a real SSH server in automated tests.
 

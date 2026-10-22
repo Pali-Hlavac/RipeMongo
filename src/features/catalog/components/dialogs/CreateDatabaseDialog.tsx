@@ -6,7 +6,7 @@ import { Input } from "@/shared/ui/input";
 import { useCreateDatabase } from "../../api/mutations";
 import { collectionNameError, databaseNameError } from "../../lib/names";
 import { useCatalogDialog, useCatalogDialogs } from "../../store/dialogs";
-import { FormDialog } from "./FormDialog";
+import { FormDialog } from "@/shared/components/FormDialog";
 
 /** New database plus its first collection (MongoDB only stores databases that have one). */
 export function CreateDatabaseDialog() {

@@ -99,6 +99,15 @@ Every domain module follows the same layout:
 - **Errors:** `MongoError::Query { field }` names the bad query part ("Filter: …").
 - **Docs:** [features/documents.md](../features/documents.md).
 
+## `query_history`
+
+- **Purpose:** recent (30) and favorite (100, unique names) queries per
+  `<connectionId>/<db>.<collection>`, in `query-history.json` in the app-config directory.
+  `QueryHistory` does a locked read-modify-write through `storage::JsonFile`; `init` registers
+  it as managed state.
+- **Errors:** `QueryHistoryError::{Storage, Invalid}` → `IO`/`INVALID_DATA`/`INVALID_INPUT`.
+- **Docs:** [features/documents.md](../features/documents.md).
+
 ## `ssh`
 
 - **Purpose:** `SshTunnel::open` forwards a random loopback port to the MongoDB host through a

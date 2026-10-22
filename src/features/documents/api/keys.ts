@@ -16,4 +16,7 @@ export const documentKeys = {
     [...documentKeys.collection(target), "page", request] as const,
   count: (target: CollectionTarget, filter: string) =>
     [...documentKeys.collection(target), "count", filter] as const,
+  /** Saved queries live on disk, not on the server; kept apart from page data. */
+  history: ({ connectionId, database, collection }: CollectionTarget) =>
+    ["query-history", connectionId, database, collection] as const,
 };

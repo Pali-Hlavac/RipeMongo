@@ -1,81 +1,80 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { FileSearchIcon, RefreshCwIcon } from "lucide-react";
+import { FileSearchIcon } from "lucide-react";
+import { useMemo } from "react";
 
 import { EmptyState } from "@/shared/components/EmptyState";
 import { ErrorState } from "@/shared/components/ErrorState";
 import { LoadingState } from "@/shared/components/LoadingState";
+import { toIpcError } from "@/shared/ipc/client";
 import { cn } from "@/shared/lib/cn";
-import { Button } from "@/shared/ui/button";
-import { Tooltip } from "@/shared/ui/tooltip";
 
 import { documentKeys, type CollectionTarget } from "../api/keys";
 import { useDocumentCount, useDocumentPage } from "../api/queries";
-import { useCollectionView } from "../store/view";
+import { useRecordSuccessfulQuery } from "../hooks/useRecordSuccessfulQuery";
+import { fieldPaths } from "../lib/fields";
+import { pageHasMore, pageWindow, visibleCount } from "../lib/query";
+import { useCollectionView, type DocumentView } from "../store/view";
 import type { FindRequest, LoadedDocument } from "../types";
+import { DocumentsToolbar } from "./DocumentsToolbar";
 import { JsonView } from "./JsonView";
 import { DocumentListView } from "./list/DocumentListView";
-import { Pager } from "./Pager";
+import { QueryBar } from "./query/QueryBar";
 import { TableView } from "./TableView";
-import { ViewSwitcher } from "./ViewSwitcher";
-
-/** Server-side limit for loading a page, so a slow query never hangs the tab. */
-export const FIND_MAX_TIME_MS = 60_000;
 
 interface CollectionDocumentsProps extends CollectionTarget {
-  /** Workspace tab id; view settings are kept per tab. */
+  /** Workspace tab id; view settings and the query are kept per tab. */
   tabId: string;
 }
 
-/** Documents of a collection: view switcher, paging and the selected view. */
+/** Documents of a collection: query bar, view switcher, paging and the selected view. */
 export function CollectionDocuments({ tabId, ...target }: CollectionDocumentsProps) {
   const queryClient = useQueryClient();
   const [state, update] = useCollectionView(tabId);
+  const { query } = state;
   const request: FindRequest = {
-    filter: "",
-    projection: "",
-    sort: "",
-    collation: "",
-    skip: state.skip,
-    limit: state.pageSize,
-    maxTimeMs: FIND_MAX_TIME_MS,
+    filter: query.filter,
+    projection: query.projection,
+    sort: query.sort,
+    collation: query.collation,
+    ...pageWindow(query, state.skip, state.pageSize),
+    maxTimeMs: query.maxTimeMs > 0 ? query.maxTimeMs : null,
   };
   const page = useDocumentPage(target, request);
-  const count = useDocumentCount(target, request.filter);
+  const count = useDocumentCount(target, query.filter);
   const documents = page.data?.documents ?? [];
+  const reload = () => {
+    void queryClient.invalidateQueries({ queryKey: documentKeys.collection(target) });
+  };
+  const fields = useMemo(() => fieldPaths(page.data?.documents ?? []), [page.data]);
+  // Placeholder data is the previous query's page, so it does not count as success yet.
+  useRecordSuccessfulQuery(target, query, page.isSuccess && !page.isPlaceholderData);
+  // A rejected query (syntax, bad option) is explained in the query bar, next to the input.
+  const queryError =
+    page.error && toIpcError(page.error).code === "INVALID_INPUT" ? page.error : null;
 
   return (
     <section aria-label="Documents" className="flex min-h-0 flex-1 flex-col">
-      <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-1.5">
-        <ViewSwitcher
-          value={state.view}
-          onChange={(view) => {
-            update({ view });
-          }}
-        />
-        <Tooltip content="Reload documents">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-7"
-            aria-label="Reload documents"
-            onClick={() =>
-              void queryClient.invalidateQueries({ queryKey: documentKeys.collection(target) })
-            }
-          >
-            <RefreshCwIcon aria-hidden className={cn(page.isFetching && "animate-spin")} />
-          </Button>
-        </Tooltip>
-        <div className="ml-auto">
-          <Pager
-            skip={state.skip}
-            pageSize={state.pageSize}
-            shown={documents.length}
-            hasMore={page.data?.hasMore ?? false}
-            count={count.data}
-            onChange={update}
-          />
-        </div>
-      </div>
+      <QueryBar
+        target={target}
+        applied={query}
+        fields={fields}
+        error={queryError}
+        onApply={(next) => {
+          const unchanged = JSON.stringify(next) === JSON.stringify(query) && state.skip === 0;
+          update({ query: next, skip: 0 });
+          // Find always runs, even when the query did not change.
+          if (unchanged) reload();
+        }}
+      />
+      <DocumentsToolbar
+        state={state}
+        onChange={update}
+        onReload={reload}
+        reloading={page.isFetching}
+        shown={documents.length}
+        hasMore={pageHasMore(query, state.skip, documents.length, page.data?.hasMore ?? false)}
+        count={visibleCount(query, count.data)}
+      />
       <div
         className={cn(
           "min-h-0 flex-1",
@@ -84,7 +83,7 @@ export function CollectionDocuments({ tabId, ...target }: CollectionDocumentsPro
         aria-busy={page.isFetching}
       >
         {page.isPending && <LoadingState label="Loading documents…" />}
-        {page.error && (
+        {page.error && !queryError && (
           <ErrorState
             error={page.error}
             title="Could not load documents"
@@ -92,17 +91,9 @@ export function CollectionDocuments({ tabId, ...target }: CollectionDocumentsPro
           />
         )}
         {page.data &&
+          !page.error &&
           (documents.length === 0 ? (
-            <EmptyState
-              icon={FileSearchIcon}
-              title={state.skip > 0 ? "No more documents" : "No documents"}
-              description={
-                state.skip > 0
-                  ? "This page is past the last document."
-                  : "This collection is empty."
-              }
-              className="h-full"
-            />
+            <NoDocuments filtered={query.filter.trim() !== ""} pastEnd={state.skip > 0} />
           ) : (
             <DocumentsBody view={state.view} documents={documents} firstRow={state.skip + 1} />
           ))}
@@ -111,8 +102,19 @@ export function CollectionDocuments({ tabId, ...target }: CollectionDocumentsPro
   );
 }
 
+function NoDocuments({ filtered, pastEnd }: { filtered: boolean; pastEnd: boolean }) {
+  const [title, description] = pastEnd
+    ? ["No more documents", "This page is past the last document."]
+    : filtered
+      ? ["No matching documents", "No document matches this filter."]
+      : ["No documents", "This collection is empty."];
+  return (
+    <EmptyState icon={FileSearchIcon} title={title} description={description} className="h-full" />
+  );
+}
+
 interface BodyProps {
-  view: "list" | "json" | "table";
+  view: DocumentView;
   documents: LoadedDocument[];
   firstRow: number;
 }
