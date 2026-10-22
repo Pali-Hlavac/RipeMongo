@@ -77,6 +77,30 @@ describe("ConnectionEditor", () => {
     expect(savedSecrets?.sshPassword).toEqual({ action: "keep" });
   });
 
+  it("tests straight from the URI field (blur and click in one gesture)", async () => {
+    vi.mocked(commands.testConnection).mockReturnValue(
+      ok({
+        version: "8.0.4",
+        topology: "standalone",
+        replicaSetName: null,
+        hosts: [],
+        primary: null,
+        writable: true,
+      }),
+    );
+    const user = userEvent.setup();
+    renderEditor();
+    const uriField = screen.getByRole("textbox", { name: "Connection string" });
+    await user.clear(uriField);
+    await user.click(uriField);
+    await user.paste("mongodb://app:pw@db.example.com:27018");
+    await user.click(screen.getByRole("button", { name: "Test connection" }));
+
+    expect(await screen.findByText("Connected successfully")).toBeInTheDocument();
+    const [, , secrets] = vi.mocked(commands.testConnection).mock.calls[0] ?? [];
+    expect(secrets?.password).toEqual({ action: "set", value: "pw" });
+  });
+
   it("shows URI parse errors inline without changing the form", async () => {
     vi.mocked(commands.parseConnectionString).mockReturnValue(
       Promise.resolve({

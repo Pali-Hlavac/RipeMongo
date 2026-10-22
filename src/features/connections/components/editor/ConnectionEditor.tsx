@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useState } from "react";
 
 import { Button } from "@/shared/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
@@ -6,7 +6,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { useSaveConnection } from "../../api/profiles";
 import { useConnectionSession, useTestConnection } from "../../api/session";
 import { useConnectionDraft } from "../../hooks/useConnectionDraft";
+import { useUriSync } from "../../hooks/useUriSync";
 import { suggestName } from "../../lib/defaults";
+import { settingsFingerprint, withParsedUri, type DraftValues } from "../../lib/draft";
 import type { ConnectionProfile, StoredSecrets } from "../../types";
 import { AdvancedTab } from "./AdvancedTab";
 import { AuthTab } from "./AuthTab";
@@ -26,22 +28,43 @@ interface ConnectionEditorProps {
 /** Form body and actions of the connection editor dialog. */
 export function ConnectionEditor({ initial, stored, folders, onDone }: ConnectionEditorProps) {
   const draft = useConnectionDraft(initial);
-  const { profile, secrets } = draft;
+  const { profile, values } = draft;
+  const uriSync = useUriSync({ config: profile.config, onParsed: draft.applyParsedUri });
   const save = useSaveConnection();
   const test = useTestConnection();
   const { connect } = useConnectionSession();
-  const resetTest = test.reset;
+  // Fingerprint of the settings the last test ran with; its result is shown only while the
+  // form still matches, so editing after a test never shows a stale "Connected".
+  const [testedWith, setTestedWith] = useState<string | null>(null);
 
-  // A test result describes the settings it ran with; drop it once they change.
-  useEffect(() => {
-    resetTest();
-  }, [profile.config, secrets, resetTest]);
+  /** Current values including a URI that is still being typed; `null` if it is invalid. */
+  const latestValues = async (): Promise<DraftValues | null> => {
+    const flushed = await uriSync.flush();
+    if (flushed.kind === "invalid") return null;
+    return flushed.kind === "parsed" ? withParsedUri(values, flushed.parsed) : values;
+  };
+
+  const runTest = async () => {
+    const latest = await latestValues();
+    if (!latest) return;
+    setTestedWith(settingsFingerprint(latest));
+    test.mutate({
+      config: latest.profile.config,
+      connectionId: latest.profile.id || null,
+      secrets: latest.secrets,
+    });
+  };
 
   const submit = async (connectAfterSave: boolean) => {
-    const name = profile.name.trim() || suggestName(profile.config);
+    const latest = await latestValues();
+    if (!latest) return;
+    const name = latest.profile.name.trim() || suggestName(latest.profile.config);
     let saved: ConnectionProfile;
     try {
-      saved = await save.mutateAsync({ profile: { ...profile, name }, secrets });
+      saved = await save.mutateAsync({
+        profile: { ...latest.profile, name },
+        secrets: latest.secrets,
+      });
     } catch {
       return; // Shown by the global mutation error toast; the dialog stays open to fix it.
     }
@@ -49,6 +72,7 @@ export function ConnectionEditor({ initial, stored, folders, onDone }: Connectio
     if (connectAfterSave) await connect(saved);
   };
 
+  const testIsCurrent = testedWith === settingsFingerprint(values);
   const sectionProps = { draft, stored };
   return (
     <form
@@ -58,7 +82,7 @@ export function ConnectionEditor({ initial, stored, folders, onDone }: Connectio
         void submit(false);
       }}
     >
-      <UriField draft={draft} />
+      <UriField sync={uriSync} />
       <Tabs defaultValue="general">
         <TabsList aria-label="Connection settings">
           <TabsTrigger value="general">General</TabsTrigger>
@@ -84,16 +108,17 @@ export function ConnectionEditor({ initial, stored, folders, onDone }: Connectio
         </TabsContent>
       </Tabs>
 
-      <TestResult server={test.data} error={test.error} />
+      <TestResult
+        server={testIsCurrent ? test.data : undefined}
+        error={testIsCurrent ? test.error : null}
+      />
 
       <div className="flex items-center justify-between gap-2 border-t border-border pt-4">
         <Button
           type="button"
           variant="outline"
           disabled={test.isPending}
-          onClick={() => {
-            test.mutate({ config: profile.config, connectionId: profile.id || null, secrets });
-          }}
+          onClick={() => void runTest()}
         >
           {test.isPending ? "Testing…" : "Test connection"}
         </Button>

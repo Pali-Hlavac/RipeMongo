@@ -4,23 +4,27 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import type { ConnectionConfig, ParsedConnectionString } from "@/shared/ipc/bindings";
 import { call, commands, toIpcError, unwrap } from "@/shared/ipc/client";
-
-import type { ConnectionConfig, ConnectionSecrets } from "@/shared/ipc/bindings";
 
 /** Wait this long after the last keystroke before parsing the URI. */
 export const URI_PARSE_DEBOUNCE_MS = 300;
 
+/** Outcome of {@link UriSync.flush}: nothing pending, the parsed URI, or a parse error. */
+export type FlushResult =
+  { kind: "idle" } | { kind: "parsed"; parsed: ParsedConnectionString } | { kind: "invalid" };
+
 interface UriSyncOptions {
   config: ConnectionConfig;
-  /** Called with a successfully parsed URI. */
-  onParsed: (config: ConnectionConfig, secrets: ConnectionSecrets) => void;
+  /** Called with every successfully parsed URI. */
+  onParsed: (parsed: ParsedConnectionString) => void;
 }
 
 export function useUriSync({ config, onParsed }: UriSyncOptions) {
   const [uri, setUri] = useState("");
   const [error, setError] = useState<string | null>(null);
   const editingRef = useRef(false);
+  const pendingRef = useRef<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const onParsedRef = useRef(onParsed);
 
@@ -47,13 +51,20 @@ export function useUriSync({ config, onParsed }: UriSyncOptions) {
     [],
   );
 
-  const parse = useCallback(async (value: string) => {
+  /** Parses the pending URI text now (cancelling the debounce) and applies it. */
+  const flush = useCallback(async (): Promise<FlushResult> => {
+    clearTimeout(timerRef.current);
+    const value = pendingRef.current;
+    if (value === null) return { kind: "idle" };
+    pendingRef.current = null;
     try {
       const parsed = await unwrap(commands.parseConnectionString(value));
       setError(null);
-      onParsedRef.current(parsed.config, parsed.secrets);
+      onParsedRef.current(parsed);
+      return { kind: "parsed", parsed };
     } catch (parseError) {
       setError(toIpcError(parseError).message);
+      return { kind: "invalid" };
     }
   }, []);
 
@@ -61,18 +72,21 @@ export function useUriSync({ config, onParsed }: UriSyncOptions) {
   const onUriChange = useCallback(
     (value: string) => {
       editingRef.current = true;
+      pendingRef.current = value;
       setUri(value);
       clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => void parse(value), URI_PARSE_DEBOUNCE_MS);
+      timerRef.current = setTimeout(() => void flush(), URI_PARSE_DEBOUNCE_MS);
     },
-    [parse],
+    [flush],
   );
 
   /** URI field blur: show the normalized form of a valid URI. */
   const onUriBlur = useCallback(() => {
     editingRef.current = false;
-    if (error === null) void rebuild(config);
+    if (pendingRef.current === null && error === null) void rebuild(config);
   }, [config, error, rebuild]);
 
-  return { uri, error, onUriChange, onUriBlur };
+  return { uri, error, onUriChange, onUriBlur, flush };
 }
+
+export type UriSync = ReturnType<typeof useUriSync>;

@@ -1,23 +1,17 @@
 import { FormField } from "@/shared/ui/form-field";
 import { Textarea } from "@/shared/ui/input";
 
-import { useUriSync } from "../../hooks/useUriSync";
-import type { ConnectionDraft } from "../../hooks/useConnectionDraft";
+import type { UriSync } from "../../hooks/useUriSync";
 
 /**
  * Connection string kept in sync with the form. Pasting a URI fills the form; passwords
  * found in it move into the keychain-backed secret fields and are never displayed.
  */
-export function UriField({ draft }: { draft: ConnectionDraft }) {
-  const { uri, error, onUriChange, onUriBlur } = useUriSync({
-    config: draft.profile.config,
-    onParsed: draft.applyParsedUri,
-  });
-
+export function UriField({ sync }: { sync: UriSync }) {
   return (
     <FormField
       label="Connection string"
-      error={error}
+      error={sync.error}
       description="Paste a connection string or use the fields below; both stay in sync. Passwords are stored in the system keychain."
     >
       {(control) => (
@@ -27,11 +21,11 @@ export function UriField({ draft }: { draft: ConnectionDraft }) {
           spellCheck={false}
           autoComplete="off"
           placeholder="mongodb://localhost:27017"
-          value={uri}
+          value={sync.uri}
           onChange={(event) => {
-            onUriChange(event.target.value);
+            sync.onUriChange(event.target.value);
           }}
-          onBlur={onUriBlur}
+          onBlur={sync.onUriBlur}
         />
       )}
     </FormField>
