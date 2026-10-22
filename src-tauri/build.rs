@@ -22,6 +22,15 @@ const APP_COMMANDS: &[&str] = &[
     "export_connections",
     "inspect_connections_file",
     "import_connections",
+    "list_databases",
+    "create_database",
+    "drop_database",
+    "list_collections",
+    "collection_stats",
+    "create_collection",
+    "create_view",
+    "drop_collection",
+    "rename_collection",
 ];
 
 /// Common-Controls v6 manifest, embedded into every linked artifact on Windows.

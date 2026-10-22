@@ -142,6 +142,15 @@ impl ConnectionManager {
         }
     }
 
+    /// The driver client of a live connection.
+    pub async fn client(&self, id: &str) -> Result<mongodb::Client> {
+        self.registry
+            .get(id)
+            .await
+            .map(|active| active.client.clone())
+            .ok_or_else(|| ConnectionError::NotConnected(id.to_owned()))
+    }
+
     /// All live connections.
     pub async fn active(&self) -> Vec<ActiveConnectionInfo> {
         self.registry.list().await

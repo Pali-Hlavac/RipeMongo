@@ -28,6 +28,14 @@ pub enum ErrorCode {
     AuthFailed,
     /// Establishing or using the SSH tunnel failed.
     SshFailed,
+    /// The operation needs a live connection that is not open.
+    NotConnected,
+    /// The database user is not allowed to perform the operation.
+    Forbidden,
+    /// The operation exceeded its time limit.
+    Timeout,
+    /// The server rejected the operation for another reason (message explains why).
+    OperationFailed,
 }
 
 /// Serializable error returned by every fallible Tauri command.

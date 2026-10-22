@@ -1,11 +1,14 @@
 //! Library root: wires domain modules, the typed IPC builder and the Tauri runtime together.
 
 mod app_info;
+pub mod collections;
 pub mod connections;
+pub mod databases;
 pub mod ejson;
 pub mod error;
 mod ipc;
 mod logging;
+pub mod mongo;
 pub mod secrets;
 mod settings;
 pub mod ssh;

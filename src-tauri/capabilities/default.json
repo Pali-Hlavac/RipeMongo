@@ -23,6 +23,15 @@
     "allow-inspect-connections-file",
     "allow-import-connections",
     "dialog:allow-open",
-    "dialog:allow-save"
+    "dialog:allow-save",
+    "allow-list-databases",
+    "allow-create-database",
+    "allow-drop-database",
+    "allow-list-collections",
+    "allow-collection-stats",
+    "allow-create-collection",
+    "allow-create-view",
+    "allow-drop-collection",
+    "allow-rename-collection"
   ]
 }

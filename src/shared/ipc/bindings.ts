@@ -42,6 +42,24 @@ export const commands = {
 	inspectConnectionsFile: (path: string) => typedError<ConnectionsFileInfo, AppError>(__TAURI_INVOKE("inspect_connections_file", { path })),
 	/**  Imports every connection in `path` as new connections. */
 	importConnections: (path: string, password: string | null) => typedError<ImportSummary, AppError>(__TAURI_INVOKE("import_connections", { path, password })),
+	/**  Databases of a connected connection, sorted by name. */
+	listDatabases: (connectionId: string) => typedError<DatabaseInfo[], AppError>(__TAURI_INVOKE("list_databases", { connectionId })),
+	/**  Creates a database together with its first collection. */
+	createDatabase: (connectionId: string, database: string, collection: string) => typedError<null, AppError>(__TAURI_INVOKE("create_database", { connectionId, database, collection })),
+	/**  Drops a database. The UI requires typing the name before calling this. */
+	dropDatabase: (connectionId: string, database: string) => typedError<null, AppError>(__TAURI_INVOKE("drop_database", { connectionId, database })),
+	/**  Collections and views of a database. */
+	listCollections: (connectionId: string, database: string) => typedError<CollectionInfo[], AppError>(__TAURI_INVOKE("list_collections", { connectionId, database })),
+	/**  Document count and sizes of one collection. */
+	collectionStats: (connectionId: string, database: string, collection: string) => typedError<CollectionStats, AppError>(__TAURI_INVOKE("collection_stats", { connectionId, database, collection })),
+	/**  Creates a standard, capped or time-series collection. */
+	createCollection: (connectionId: string, database: string, collection: string, options: NewCollectionOptions) => typedError<null, AppError>(__TAURI_INVOKE("create_collection", { connectionId, database, collection, options })),
+	/**  Creates a view from an aggregation pipeline. */
+	createView: (connectionId: string, database: string, view: NewView) => typedError<null, AppError>(__TAURI_INVOKE("create_view", { connectionId, database, view })),
+	/**  Drops a collection or view. The UI requires typing the name before calling this. */
+	dropCollection: (connectionId: string, database: string, collection: string) => typedError<null, AppError>(__TAURI_INVOKE("drop_collection", { connectionId, database, collection })),
+	/**  Renames a collection within its database. */
+	renameCollection: (connectionId: string, database: string, collection: string, newName: string) => typedError<null, AppError>(__TAURI_INVOKE("rename_collection", { connectionId, database, collection, newName })),
 };
 
 /* Types */
@@ -86,6 +104,32 @@ export type AuthConfig = { mechanism: "none" } |
 { mechanism: "aws"; accessKeyId: string | null } | 
 /**  OIDC machine workflow via a cloud environment provider. */
 { mechanism: "oidc"; username: string | null; environment: OidcEnvironment | null; tokenResource: string | null };
+
+/**  A collection or view as listed in the sidebar. */
+export type CollectionInfo = {
+	name: string,
+	kind: CollectionKind,
+	/**  Source collection of a view. */
+	viewOn: string | null,
+	capped: boolean,
+	readOnly: boolean,
+};
+
+/**  What kind of namespace a collection entry is. */
+export type CollectionKind = "collection" | "view" | "timeseries";
+
+/**
+ *  Size information from `$collStats` (summed over shards). Floats because JS numbers
+ *  cannot represent every 64-bit integer.
+ */
+export type CollectionStats = {
+	documentCount: number | null,
+	/**  Uncompressed data size in bytes. */
+	size: number | null,
+	storageSize: number | null,
+	indexSize: number | null,
+	averageDocumentSize: number | null,
+};
 
 /**  Color label shown next to a connection (e.g. red for production). */
 export type ConnectionColor = "red" | "orange" | "amber" | "green" | "teal" | "blue" | "purple" | "pink";
@@ -133,6 +177,14 @@ export type ConnectionsFileInfo = {
 	hasEncryptedSecrets: boolean,
 };
 
+/**  A database as shown in the sidebar. */
+export type DatabaseInfo = {
+	name: string,
+	/**  Size on disk in bytes (as a float: JS numbers cannot hold every u64). */
+	sizeOnDisk: number | null,
+	empty: boolean,
+};
+
 /**  Stable, machine-readable error category the frontend can branch on. */
 export type ErrorCode = 
 /**  An unexpected failure inside the app; usually a bug. */
@@ -152,7 +204,15 @@ export type ErrorCode =
 /**  The server rejected the credentials. */
 "AUTH_FAILED" | 
 /**  Establishing or using the SSH tunnel failed. */
-"SSH_FAILED";
+"SSH_FAILED" | 
+/**  The operation needs a live connection that is not open. */
+"NOT_CONNECTED" | 
+/**  The database user is not allowed to perform the operation. */
+"FORBIDDEN" | 
+/**  The operation exceeded its time limit. */
+"TIMEOUT" | 
+/**  The server rejected the operation for another reason (message explains why). */
+"OPERATION_FAILED";
 
 /**  One seed host. `port` is `None` for SRV records or when the default port is meant. */
 export type HostPort = {
@@ -164,6 +224,21 @@ export type HostPort = {
 export type ImportSummary = {
 	imported: number,
 	secretsImported: boolean,
+};
+
+/**  Options for a new collection. */
+export type NewCollectionOptions = { kind: "standard" } | 
+/**  Fixed-size collection that overwrites its oldest documents. */
+{ kind: "capped"; sizeBytes: number | null; maxDocuments: number | null } | { kind: "timeSeries"; timeField: string; metaField: string | null; granularity: TimeSeriesGranularity | null; 
+/**  Documents are deleted automatically after this many seconds. */
+expireAfterSeconds: number | null };
+
+/**  A new read-only view defined by an aggregation pipeline. */
+export type NewView = {
+	name: string,
+	viewOn: string,
+	/**  Pipeline as JSON / shell syntax, e.g. `[{ $match: { active: true } }]`. */
+	pipeline: string,
 };
 
 /**  Built-in OIDC machine-workflow providers supported by the driver. */
@@ -251,6 +326,9 @@ export type StoredSecrets = {
 export type ThemePreference = 
 /**  Follow the operating system setting. */
 "system" | "light" | "dark";
+
+/**  Bucketing hint for time-series collections. */
+export type TimeSeriesGranularity = "seconds" | "minutes" | "hours";
 
 /**  TLS settings. `enabled: None` keeps the driver default (on for SRV, off otherwise). */
 export type TlsConfig = {
