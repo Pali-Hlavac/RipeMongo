@@ -51,6 +51,7 @@ export function RestoreContentsField({
         {databasesOf(contents).map(([database, namespaces]) => {
           const keys = namespaces.map(namespaceKey);
           const allIncluded = keys.every((key) => !values.excluded.includes(key));
+          const partly = !allIncluded && keys.some((key) => !values.excluded.includes(key));
           return (
             <div key={database} className="grid gap-1">
               <div className="flex items-center gap-2">
@@ -59,6 +60,10 @@ export function RestoreContentsField({
                     type="checkbox"
                     className="size-4 accent-primary"
                     checked={allIncluded}
+                    // Partly selected databases show a dash; a click selects everything.
+                    ref={(element) => {
+                      if (element) element.indeterminate = partly;
+                    }}
                     onChange={(event) => {
                       toggle(keys, event.target.checked);
                     }}

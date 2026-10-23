@@ -12,9 +12,9 @@ const contents: DumpContents = {
   gzip: true,
   oplog: true,
   namespaces: [
-    { database: "crm", collection: "leads", view: false },
-    { database: "shop", collection: "cheap", view: true },
-    { database: "shop", collection: "items", view: false },
+    { database: "crm", collection: "leads", view: false, size: 0 },
+    { database: "shop", collection: "cheap", view: true, size: 0 },
+    { database: "shop", collection: "items", view: false, size: 0 },
   ],
 };
 

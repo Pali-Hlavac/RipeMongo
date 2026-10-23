@@ -1,6 +1,7 @@
 # Keyboard shortcuts
 
-On macOS, use **⌘** where this page says **Ctrl**, except for switching tabs.
+On macOS, use **⌘** where this page says **Ctrl**, except for switching tabs. The tab shortcuts
+do nothing while a dialog is open, so they never change what is behind it.
 
 | Action                                       | Windows / Linux    | macOS              |
 | -------------------------------------------- | ------------------ | ------------------ |

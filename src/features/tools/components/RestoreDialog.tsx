@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 
 import { useToolsInfo } from "@/features/about";
 import { useJobsPanel } from "@/features/jobs";
@@ -56,6 +56,7 @@ function RestoreForm({ target, onDone }: { target: RestoreTarget; onDone: () => 
   // The source that was read; set when a path is picked or typed and left.
   const [source, setSource] = useState<RestoreSource | null>(null);
   const [confirming, setConfirming] = useState(false);
+  const formId = useId();
   const closing = useAfterDialogClose();
   const contents = useDumpContents(source);
   const start = useStartRestore();
@@ -116,6 +117,7 @@ function RestoreForm({ target, onDone }: { target: RestoreTarget; onDone: () => 
         </DialogDescription>
       </DialogHeader>
       <form
+        id={formId}
         className="-mx-1 grid min-h-0 gap-4 overflow-auto px-1"
         noValidate
         onSubmit={(event) => {
@@ -158,29 +160,31 @@ function RestoreForm({ target, onDone }: { target: RestoreTarget; onDone: () => 
             onChange={change}
           />
         )}
-        {missing && (
-          <InlineError
-            error={{
-              code: "NOT_FOUND",
-              message: "mongorestore is not included in this build of RipeMongo.",
-              hint: "Reinstall RipeMongo. If you built it yourself, run `pnpm sidecars` first.",
-            }}
-          />
-        )}
-        {start.error && <InlineError error={start.error} />}
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="ghost" onClick={onDone}>
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            variant={values.drop && !values.dryRun ? "destructive" : "default"}
-            disabled={start.isPending || missing === true || !contents.data}
-          >
-            {values.dryRun ? "Start dry run" : "Restore"}
-          </Button>
-        </div>
       </form>
+      {/* Outside the scrolling form so the buttons and errors always stay visible. */}
+      {missing && (
+        <InlineError
+          error={{
+            code: "NOT_FOUND",
+            message: "mongorestore is not included in this build of RipeMongo.",
+            hint: "Reinstall RipeMongo. If you built it yourself, run `pnpm sidecars` first.",
+          }}
+        />
+      )}
+      {start.error && <InlineError error={start.error} />}
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="ghost" onClick={onDone}>
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          form={formId}
+          variant={values.drop && !values.dryRun ? "destructive" : "default"}
+          disabled={start.isPending || missing === true || !contents.data}
+        >
+          {values.dryRun ? "Start dry run" : "Restore"}
+        </Button>
+      </div>
       <ConfirmByTypingDialog
         open={confirming}
         onOpenChange={setConfirming}

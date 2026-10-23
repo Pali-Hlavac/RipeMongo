@@ -14,7 +14,8 @@
     and passes canonical Extended JSON to the tool.
   - **Database:** a **checklist of collections** (views are not listed); unticked ones become
     `--excludeCollection`, so collections created later are still included when a saved dump
-    runs again. **Name prefixes** to leave out (`--excludeCollectionsWithPrefix`).
+    runs again. **Name prefixes** to leave out (`--excludeCollectionsWithPrefix`); collections
+    they match show as unticked and disabled ("left out by prefix").
   - **Whole server:** **point-in-time snapshot** (`--oplog`, replica sets only); the summary
     adds the number of oplog entries.
   - **Database and server:** **collections at a time** (`--numParallelCollections`, 1–16,
@@ -39,8 +40,9 @@
   "Restore…". Pick a dump **folder** (`--dir`) or **archive file** (`--archive`); RipeMongo
   reads it first (`inspect_dump`) and shows its databases and collections (views marked; the
   oplog noted). gzip is detected, never asked.
-  - **What to restore:** tick databases and collections; unticked ones become `--nsExclude`
-    (escaped, so names with `*` or `$` match literally).
+  - **What to restore:** tick databases and collections (a partly selected database shows a
+    dash); unticked ones become `--nsExclude` (escaped, so names with `*` or `$` match
+    literally).
   - **Restore as:** a new name per database (`--nsFrom=shop.* --nsTo=copy.*`).
   - **Drop each collection before restoring it** (`--drop`), confirmed by typing the
     connection name. Without it, documents whose `_id` exists are skipped and counted.
@@ -48,9 +50,12 @@
     restore without new names; mongorestore refuses it otherwise.
   - **Dry run** (`--dryRun --verbose=1`): the summary lists what would be restored.
   - **Collections at a time** (1–16).
-  - The job reports documents restored so far, the collection in progress with its percentage
-    (folders) or size read (archives), and a summary: "Restored 300,002 documents into 2
+  - Progress: folder dumps know each data file's size, so the bar shows bytes read out of the
+    total ("5.4 MB of 12.7 MB"), with the collection in progress and its percentage. Archives
+    give no sizes up front, so the bar is indeterminate and counts documents of finished
+    collections, with the size read so far. The summary: "Restored 300,002 documents into 2
     collections.", plus replayed oplog entries and documents that failed (duplicates).
+  - When a restore ends, the sidebar reloads that connection's databases and collections.
 
 Planned next (M4): JSON/CSV import and export, and copying between connections.
 
@@ -78,7 +83,10 @@ Planned next (M4): JSON/CSV import and export, and copying between connections.
    restore) and runs `mongorestore` in a job; `RestoreProgress` parses its output.
 6. Dialogs that open another dialog (dump → jobs panel, saved dumps → dump dialog, palette →
    any dialog) run that action from `onCloseAutoFocus` via `useAfterDialogClose`, so Radix's
-   focus return cannot close the new dialog.
+   focus return cannot close the new dialog. The dump and restore dialogs scroll their fields
+   and keep errors and buttons in a fixed footer (`<Button form={formId}>`).
+7. `useJobEvents(onFinished)` lets the app react to finished jobs: `App` reloads the catalog
+   of the restore's connection.
 
 ## Key files
 
@@ -104,8 +112,8 @@ Planned next (M4): JSON/CSV import and export, and copying between connections.
   database (`dump/shop`) is refused with a hint to pick the folder above it. Renaming works per
   database, not per collection. Restoring without drop into existing collections keeps the
   existing documents with the same `_id`.
-- The restore total is not known in advance, so its bar is indeterminate; the count and the
-  collection in progress move.
+- Restoring from an archive has no total in advance, so its bar is indeterminate; the
+  collection in progress and the size read so far move.
 - Authentication methods the tools do not support fail with their own message.
 - Jobs are not kept after the app quits; quitting stops running tools.
 

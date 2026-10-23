@@ -47,8 +47,10 @@ function job(patch: Partial<JobInfo>): JobInfo {
   };
 }
 
+const onFinished = vi.fn();
+
 function App() {
-  useJobEvents();
+  useJobEvents(onFinished);
   return (
     <>
       <JobsButton />
@@ -112,6 +114,7 @@ describe("jobs panel", () => {
       "Dump shop: done",
       expect.objectContaining({ description: "Dumped 2 collections" }),
     );
+    expect(onFinished).toHaveBeenCalledWith(done);
 
     await user.click(await screen.findByRole("button", { name: "Background jobs" }));
     const panel = screen.getByRole("dialog", { name: "Background jobs" });

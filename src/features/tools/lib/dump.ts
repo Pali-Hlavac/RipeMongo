@@ -106,6 +106,14 @@ export function validateDumpForm(values: DumpFormValues): DumpFormErrors {
   return errors;
 }
 
+/** "tmp_, ,cache_" → ["tmp_", "cache_"]. */
+export function parsePrefixes(text: string): string[] {
+  return text
+    .split(",")
+    .map((prefix) => prefix.trim())
+    .filter((prefix) => prefix !== "");
+}
+
 /** The request sent to `start_dump`; options outside the target's scope are dropped. */
 export function buildDumpRequest(target: DumpTarget, values: DumpFormValues): DumpRequest {
   const scope = dumpScopeKind(target);
@@ -118,13 +126,7 @@ export function buildDumpRequest(target: DumpTarget, values: DumpFormValues): Du
     query: scope === "collection" && query !== "" ? query : null,
     oplog: scope === "server" && values.oplog,
     excludeCollections: scope === "database" ? values.excluded : [],
-    excludePrefixes:
-      scope === "database"
-        ? values.prefixes
-            .split(",")
-            .map((prefix) => prefix.trim())
-            .filter((prefix) => prefix !== "")
-        : [],
+    excludePrefixes: scope === "database" ? parsePrefixes(values.prefixes) : [],
     parallelCollections: scope === "collection" ? null : (parseParallel(values.parallel) ?? null),
   };
 }

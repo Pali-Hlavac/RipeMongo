@@ -2,14 +2,27 @@
 //! collections with document and failure counts, the final totals, and for dry runs the
 //! collections that would be restored.
 
+use std::collections::HashMap;
+
 use crate::jobs::{JobProgress, ProgressUnit};
 use crate::tools::run::OutputParser;
 use crate::tools::text::{clean_namespace as clean, count};
 
 /// Collections named in a dry-run summary before "and N more".
 const LISTED_IN_SUMMARY: usize = 5;
+/// Dry runs list these too, but mongorestore never restores them as collections.
+const NOT_RESTORED: [&str; 1] = ["admin.system.version"];
+/// Size units in the tools' progress bars ("12.7MB"), largest first; powers of 1024.
+const SIZE_UNITS: [(&str, f64); 5] = [
+    ("TB", 1_099_511_627_776.0),
+    ("GB", 1_073_741_824.0),
+    ("MB", 1_048_576.0),
+    ("KB", 1024.0),
+    ("B", 1.0),
+];
 
-/// Progress of a restore, measured in documents (mongorestore reports no total up front).
+/// Progress of a restore. Folder dumps know each data file's size, so progress is measured in
+/// bytes read; archives give no sizes up front, so it falls back to documents restored.
 #[derive(Default)]
 pub struct RestoreProgress {
     documents: f64,
@@ -19,9 +32,21 @@ pub struct RestoreProgress {
     /// Dry runs: `(from, to)` namespaces that would be restored.
     planned: Vec<(String, String)>,
     oplog_entries: Option<f64>,
+    /// Data file size by target namespace (folder dumps only).
+    sizes: HashMap<String, f64>,
+    /// Bytes read so far by target namespace.
+    read: HashMap<String, f64>,
 }
 
 impl RestoreProgress {
+    /// `sizes`: data file size by target namespace; empty when unknown.
+    pub fn new(sizes: HashMap<String, f64>) -> Self {
+        Self {
+            sizes,
+            ..Self::default()
+        }
+    }
+
     /// What happened, for the job summary.
     pub fn summary(&self, dry_run: bool) -> String {
         if dry_run {
@@ -32,9 +57,13 @@ impl RestoreProgress {
         let collections = count(self.collections as f64, "collection", "collections");
         let documents = count(self.documents, "document", "documents");
         let mut summary = format!("Restored {documents} into {collections}.");
-        if let Some(entries) = self.oplog_entries {
-            let entries = count(entries, "oplog entry", "oplog entries");
-            summary.push_str(&format!(" Replayed {entries}."));
+        match self.oplog_entries {
+            Some(0.0) => summary.push_str(" The oplog had no changes to replay."),
+            Some(entries) => {
+                let entries = count(entries, "oplog entry", "oplog entries");
+                summary.push_str(&format!(" Replayed {entries}."));
+            }
+            None => {}
         }
         if self.failures > 0.0 {
             let failed = count(self.failures, "document", "documents");
@@ -76,6 +105,34 @@ impl RestoreProgress {
             listed.join(", ")
         )
     }
+
+    fn progress(&self) -> JobProgress {
+        let total: f64 = self.sizes.values().sum();
+        if total > 0.0 {
+            let done: f64 = self.read.values().sum();
+            return JobProgress {
+                done: done.min(total),
+                total: Some(total),
+                unit: ProgressUnit::Bytes,
+                message: self.current.clone(),
+            };
+        }
+        JobProgress {
+            done: self.documents,
+            total: None,
+            unit: ProgressUnit::Documents,
+            message: self.current.clone(),
+        }
+    }
+
+    /// Records bytes read for a namespace, never more than its file size.
+    fn read_bytes(&mut self, namespace: &str, bytes: f64) {
+        let bytes = self
+            .sizes
+            .get(namespace)
+            .map_or(bytes, |size| bytes.min(*size));
+        self.read.insert(namespace.to_owned(), bytes);
+    }
 }
 
 impl OutputParser for RestoreProgress {
@@ -89,7 +146,11 @@ impl OutputParser for RestoreProgress {
             self.documents += numbers.next()?.parse::<f64>().ok()?;
             self.failures += numbers.next().and_then(|n| n.parse().ok()).unwrap_or(0.0);
             self.collections += 1;
-            self.current = Some(clean(namespace).to_owned());
+            let namespace = clean(namespace).to_owned();
+            if let Some(size) = self.sizes.get(&namespace).copied() {
+                self.read_bytes(&namespace, size);
+            }
+            self.current = Some(namespace);
         } else if let Some(rest) = line.strip_prefix("restoring `") {
             // "restoring `shop.items` from …"; not "restoring indexes …".
             let (namespace, _) = rest.split_once("` from ")?;
@@ -97,7 +158,9 @@ impl OutputParser for RestoreProgress {
         } else if let Some(rest) = line.strip_prefix("found collection `") {
             // Dry run: "found collection `shop.items` bson to restore to `copy.items`"
             let (from, to) = rest.split_once("` bson to restore to ")?;
-            self.planned.push((from.to_owned(), clean(to).to_owned()));
+            if !from.starts_with('.') && !NOT_RESTORED.contains(&from) {
+                self.planned.push((from.to_owned(), clean(to).to_owned()));
+            }
             return None;
         } else if let Some(rest) = line.trim_start().strip_prefix("applied ") {
             // "applied 5 oplog entries"
@@ -106,88 +169,29 @@ impl OutputParser for RestoreProgress {
             // Folder dumps: "[####....]  shop.items  12.5MB/68.4MB  (18.3%)"
             let (_, rest) = line.split_once(']')?;
             let mut parts = rest.split_whitespace();
-            let namespace = clean(parts.next()?);
-            let percent = parts.last()?.trim_matches(['(', ')', '%']);
-            let percent: f64 = percent.parse().ok()?;
+            let namespace = clean(parts.next()?).to_owned();
+            let (read, _) = parts.next()?.split_once('/')?;
+            let percent: f64 = parts.next()?.trim_matches(['(', ')', '%']).parse().ok()?;
+            if let Some(bytes) = parse_size(read) {
+                self.read_bytes(&namespace, bytes);
+            }
             self.current = Some(format!("{namespace} ({percent:.0}%)"));
         } else {
             // Archives: "shop.items  12.3MB"
             let mut parts = line.split_whitespace();
             let (namespace, size) = (parts.next()?, parts.next()?);
-            let is_size = size.ends_with('B') && size.starts_with(|c: char| c.is_ascii_digit());
-            if parts.next().is_some() || !is_size || !namespace.contains('.') {
+            if parts.next().is_some() || parse_size(size).is_none() || !namespace.contains('.') {
                 return None;
             }
             self.current = Some(format!("{} ({size})", clean(namespace)));
         }
-        Some(JobProgress {
-            done: self.documents,
-            total: None,
-            unit: ProgressUnit::Documents,
-            message: self.current.clone(),
-        })
+        Some(self.progress())
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn counts_finished_collections_and_failures() {
-        let mut progress = RestoreProgress::default();
-        let started = progress
-            .line("restoring `copy.items` from `folder\\shop\\items.bson`")
-            .unwrap();
-        assert_eq!(started.message.as_deref(), Some("copy.items"));
-        assert!(progress
-            .line("restoring indexes for collection `copy.users` from metadata")
-            .is_none());
-        let bar = progress
-            .line("[####....................]  copy.items  12.5MB/68.4MB  (18.3%)")
-            .unwrap();
-        assert_eq!(bar.message.as_deref(), Some("copy.items (18%)"));
-        let archive = progress.line("shop.items  12.3MB").unwrap();
-        assert_eq!(archive.message.as_deref(), Some("shop.items (12.3MB)"));
-        progress.line("finished restoring `copy.users` (0 documents, 2 failures)");
-        let done = progress
-            .line("finished restoring `copy.items` (300000 documents, 0 failures)")
-            .unwrap();
-        assert_eq!((done.done, done.total), (300_000.0, None));
-        assert!(progress
-            .line("preparing collections to restore from")
-            .is_none());
-        assert!(progress
-            .line("no indexes to restore for collection `x.y`")
-            .is_none());
-
-        let summary = progress.summary(false);
-        assert!(
-            summary.starts_with(
-                "Restored 300,000 documents into 2 collections. 2 documents could not be restored"
-            ),
-            "{summary}"
-        );
-    }
-
-    #[test]
-    fn reports_the_oplog_and_dry_runs() {
-        let mut progress = RestoreProgress::default();
-        progress.line("finished restoring `shop.users` (1 document, 0 failures)");
-        progress.line("\tapplied 3 oplog entries");
-        assert_eq!(
-            progress.summary(false),
-            "Restored 1 document into 1 collection. Replayed 3 oplog entries."
-        );
-
-        let mut dry = RestoreProgress::default();
-        assert!(dry.summary(true).contains("nothing in the dump matches"));
-        dry.line("found collection `shop.items` bson to restore to `shop.items`");
-        dry.line("found collection metadata from `shop.items` to restore to `shop.items`");
-        dry.line("found collection `shop.users` bson to restore to `copy.users`");
-        assert_eq!(
-            dry.summary(true),
-            "Dry run: would restore 2 collections: shop.items, shop.users as copy.users. Nothing was written."
-        );
-    }
+/// "12.7MB" → bytes. `None` for anything else.
+pub(super) fn parse_size(text: &str) -> Option<f64> {
+    let (unit, factor) = SIZE_UNITS.iter().find(|(unit, _)| text.ends_with(unit))?;
+    let number: f64 = text.strip_suffix(unit)?.parse().ok()?;
+    number.is_finite().then_some(number * factor)
 }

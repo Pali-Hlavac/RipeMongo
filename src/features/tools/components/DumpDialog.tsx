@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { toast } from "sonner";
 
 import { useToolsInfo } from "@/features/about";
@@ -65,6 +65,7 @@ interface DumpFormProps {
 function DumpForm({ target, profile, onDone }: DumpFormProps) {
   const [values, setValues] = useState(() => initialDumpValues(target, profile ?? undefined));
   const [errors, setErrors] = useState<DumpFormErrors>({});
+  const formId = useId();
   const closing = useAfterDialogClose();
   const submitDump = useSubmitDump();
   const tools = useToolsInfo();
@@ -129,6 +130,7 @@ function DumpForm({ target, profile, onDone }: DumpFormProps) {
         </DialogDescription>
       </DialogHeader>
       <form
+        id={formId}
         className="-mx-1 grid min-h-0 gap-4 overflow-auto px-1"
         noValidate
         onSubmit={(event) => {
@@ -161,37 +163,38 @@ function DumpForm({ target, profile, onDone }: DumpFormProps) {
           error={errors.name ?? null}
           onChange={change}
         />
-        {missing && (
-          <InlineError
-            error={{
-              code: "NOT_FOUND",
-              message: "mongodump is not included in this build of RipeMongo.",
-              hint: "Reinstall RipeMongo. If you built it yourself, run `pnpm sidecars` first.",
-            }}
-          />
-        )}
-        {submitDump.error && <InlineError error={submitDump.error} />}
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="ghost" onClick={onDone}>
-            Cancel
-          </Button>
-          {values.save && (
-            <Button
-              type="button"
-              variant="outline"
-              disabled={submitDump.isPending}
-              onClick={() => {
-                submit(false);
-              }}
-            >
-              Save
-            </Button>
-          )}
-          <Button type="submit" disabled={submitDump.isPending || missing === true}>
-            {values.save ? "Save and start" : "Start dump"}
-          </Button>
-        </div>
       </form>
+      {/* Outside the scrolling form so the buttons and errors always stay visible. */}
+      {missing && (
+        <InlineError
+          error={{
+            code: "NOT_FOUND",
+            message: "mongodump is not included in this build of RipeMongo.",
+            hint: "Reinstall RipeMongo. If you built it yourself, run `pnpm sidecars` first.",
+          }}
+        />
+      )}
+      {submitDump.error && <InlineError error={submitDump.error} />}
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="ghost" onClick={onDone}>
+          Cancel
+        </Button>
+        {values.save && (
+          <Button
+            type="button"
+            variant="outline"
+            disabled={submitDump.isPending}
+            onClick={() => {
+              submit(false);
+            }}
+          >
+            Save
+          </Button>
+        )}
+        <Button type="submit" form={formId} disabled={submitDump.isPending || missing === true}>
+          {values.save ? "Save and start" : "Start dump"}
+        </Button>
+      </div>
     </DialogContent>
   );
 }

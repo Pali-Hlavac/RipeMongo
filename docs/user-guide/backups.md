@@ -30,7 +30,8 @@ The dialog shows the options that make sense for what you are dumping:
   same way as the filter above the documents list. Leave it empty to dump everything.
 - **A database: Collections.** Untick the collections you do not need; **All** and **None**
   tick or untick everything. **Also leave out names starting with** skips every collection
-  whose name begins with what you type, for example `tmp_, cache_`.
+  whose name begins with what you type, for example `tmp_, cache_`; the list marks those as
+  "left out by prefix".
 - **All databases: Point-in-time snapshot (oplog).** On a replica set, the dump also records
   the changes made while it runs, so restoring it gives a consistent picture of one moment.
   It does not work on a single standalone server.
@@ -78,8 +79,10 @@ delete a connection, its saved dumps are deleted too.
    - **Collections at a time** works as for dumps.
 7. Click **Restore** (or **Start dry run**).
 
-When it finishes, a message tells you how many documents were restored and how many could not
-be.
+While it runs, the Background jobs window shows how far it is. For a dump folder you see the
+amount of data read out of the total; for an archive file, the collection being restored and
+how much of it was read. When it finishes, a message tells you how many documents were
+restored and how many could not be, and the sidebar shows the restored databases.
 
 ## Follow the progress
 

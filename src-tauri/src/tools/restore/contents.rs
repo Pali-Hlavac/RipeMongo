@@ -44,17 +44,19 @@ impl RestoreSource {
 }
 
 /// One collection or view in a dump.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct DumpNamespace {
     pub database: String,
     pub collection: String,
     /// Views have a definition but no documents.
     pub view: bool,
+    /// Bytes of the data file in a folder dump (compressed if gzip); 0 when unknown (archives).
+    pub size: f64,
 }
 
 /// What a dump holds.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct DumpContents {
     /// Compressed with `--gzip`; mongorestore needs `--gzip` too.
@@ -80,8 +82,12 @@ pub fn inspect_dump(source: &RestoreSource) -> Result<DumpContents, ToolsError> 
     contents
         .namespaces
         .retain(|ns| (ns.database.as_str(), ns.collection.as_str()) != SKIPPED_NAMESPACE);
-    contents.namespaces.sort();
-    contents.namespaces.dedup();
+    contents
+        .namespaces
+        .sort_by(|a, b| (&a.database, &a.collection).cmp(&(&b.database, &b.collection)));
+    contents
+        .namespaces
+        .dedup_by(|a, b| a.database == b.database && a.collection == b.collection);
     Ok(contents)
 }
 
@@ -148,7 +154,10 @@ fn read_database_folder(
         let name = entry.file_name().to_string_lossy().into_owned();
         if let Some((collection, gzip)) = strip_suffix(&name, BSON_SUFFIX) {
             contents.gzip |= gzip;
-            data.push(collection.to_owned());
+            // File sizes fit an f64 exactly far beyond any real dump.
+            #[allow(clippy::cast_precision_loss)]
+            let size = entry.metadata().map_or(0.0, |meta| meta.len() as f64);
+            data.push((collection.to_owned(), size));
         } else if let Some((collection, gzip)) = strip_suffix(&name, METADATA_SUFFIX) {
             contents.gzip |= gzip;
             metadata.push(collection.to_owned());
@@ -157,18 +166,19 @@ fn read_database_folder(
     // A view is dumped as its definition (metadata) without a data file.
     let views: Vec<String> = metadata
         .into_iter()
-        .filter(|name| !data.contains(name))
+        .filter(|name| !data.iter().any(|(collection, _)| collection == name))
         .collect();
     let namespaces = data
         .into_iter()
-        .map(|collection| (collection, false))
-        .chain(views.into_iter().map(|collection| (collection, true)));
+        .map(|(collection, size)| (collection, false, size))
+        .chain(views.into_iter().map(|collection| (collection, true, 0.0)));
     contents
         .namespaces
-        .extend(namespaces.map(|(collection, view)| DumpNamespace {
+        .extend(namespaces.map(|(collection, view, size)| DumpNamespace {
             database: database.to_owned(),
             collection,
             view,
+            size,
         }));
     Ok(())
 }

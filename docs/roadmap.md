@@ -201,9 +201,21 @@ Decisions for M4 (details in ADRs 0009 and 0010 as they are written):
   `RestoreDialog` (connection ⋯ → "Restore…", contents checklist with "restore as",
   confirm-by-typing for drop). Found while probing mongorestore 100.19: `--oplogReplay`
   refuses includes, excludes and renames; `admin.system.version` is always skipped.
-- Next: one real-app pass over slices 3 and 4 together (saved dump that connects first,
-  edit, oplog dump of a replica set, restore round trip with rename, drop and dry run), then
-  slice 5 (JSON/CSV export and import).
+- Verified in the real app (2026-10-23, MongoDB 8 replica set in Docker, 2 million
+  documents): database dump with unticked collection, prefix, gzip and 2 at a time saved as
+  "Nightly shop"; Saved dumps from the palette; Edit and Run while disconnected (connects
+  first); whole-server oplog dump to a gzip archive; restore of a folder as `shop_copy`
+  without one collection; the "folder of one database" hint; dry run with a rename (oplog
+  replay switches off with its reason); drop and restore with oplog replay behind typing the
+  connection name; deleting the connection removes its saved dump. Fixed there: buttons of
+  the dump and restore dialogs scrolled out of view (fixed footer now); folder restores now
+  show bytes read of the total instead of a count that stood at 0; dry-run summaries counted
+  `.oplog` and `admin.system.version`; "Replayed 0 oplog entries" wording; partly selected
+  databases showed an empty checkbox; prefix-matched collections looked included; the sidebar
+  now reloads after a restore; tab shortcuts (Ctrl+Tab, Ctrl+W) no longer act behind open
+  dialogs; the delete-connection text mentions saved queries and dumps.
+- Slice 5 next: JSON/CSV export and import per collection with field selection and type
+  mapping.
 
 ### M5 — Aggregation
 

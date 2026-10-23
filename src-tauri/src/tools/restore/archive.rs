@@ -52,6 +52,8 @@ pub fn read_archive_prelude(
                 database: database.to_owned(),
                 collection: collection.to_owned(),
                 view,
+                // The prelude's `size` is always 0; archives give no sizes up front.
+                size: 0.0,
             });
         }
     }

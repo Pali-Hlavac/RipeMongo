@@ -21,7 +21,7 @@ export function DeleteConnectionDialog() {
         if (!open) setDeleteTarget(null);
       }}
       title={`Delete "${target?.name ?? ""}"?`}
-      description="The saved settings and stored passwords of this connection are removed from this computer. Data on the server is not affected."
+      description="The saved settings, stored passwords, saved queries and saved dumps of this connection are removed from this computer. Data on the server and dump files are not affected."
       confirmLabel="Delete connection"
       destructive
       pending={remove.isPending}

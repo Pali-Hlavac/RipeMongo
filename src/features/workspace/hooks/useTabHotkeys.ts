@@ -1,4 +1,5 @@
 import { useHotkey } from "@/shared/hooks/useHotkey";
+import { isDialogOpen } from "@/shared/lib/dialogs";
 
 import { useTabsStore } from "../store/tabs";
 
@@ -9,18 +10,18 @@ export const TAB_HOTKEYS = {
   previous: "ctrl+shift+tab",
 } as const;
 
-/** Registers global tab shortcuts (close, next, previous). */
+/** Registers global tab shortcuts (close, next, previous); ignored while a dialog is open. */
 export function useTabHotkeys(): void {
   const { closeTab, cycleTab } = useTabsStore.getState();
 
   useHotkey(TAB_HOTKEYS.close, () => {
     const { activeTabId } = useTabsStore.getState();
-    if (activeTabId) closeTab(activeTabId);
+    if (activeTabId && !isDialogOpen()) closeTab(activeTabId);
   });
   useHotkey(TAB_HOTKEYS.next, () => {
-    cycleTab(1);
+    if (!isDialogOpen()) cycleTab(1);
   });
   useHotkey(TAB_HOTKEYS.previous, () => {
-    cycleTab(-1);
+    if (!isDialogOpen()) cycleTab(-1);
   });
 }

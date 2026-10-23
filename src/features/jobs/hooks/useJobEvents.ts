@@ -1,6 +1,6 @@
 /** Subscribes once to job events and patches the job caches; notifies when a job ends. */
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 import { events, type JobInfo } from "@/shared/ipc/bindings";
@@ -24,9 +24,16 @@ function notifyFinished(job: JobInfo) {
   }
 }
 
-/** Mount once at the app root. */
-export function useJobEvents() {
+/**
+ * Mount once at the app root. `onFinished` runs when a job ends (succeeded, failed or
+ * cancelled), for example to refresh data the job changed.
+ */
+export function useJobEvents(onFinished?: (job: JobInfo) => void) {
   const queryClient = useQueryClient();
+  const finished = useRef(onFinished);
+  useEffect(() => {
+    finished.current = onFinished;
+  }, [onFinished]);
 
   useEffect(() => {
     let disposed = false;
@@ -44,6 +51,7 @@ export function useJobEvents() {
         queryClient.setQueryData<JobInfo[]>(jobKeys.list(), (jobs) => upsertJob(jobs, job));
         if (previous?.status === "running" && job.status !== "running") {
           notifyFinished(job);
+          finished.current?.(job);
           // Lines published just before a log fetch could be missing; refetch the final log.
           void queryClient.invalidateQueries({ queryKey: jobKeys.log(job.id) });
         }

@@ -1,7 +1,8 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 
 import { AboutDialog } from "@/features/about";
-import { CatalogDialogs } from "@/features/catalog";
+import { catalogKeys, CatalogDialogs } from "@/features/catalog";
 import { CommandPalette } from "@/features/command-palette";
 import { ConnectionDialogs, useEnsureConnected } from "@/features/connections";
 import { JobsPanel, useJobEvents } from "@/features/jobs";
@@ -21,7 +22,13 @@ export function App() {
   const { preference } = useThemePreference();
   const commands = useAppCommands();
   const ensureConnected = useEnsureConnected();
-  useJobEvents();
+  const queryClient = useQueryClient();
+  // A restore (even a cancelled one) may have created databases and collections.
+  useJobEvents((job) => {
+    if (job.kind === "restore") {
+      void queryClient.invalidateQueries({ queryKey: catalogKeys.connection(job.connectionId) });
+    }
+  });
 
   if (isPending) return <LoadingState label="Starting…" className="h-screen" />;
 

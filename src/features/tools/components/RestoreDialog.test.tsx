@@ -20,8 +20,8 @@ const contents: DumpContents = {
   gzip: true,
   oplog: true,
   namespaces: [
-    { database: "shop", collection: "items", view: false },
-    { database: "shop", collection: "users", view: false },
+    { database: "shop", collection: "items", view: false, size: 0 },
+    { database: "shop", collection: "users", view: false, size: 0 },
   ],
 };
 
@@ -56,6 +56,8 @@ describe("RestoreDialog", () => {
     });
     await user.click(await screen.findByRole("checkbox", { name: "users" }));
     expect(screen.getByText("1 of 2")).toBeInTheDocument();
+    const shop = screen.getByRole("checkbox", { name: "shop" });
+    expect((shop as HTMLInputElement).indeterminate).toBe(true);
     const oplog = screen.getByRole("checkbox", { name: /replay the oplog/i });
     expect(oplog).toBeDisabled();
     await user.type(screen.getByRole("textbox", { name: "Restore shop as" }), "shop_copy");

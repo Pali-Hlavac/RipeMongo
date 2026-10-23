@@ -4,7 +4,7 @@ import { FormField } from "@/shared/ui/form-field";
 import { Input } from "@/shared/ui/input";
 
 import { useDumpCollections } from "../api/dump";
-import type { DumpFormValues } from "../lib/dump";
+import { parsePrefixes, type DumpFormValues } from "../lib/dump";
 
 interface DumpCollectionsFieldProps {
   connectionId: string;
@@ -26,7 +26,10 @@ export function DumpCollectionsField({
   onChange,
 }: DumpCollectionsFieldProps) {
   const { data: collections, error, isPending } = useDumpCollections(connectionId, database);
-  const included = collections?.filter((name) => !excluded.includes(name)).length ?? 0;
+  const prefixList = parsePrefixes(prefixes);
+  const byPrefix = (name: string) => prefixList.some((prefix) => name.startsWith(prefix));
+  const included =
+    collections?.filter((name) => !excluded.includes(name) && !byPrefix(name)).length ?? 0;
   const toggle = (name: string, checked: boolean) => {
     onChange({
       excluded: checked ? excluded.filter((item) => item !== name) : [...excluded, name],
@@ -83,12 +86,16 @@ export function DumpCollectionsField({
                   <input
                     type="checkbox"
                     className="size-4 accent-primary"
-                    checked={!excluded.includes(name)}
+                    checked={!excluded.includes(name) && !byPrefix(name)}
+                    disabled={byPrefix(name)}
                     onChange={(event) => {
                       toggle(name, event.target.checked);
                     }}
                   />
                   <span className="truncate font-mono text-xs">{name}</span>
+                  {byPrefix(name) && (
+                    <span className="text-xs text-muted-foreground">left out by prefix</span>
+                  )}
                 </label>
               </li>
             ))}

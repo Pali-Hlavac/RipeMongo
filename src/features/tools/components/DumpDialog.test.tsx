@@ -93,6 +93,20 @@ describe("DumpDialog", () => {
     });
   });
 
+  it("shows collections matched by a prefix as left out", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<DumpDialog />);
+    openDialog();
+
+    const logs = await screen.findByRole("checkbox", { name: "logs" });
+    await user.type(screen.getByRole("textbox", { name: /leave out names/i }), "lo");
+    expect(screen.getByRole("checkbox", { name: /logs/ })).toBeDisabled();
+    expect(screen.getByRole("checkbox", { name: /logs/ })).not.toBeChecked();
+    expect(screen.getByText("left out by prefix")).toBeInTheDocument();
+    expect(screen.getByText("1 of 2")).toBeInTheDocument();
+    expect(logs).toBeInTheDocument();
+  });
+
   it("saves a filtered collection dump and starts it", async () => {
     const user = userEvent.setup();
     renderWithProviders(<DumpDialog />);

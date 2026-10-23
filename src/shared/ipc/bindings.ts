@@ -290,6 +290,8 @@ export type DumpNamespace = {
 	collection: string,
 	/**  Views have a definition but no documents. */
 	view: boolean,
+	/**  Bytes of the data file in a folder dump (compressed if gzip); 0 when unknown (archives). */
+	size: number | null,
 };
 
 /**  Where `mongodump` writes. */
