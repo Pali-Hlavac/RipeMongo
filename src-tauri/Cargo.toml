@@ -17,6 +17,7 @@ tauri-build = { version = "2", features = [] }
 argon2 = "0.5"
 base64 = "0.22"
 chacha20poly1305 = "0.10"
+flate2 = "1"
 futures-util = "0.3.34"
 keyring = "4"
 mongodb = { version = "3.9.1", features = ["aws-auth", "azure-oidc", "gcp-oidc", "cert-key-password", "zstd-compression", "snappy-compression", "zlib-compression"] }

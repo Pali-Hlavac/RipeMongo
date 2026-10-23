@@ -51,6 +51,8 @@ const APP_COMMANDS: &[&str] = &[
     "cancel_job",
     "dismiss_job",
     "start_dump",
+    "inspect_dump",
+    "start_restore",
     "list_dump_profiles",
     "save_dump_profile",
     "delete_dump_profile",

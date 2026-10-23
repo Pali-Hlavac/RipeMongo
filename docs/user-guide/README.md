@@ -17,8 +17,8 @@ are not available yet are listed at the bottom.
 - [Finding documents](querying.md): filters, suggestions, sort and projection, history
 - [Editing documents](editing-documents.md): insert, edit, clone and delete documents, or
   update and delete many at once
-- [Backing up with dump](backups.md): save a server, database or collection, follow the
-  progress
+- [Backing up and restoring](backups.md): save a server, database or collection, run saved
+  dumps again, restore a dump, follow the progress
 - [Keyboard shortcuts](keyboard-shortcuts.md)
 
 ## Coming later

@@ -5,6 +5,7 @@ use std::collections::HashMap;
 
 use crate::jobs::{JobProgress, ProgressUnit};
 use crate::tools::run::OutputParser;
+use crate::tools::text::{clean_namespace as clean, count};
 
 /// Label shown while `--oplog` dumps write the captured oplog.
 const OPLOG_LABEL: &str = "oplog";
@@ -37,21 +38,13 @@ impl DumpProgress {
     /// "Dumped 3 collections (1,204 documents) to <path>.", with "and 5 oplog entries" for
     /// `--oplog` dumps.
     pub fn summary(&self, path: &str) -> String {
-        let collections = match self.collections {
-            1 => "1 collection".to_owned(),
-            count => format!("{count} collections"),
-        };
-        let count = self.documents();
-        let documents = if count == 1.0 {
-            "1 document".to_owned()
-        } else {
-            format!("{} documents", thousands(count))
-        };
-        let oplog = match self.oplog_entries {
-            Some(1.0) => " and 1 oplog entry".to_owned(),
-            Some(count) => format!(" and {} oplog entries", thousands(count)),
-            None => String::new(),
-        };
+        // Collection counts are small; the cast is exact.
+        #[allow(clippy::cast_precision_loss)]
+        let collections = count(self.collections as f64, "collection", "collections");
+        let documents = count(self.documents(), "document", "documents");
+        let oplog = self.oplog_entries.map_or_else(String::new, |entries| {
+            format!(" and {}", count(entries, "oplog entry", "oplog entries"))
+        });
         format!("Dumped {collections} ({documents}){oplog} to {path}.")
     }
 }
@@ -94,24 +87,6 @@ impl OutputParser for DumpProgress {
             message: self.current.clone(),
         })
     }
-}
-
-/// Recent tools quote names in messages (`` `shop.items` ``) but not in progress bars.
-fn clean(namespace: &str) -> &str {
-    namespace.trim().trim_matches('`')
-}
-
-/// 1204 → "1,204".
-fn thousands(value: f64) -> String {
-    let digits = format!("{value:.0}");
-    let mut grouped = String::with_capacity(digits.len() + digits.len() / 3);
-    for (index, digit) in digits.chars().enumerate() {
-        if index > 0 && (digits.len() - index) % 3 == 0 {
-            grouped.push(',');
-        }
-        grouped.push(digit);
-    }
-    grouped
 }
 
 #[cfg(test)]
@@ -177,12 +152,5 @@ mod tests {
             progress.summary("x"),
             "Dumped 1 collection (2 documents) and 3 oplog entries to x."
         );
-    }
-
-    #[test]
-    fn groups_thousands() {
-        assert_eq!(thousands(0.0), "0");
-        assert_eq!(thousands(999.0), "999");
-        assert_eq!(thousands(1_234_567.0), "1,234,567");
     }
 }

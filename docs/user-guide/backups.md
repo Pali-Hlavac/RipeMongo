@@ -1,4 +1,4 @@
-# Backing up with dump
+# Backing up and restoring
 
 RipeMongo can save a copy (a "dump") of a whole server, a database or a single collection.
 It uses MongoDB's own `mongodump`, which comes with RipeMongo, so you do not need to install
@@ -57,27 +57,52 @@ A saved dump writes to the same place every time, so it replaces the previous co
 Collections you unticked stay left out; collections created later are included. When you
 delete a connection, its saved dumps are deleted too.
 
+## Restore a dump
+
+1. Connect to the server you want to restore into.
+2. Open the connection's **⋯** menu → **Restore…**.
+3. Choose **Folder** or **Single archive file** and click **Browse…** to pick the dump.
+   RipeMongo reads it and lists its databases and collections. Compressed dumps work without
+   any extra setting.
+4. Untick what you do not want to restore.
+5. To restore a database as a copy, type a new name next to it, for example `shop_restored`.
+6. Choose the options:
+   - **Drop each collection before restoring it** replaces collections that already exist.
+     Without it, existing documents stay, and documents from the dump with the same `_id` are
+     skipped (the summary says how many). Because dropping cannot be undone, RipeMongo asks you
+     to type the connection's name first.
+   - **Replay the oplog** appears for dumps made with the point-in-time option. It needs
+     everything restored under its own name.
+   - **Dry run** only checks the dump and tells you what would be restored. Nothing is
+     written.
+   - **Collections at a time** works as for dumps.
+7. Click **Restore** (or **Start dry run**).
+
+When it finishes, a message tells you how many documents were restored and how many could not
+be.
+
 ## Follow the progress
 
-The **Background jobs** window opens and shows how many documents have been saved and which
-collection is being written. You can close it and keep working; the dump continues. The
+The **Background jobs** window opens and shows how many documents have been saved or restored
+and which collection is being worked on. You can close it and keep working; the job continues. The
 **Jobs** button at the bottom right shows how many jobs are running and opens the window again.
 
-When the dump finishes, a message tells you how many collections and documents were saved and
+When a dump finishes, a message tells you how many collections and documents were saved and
 where. If something goes wrong, the message says why, for example a folder that does not
 exist or a missing permission on the server.
 
-- **Cancel** stops a running dump. Files written so far stay where they are.
-- **Details and log** shows everything `mongodump` reported, and the equivalent command if you
-  want to run the same dump yourself later. Passwords are never included; RipeMongo hands them
+- **Cancel** stops a running dump or restore. Files written so far stay where they are, and
+  so do documents already restored.
+- **Details and log** shows everything the tool reported, and the equivalent command if you
+  want to run it yourself later. Passwords are never included; RipeMongo hands them
   to the tool privately. Both have a **Copy** button, handy when asking for help.
 - **Remove** clears a finished job from the list.
 
-The list is cleared when you quit RipeMongo. Quitting while a dump runs stops it.
+The list is cleared when you quit RipeMongo. Quitting while a job runs stops it.
 
 ## Good to know
 
 - You need to be connected, and the database user needs permission to read what you dump.
-- Disconnecting while a dump runs does not interrupt it.
-- Restoring a dump, importing and exporting JSON or CSV files and copying data between
-  connections are coming soon.
+- Disconnecting while a dump or restore runs does not interrupt it.
+- Importing and exporting JSON or CSV files and copying data between connections are coming
+  soon.

@@ -6,7 +6,7 @@ import { CommandPalette } from "@/features/command-palette";
 import { ConnectionDialogs, useEnsureConnected } from "@/features/connections";
 import { JobsPanel, useJobEvents } from "@/features/jobs";
 import { ThemeController, useSettings, useThemePreference } from "@/features/settings";
-import { DumpDialog, SavedDumpsDialog } from "@/features/tools";
+import { DumpDialog, RestoreDialog, SavedDumpsDialog } from "@/features/tools";
 import { LoadingState } from "@/shared/components/LoadingState";
 
 import { useAppCommands } from "./commands/useAppCommands";
@@ -35,6 +35,7 @@ export function App() {
       <CatalogDialogs />
       <DumpDialog />
       <SavedDumpsDialog ensureConnected={ensureConnected} />
+      <RestoreDialog />
       <JobsPanel />
       <Toaster theme={preference} position="bottom-right" richColors closeButton />
     </>

@@ -132,7 +132,7 @@ favorite summary wrapping, and history removal when a connection is deleted.
 - [x] Sidecar fetch script (pinned version, SHA-256 verification), bundling for all 4 targets (installers built and checked on Windows; macOS/Linux packages come with the M8 release workflow)
 - [x] Background job registry: progress events, cancel, logs — ADR 0010
 - [x] Dump UI: server / databases / collections, query filter, gzip, archive, oplog, include/exclude, parallelism (mongodump has no database exclusion: include/exclude is per database)
-- [ ] Restore UI: drop before restore, `nsFrom`/`nsTo`, dry run
+- [x] Restore UI: drop before restore, `nsFrom`/`nsTo`, dry run (plus include/exclude, oplog replay; renames per database)
 - [x] Live progress, cancel, readable errors, copyable log, equivalent CLI command
 - [x] Saved dump profiles (one-click re-run, connects first)
 - [ ] JSON/CSV import and export per collection with field selection and type mapping
@@ -193,8 +193,17 @@ Decisions for M4 (details in ADRs 0009 and 0010 as they are written):
   connection-menu entries. `useAfterDialogClose` (shared) replaces the jobs-panel focus fix
   and also fixes the palette opening dialogs. Integration tests: prefix exclusion,
   parallelism, query into gzip archive, oplog dump of a replica set.
-- Slice 4 next: restore (drop before restore, `nsFrom`/`nsTo`, dry run), from a dump folder or
-  archive, with oplog replay for oplog dumps.
+- Slice 4 complete: `tools/restore/` (`inspect_dump` reads folder layouts and archive
+  preludes, through gzip; `RestoreRequest` with escaped `--nsExclude`, per-database
+  `--nsFrom/--nsTo`, drop, dry run with `--verbose=1`, oplog replay only for a full restore;
+  `RestoreProgress`), `inspect_dump` + `start_restore` commands, `tests/restore.rs` (real
+  dumps read back, rename + exclude, duplicates, drop, dry run, oplog replay). Frontend
+  `RestoreDialog` (connection ⋯ → "Restore…", contents checklist with "restore as",
+  confirm-by-typing for drop). Found while probing mongorestore 100.19: `--oplogReplay`
+  refuses includes, excludes and renames; `admin.system.version` is always skipped.
+- Next: one real-app pass over slices 3 and 4 together (saved dump that connects first,
+  edit, oplog dump of a replica set, restore round trip with rename, drop and dry run), then
+  slice 5 (JSON/CSV export and import).
 
 ### M5 — Aggregation
 

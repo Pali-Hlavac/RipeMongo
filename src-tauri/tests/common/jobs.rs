@@ -1,4 +1,4 @@
-//! Helpers for tests that run tool jobs: a registry without UI events and a dump runner.
+//! Helpers for tests that run tool jobs: a registry without UI events, dump and restore runners.
 
 use std::sync::Arc;
 use std::time::Duration;
@@ -6,11 +6,12 @@ use std::time::Duration;
 use ripemongo_lib::connections::ConnectionManager;
 use ripemongo_lib::jobs::{JobEvents, JobInfo, JobRegistry, JobStatus};
 use ripemongo_lib::tools::dump::{start_dump, DumpRequest};
+use ripemongo_lib::tools::restore::{inspect_dump, start_restore, RestoreRequest};
 use ripemongo_lib::tools::{locate, Tool};
 
 use super::ROOT_PASSWORD;
 
-/// How long a dump of a few hundred documents may take.
+/// How long a dump or restore of a few hundred documents may take.
 const JOB_TIMEOUT: Duration = Duration::from_secs(60);
 const POLL_INTERVAL: Duration = Duration::from_millis(50);
 
@@ -66,5 +67,21 @@ pub async fn dump(
     let command = started.command.expect("command");
     assert!(command.starts_with("mongodump --uri="), "{command}");
     assert!(!command.contains(ROOT_PASSWORD), "{command}");
+    finished(jobs, &started.id).await
+}
+
+/// Runs a restore on an open connection to the end.
+pub async fn restore(
+    manager: &ConnectionManager,
+    jobs: &JobRegistry,
+    id: &str,
+    request: RestoreRequest,
+) -> JobInfo {
+    let contents = inspect_dump(&request.source).expect("dump contents");
+    let connection = manager.tool_connection(id).await.expect("connection");
+    let started = start_restore(jobs, id.to_owned(), connection, request, &contents)
+        .expect("restore started");
+    let command = started.command.expect("command");
+    assert!(command.starts_with("mongorestore --uri="), "{command}");
     finished(jobs, &started.id).await
 }

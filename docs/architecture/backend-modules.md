@@ -143,7 +143,10 @@ Every domain module follows the same layout:
   `--config` file; `display.rs` renders the equivalent command; `dump/` validates the request
   and builds `mongodump` arguments (`args.rs`: query as canonical Extended JSON, oplog,
   excluded collections and prefixes, parallelism), estimates totals and parses progress
-  (including the oplog). See ADR 0009 and [sidecars.md](sidecars.md).
+  (including the oplog). `restore/` reads a dump (folder layout or archive prelude, gzip and
+  oplog detection), builds `mongorestore` arguments (escaped `--nsExclude`, `--nsFrom/--nsTo`
+  per database, drop, dry run, oplog replay) and parses its output; `text.rs` formats counts.
+  See ADR 0009 and [sidecars.md](sidecars.md).
 - **Errors:** `ToolsError::Missing` → `NOT_FOUND` (hint: reinstall / `pnpm sidecars`),
   `Invalid` → `INVALID_INPUT`, `Credentials`/`Start` → `IO`; a failed run →
   `OPERATION_FAILED` ("mongodump failed: …").

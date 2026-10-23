@@ -55,6 +55,8 @@ and reload/print shortcuts in production builds.
   the webview has no shell or process permission. A dump's query filter is passed on the
   command line (`--query`), like any other option, so it is visible to other local processes;
   it never contains credentials.
+- Restoring with "drop" asks the user to type the connection name first (confirm-by-typing).
+  Reading a dump (`inspect_dump`) only reads the folder listing or the archive's prelude.
 - Saved dumps (`dump-profiles.json`) store the connection id, never its connection string or
   secrets; running one reads the secrets from the keychain like any other tool job.
 - Import/export paths come from native dialogs (`dialog:allow-open`, `dialog:allow-save`);

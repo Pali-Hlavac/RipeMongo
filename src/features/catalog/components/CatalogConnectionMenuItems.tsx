@@ -1,15 +1,29 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { ArchiveIcon, DatabaseIcon, HistoryIcon, RefreshCwIcon } from "lucide-react";
+import {
+  ArchiveIcon,
+  ArchiveRestoreIcon,
+  DatabaseIcon,
+  HistoryIcon,
+  RefreshCwIcon,
+} from "lucide-react";
 
-import { useDumpDialog, useSavedDumpsDialog } from "@/features/tools";
+import { useDumpDialog, useRestoreDialog, useSavedDumpsDialog } from "@/features/tools";
 
 import { DropdownMenuItem } from "@/shared/ui/dropdown-menu";
 
 import { catalogKeys } from "../api/keys";
 import { useCatalogDialogs } from "../store/dialogs";
 
-/** Catalog entries for a connected connection's "⋯" menu. */
-export function CatalogConnectionMenuItems({ connectionId }: { connectionId: string }) {
+interface CatalogConnectionMenuItemsProps {
+  connectionId: string;
+  connectionName: string;
+}
+
+/** Catalog and tool entries for a connected connection's "⋯" menu. */
+export function CatalogConnectionMenuItems({
+  connectionId,
+  connectionName,
+}: CatalogConnectionMenuItemsProps) {
   const queryClient = useQueryClient();
   const open = useCatalogDialogs((state) => state.open);
   return (
@@ -34,6 +48,13 @@ export function CatalogConnectionMenuItems({ connectionId }: { connectionId: str
         }}
       >
         <HistoryIcon aria-hidden /> Saved dumps…
+      </DropdownMenuItem>
+      <DropdownMenuItem
+        onSelect={() => {
+          useRestoreDialog.getState().open({ connectionId, connectionName });
+        }}
+      >
+        <ArchiveRestoreIcon aria-hidden /> Restore…
       </DropdownMenuItem>
       <DropdownMenuItem
         onSelect={() => {

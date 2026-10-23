@@ -104,6 +104,10 @@ export const commands = {
 	dismissJob: (jobId: string) => typedError<null, AppError>(__TAURI_INVOKE("dismiss_job", { jobId })),
 	/**  Starts `mongodump` as a background job on an open connection. */
 	startDump: (connectionId: string, request: DumpRequest) => typedError<JobInfo, AppError>(__TAURI_INVOKE("start_dump", { connectionId, request })),
+	/**  What a dump folder or archive contains: databases, collections, gzip and oplog. */
+	inspectDump: (source: RestoreSource) => typedError<DumpContents, AppError>(__TAURI_INVOKE("inspect_dump", { source })),
+	/**  Starts `mongorestore` as a background job on an open connection. */
+	startRestore: (connectionId: string, request: RestoreRequest) => typedError<JobInfo, AppError>(__TAURI_INVOKE("start_restore", { connectionId, request })),
 	/**  Every saved dump whose connection still exists. */
 	listDumpProfiles: () => typedError<DumpProfile[], AppError>(__TAURI_INVOKE("list_dump_profiles")),
 	/**  Creates or updates a saved dump. */
@@ -250,6 +254,12 @@ export type DatabaseInfo = {
 	empty: boolean,
 };
 
+/**  Restore one database of the dump under another name. */
+export type DatabaseRename = {
+	from: string,
+	to: string,
+};
+
 /**  Preview of a delete-many: the match count and the first few matching documents. */
 export type DeletePreview = {
 	matched: DocumentCount,
@@ -262,6 +272,24 @@ export type DocumentCount = {
 	count: number | null,
 	/**  `true` when taken from collection metadata (fast, may be slightly off). */
 	estimated: boolean,
+};
+
+/**  What a dump holds. */
+export type DumpContents = {
+	/**  Compressed with `--gzip`; mongorestore needs `--gzip` too. */
+	gzip: boolean,
+	/**  Made with `--oplog`; can be replayed for a point-in-time restore. */
+	oplog: boolean,
+	/**  Sorted by database, then collection. */
+	namespaces: DumpNamespace[],
+};
+
+/**  One collection or view in a dump. */
+export type DumpNamespace = {
+	database: string,
+	collection: string,
+	/**  Views have a definition but no documents. */
+	view: boolean,
 };
 
 /**  Where `mongodump` writes. */
@@ -483,6 +511,30 @@ export type QueryParts = {
 
 /**  Read preference modes. */
 export type ReadPreferenceMode = "primary" | "primaryPreferred" | "secondary" | "secondaryPreferred" | "nearest";
+
+/**  A restore of a dump into the connection's server. */
+export type RestoreRequest = {
+	source: RestoreSource,
+	/**  Namespaces of the dump (`db.collection`) to leave out (`--nsExclude`). */
+	exclude: string[],
+	/**  Databases restored under another name (`--nsFrom`/`--nsTo`). */
+	renames: DatabaseRename[],
+	/**  Drop each restored collection first (`--drop`). */
+	drop: boolean,
+	/**  Only check what would be restored (`--dryRun`). */
+	dryRun: boolean,
+	/**  Replay the dump's oplog (`--oplogReplay`); needs a full restore. */
+	oplogReplay: boolean,
+	/**  `--numParallelCollections`; `None` keeps the tool's default. */
+	parallelCollections: number | null,
+};
+
+/**  Where a dump to restore is. */
+export type RestoreSource = 
+/**  A dump folder with one sub-folder per database (`--dir`). */
+{ kind: "folder"; path: string } | 
+/**  A single archive file (`--archive`). */
+{ kind: "archive"; path: string };
 
 /**  A remembered query: a recent run, or a named favorite. */
 export type SavedQuery = {

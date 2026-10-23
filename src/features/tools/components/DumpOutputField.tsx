@@ -7,66 +7,74 @@ import { Input } from "@/shared/ui/input";
 
 import type { DumpOutputKind } from "../lib/dump";
 
-const KINDS: { value: DumpOutputKind; label: string; description: string }[] = [
-  {
-    value: "folder",
-    label: "Folder",
-    description: "One folder per database with a file per collection.",
-  },
-  {
-    value: "archive",
-    label: "Single archive file",
-    description: "Everything in one file, easy to copy or attach.",
-  },
-];
+const LABELS: Record<DumpOutputKind, string> = {
+  folder: "Folder",
+  archive: "Single archive file",
+};
+
+/** Wording for dumping into a folder or archive; restoring passes its own. */
+const SAVE_DESCRIPTIONS: Record<DumpOutputKind, string> = {
+  folder: "One folder per database with a file per collection.",
+  archive: "Everything in one file, easy to copy or attach.",
+};
 
 interface DumpOutputFieldProps {
   kind: DumpOutputKind;
   path: string;
   error: string | null;
+  legend?: string;
+  descriptions?: Record<DumpOutputKind, string>;
+  /** Radio group name; unique per dialog. */
+  name?: string;
   onKindChange: (kind: DumpOutputKind) => void;
   onPathChange: (path: string) => void;
+  /** Called when the user leaves the path field (a typed path is complete). */
+  onPathCommit?: () => void;
   onBrowse: () => void;
 }
 
-/** "Save as" choice (folder or archive) and the destination path with a native picker. */
+/** Folder or archive choice and the path, with a native picker. */
 export function DumpOutputField({
   kind,
   path,
   error,
+  legend = "Save as",
+  descriptions = SAVE_DESCRIPTIONS,
+  name = "dump-output",
   onKindChange,
   onPathChange,
+  onPathCommit,
   onBrowse,
 }: DumpOutputFieldProps) {
-  const selected = KINDS.find((option) => option.value === kind);
+  const kinds = Object.keys(LABELS) as DumpOutputKind[];
   return (
     <>
       <fieldset className="grid gap-1.5">
-        <legend className="mb-1.5 text-sm font-medium">Save as</legend>
+        <legend className="mb-1.5 text-sm font-medium">{legend}</legend>
         <div className="grid grid-cols-2 gap-1 rounded-md bg-muted p-1">
-          {KINDS.map((option) => (
+          {kinds.map((value) => (
             <label
-              key={option.value}
+              key={value}
               className={cn(
                 "cursor-pointer rounded-sm px-2 py-1 text-center text-sm text-muted-foreground has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring",
-                kind === option.value && "bg-background text-foreground shadow-sm",
+                kind === value && "bg-background text-foreground shadow-sm",
               )}
             >
               <input
                 type="radio"
-                name="dump-output"
+                name={name}
                 className="sr-only"
-                value={option.value}
-                checked={kind === option.value}
+                value={value}
+                checked={kind === value}
                 onChange={() => {
-                  onKindChange(option.value);
+                  onKindChange(value);
                 }}
               />
-              {option.label}
+              {LABELS[value]}
             </label>
           ))}
         </div>
-        <p className="text-xs text-muted-foreground">{selected?.description}</p>
+        <p className="text-xs text-muted-foreground">{descriptions[kind]}</p>
       </fieldset>
       <FormField label={kind === "folder" ? "Folder" : "Archive file"} error={error}>
         {(control) => (
@@ -80,6 +88,7 @@ export function DumpOutputField({
               onChange={(event) => {
                 onPathChange(event.target.value);
               }}
+              onBlur={onPathCommit}
             />
             <Button type="button" variant="outline" className="h-9" onClick={onBrowse}>
               <FolderOpenIcon aria-hidden />

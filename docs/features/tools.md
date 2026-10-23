@@ -1,4 +1,4 @@
-# Tools: dump (and later restore, import, export, copy)
+# Tools: dump and restore (later import, export, copy)
 
 ## What it does
 
@@ -33,10 +33,26 @@
 - **Details and log** shows the equivalent command line (copyable, without passwords) and
   everything the tool printed (copyable).
 - The **status bar** shows "Jobs" or "N running"; the palette has "Show background jobs".
-- The About dialog lists the bundled tools version; if `mongodump` is missing the dump dialog
-  says so and cannot start.
+- The About dialog lists the bundled tools version; if `mongodump` or `mongorestore` is missing
+  the dialog says so and cannot start.
+- **Restore** a dump into a connected server with the bundled `mongorestore`: connection ⋯ →
+  "Restore…". Pick a dump **folder** (`--dir`) or **archive file** (`--archive`); RipeMongo
+  reads it first (`inspect_dump`) and shows its databases and collections (views marked; the
+  oplog noted). gzip is detected, never asked.
+  - **What to restore:** tick databases and collections; unticked ones become `--nsExclude`
+    (escaped, so names with `*` or `$` match literally).
+  - **Restore as:** a new name per database (`--nsFrom=shop.* --nsTo=copy.*`).
+  - **Drop each collection before restoring it** (`--drop`), confirmed by typing the
+    connection name. Without it, documents whose `_id` exists are skipped and counted.
+  - **Replay the oplog** (`--oplogReplay`, default on for dumps with an oplog), only for a full
+    restore without new names; mongorestore refuses it otherwise.
+  - **Dry run** (`--dryRun --verbose=1`): the summary lists what would be restored.
+  - **Collections at a time** (1–16).
+  - The job reports documents restored so far, the collection in progress with its percentage
+    (folders) or size read (archives), and a summary: "Restored 300,002 documents into 2
+    collections.", plus replayed oplog entries and documents that failed (duplicates).
 
-Planned next (M4): restore, JSON/CSV import and export, and copying between connections.
+Planned next (M4): JSON/CSV import and export, and copying between connections.
 
 ## How it works
 
@@ -55,17 +71,22 @@ Planned next (M4): restore, JSON/CSV import and export, and copying between conn
 4. Saved dumps live in the `dump_profiles` module (`dump-profiles.json`). The list joins the
    current connection names. `SavedDumpsDialog` receives `ensureConnected` from the app
    (`useEnsureConnected` in connections), so the tools feature does not import connections.
-5. Dialogs that open another dialog (dump → jobs panel, saved dumps → dump dialog, palette →
+5. `RestoreDialog` reads the chosen path with `useDumpContents` (`inspect_dump`: folder
+   layout, or the archive prelude read through gzip if needed, `tools/restore/archive.rs`)
+   and builds a `RestoreRequest`. `start_restore` reads the dump again (gzip, oplog), checks the
+   request (`RestoreRequest::args`: absolute path, valid new names, oplog only for a full
+   restore) and runs `mongorestore` in a job; `RestoreProgress` parses its output.
+6. Dialogs that open another dialog (dump → jobs panel, saved dumps → dump dialog, palette →
    any dialog) run that action from `onCloseAutoFocus` via `useAfterDialogClose`, so Radix's
    focus return cannot close the new dialog.
 
 ## Key files
 
-| Area     | Files                                                                                                                   |
-| -------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Backend  | `src-tauri/src/tools/{dump/,run.rs,credentials.rs,display.rs}`, `src-tauri/src/dump_profiles/`, `src-tauri/src/jobs/`   |
-| Frontend | `src/features/tools/` (dump dialog, options, saved dumps), `src/features/jobs/` (panel, events, log)                    |
-| Tests    | `src-tauri/tests/dump.rs`, `dump/args.rs`, `dump_profiles/tests.rs`, `DumpDialog.test.tsx`, `SavedDumpsDialog.test.tsx` |
+| Area     | Files                                                                                                                                                                       |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Backend  | `src-tauri/src/tools/{dump/,restore/,run.rs,credentials.rs,display.rs,text.rs}`, `src-tauri/src/dump_profiles/`, `src-tauri/src/jobs/`                                      |
+| Frontend | `src/features/tools/` (dump and restore dialogs, saved dumps), `src/features/jobs/` (panel, events, log)                                                                    |
+| Tests    | `src-tauri/tests/{dump,restore}.rs`, `dump/args.rs`, `restore/*.rs`, `dump_profiles/tests.rs`, `DumpDialog.test.tsx`, `RestoreDialog.test.tsx`, `SavedDumpsDialog.test.tsx` |
 
 ## Edge cases and limitations
 
@@ -79,7 +100,13 @@ Planned next (M4): restore, JSON/CSV import and export, and copying between conn
 - The total is an estimate; the bar never goes backwards and the final counts come from
   `mongodump` itself. Whole-server dumps also count `admin` system collections.
 - A query filter is visible in the process list like any other option (never credentials).
-- Authentication methods `mongodump` does not support fail with its own message.
+- Restore: `admin.system.version` is never offered (mongorestore skips it). A folder of one
+  database (`dump/shop`) is refused with a hint to pick the folder above it. Renaming works per
+  database, not per collection. Restoring without drop into existing collections keeps the
+  existing documents with the same `_id`.
+- The restore total is not known in advance, so its bar is indeterminate; the count and the
+  collection in progress move.
+- Authentication methods the tools do not support fail with their own message.
 - Jobs are not kept after the app quits; quitting stops running tools.
 
 ## Testing
@@ -88,6 +115,11 @@ Planned next (M4): restore, JSON/CSV import and export, and copying between conn
   database dump leaving out a prefix with 2 collections at a time, a shell-syntax query into a
   gzip archive (total and summary counts), an oplog dump of a replica set, and a failing
   dump's error.
-- `cargo test tools::` arguments and scope rules, parsing (oplog lines), quoting;
+- `cargo test --test restore` (Docker + `pnpm sidecars`): reads real gzip folder and archive
+  dumps (collections, a view, the oplog), restores into another database without one
+  collection, again with duplicates reported, with drop, a dry run, and a point-in-time
+  restore with oplog replay.
+- `cargo test tools::` arguments and scope rules, parsing (oplog lines, restore output, the
+  archive prelude, dump folders), quoting;
   `cargo test dump_profiles::` the store; `cargo test jobs::` registry behavior.
 - `pnpm test src/features/jobs src/features/tools src/features/command-palette`.

@@ -1,4 +1,4 @@
-/** Which server, database or collection the dump dialog is open for, and the saved dumps list. */
+/** Which dump or restore dialog is open, and for what. */
 import { create } from "zustand";
 
 import type { DumpProfile } from "@/shared/ipc/bindings";
@@ -44,5 +44,27 @@ export const useSavedDumpsDialog = create<SavedDumpsState>()((set) => ({
   open: false,
   setOpen: (open) => {
     set({ open });
+  },
+}));
+
+/** The connection a restore goes into; its name is what "drop" asks the user to type. */
+export interface RestoreTarget {
+  connectionId: string;
+  connectionName: string;
+}
+
+interface RestoreDialogState {
+  target: RestoreTarget | null;
+  open: (target: RestoreTarget) => void;
+  close: () => void;
+}
+
+export const useRestoreDialog = create<RestoreDialogState>()((set) => ({
+  target: null,
+  open: (target) => {
+    set({ target });
+  },
+  close: () => {
+    set({ target: null });
   },
 }));

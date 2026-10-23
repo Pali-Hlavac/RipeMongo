@@ -77,6 +77,8 @@ pub fn builder() -> Builder<tauri::Wry> {
             jobs::commands::cancel_job,
             jobs::commands::dismiss_job,
             tools::commands::start_dump,
+            tools::commands::inspect_dump,
+            tools::commands::start_restore,
             dump_profiles::commands::list_dump_profiles,
             dump_profiles::commands::save_dump_profile,
             dump_profiles::commands::delete_dump_profile,

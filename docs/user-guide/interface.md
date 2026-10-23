@@ -43,7 +43,7 @@ automatically.
 ## Status bar
 
 The bottom bar shows the RipeMongo version, the **Jobs** button (it shows how many background
-jobs such as dumps are running, see [Backing up with dump](backups.md)), a shortcut to the
+jobs such as dumps are running, see [Backing up and restoring](backups.md)), a shortcut to the
 command palette and the theme switch. **About RipeMongo** in the command palette shows the version and platform, and the
 version of the MongoDB tools that come with RipeMongo (used for dump, restore, import and
 export). This is useful when reporting a problem.

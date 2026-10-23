@@ -60,7 +60,7 @@ export function ConnectionActionsMenu({ profile, status }: ConnectionActionsMenu
               <UnplugIcon aria-hidden /> Disconnect
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <CatalogConnectionMenuItems connectionId={profile.id} />
+            <CatalogConnectionMenuItems connectionId={profile.id} connectionName={profile.name} />
             <DropdownMenuSeparator />
           </>
         ) : (

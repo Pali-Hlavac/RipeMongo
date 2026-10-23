@@ -68,6 +68,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   Options per scope: a query filter for a collection (same syntax as the documents filter),
   ticking which collections of a database to include plus name prefixes to leave out, a
   point-in-time oplog snapshot of a whole replica set, and how many collections run at a time.
+- Restore (milestone 4): "Restore…" in a connected connection's ⋯ menu loads a dump folder or
+  archive (gzip detected) with the bundled `mongorestore`. RipeMongo reads the dump first and
+  lists its databases and collections to tick, with a new name per database, drop before
+  restore (confirmed by typing the connection name), dry run, oplog replay for point-in-time
+  dumps and collections at a time; the summary counts restored and failed documents.
 - Saved dumps (milestone 4): save a dump's settings under a name and run it again with one
   click from "Saved dumps" (command palette or the connection's ⋯ menu); RipeMongo connects
   first if needed. Edit and delete them there; deleting a connection deletes its saved dumps.
