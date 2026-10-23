@@ -176,6 +176,13 @@ Decisions for M4 (details in ADRs 0009 and 0010 as they are written):
   archive, failure). Frontend `features/jobs` (events → TanStack Query, status-bar button,
   panel, log dialog) and `features/tools` (dump dialog from the sidebar menus). ADR 0010,
   user guide `backups.md`, feature doc `tools.md`.
+- Verified in the real app (2026-10-23, MongoDB 8 in Docker with 10 million documents): native
+  folder picker, folder and gzip archive dumps of a collection, database and the whole server,
+  live progress bar with totals, Cancel (process killed, temp config file deleted), toasts, log
+  and equivalent command. Fixed there: namespaces quoted with backticks by tools 100.19 were
+  counted twice next to the progress bars; doubled backslashes in the displayed command; the
+  jobs panel sometimes closed right after opening (focus returning to the sidebar); the label
+  now names the collection still in progress; Monaco pre-bundled by Vite.
 - Slice 3 next: dump query filter, `--oplog`, include/exclude namespaces, parallelism, saved
   dump profiles (one-click re-run).
 

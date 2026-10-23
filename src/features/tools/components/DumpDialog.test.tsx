@@ -72,7 +72,9 @@ describe("DumpDialog", () => {
     await waitFor(() => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
-    expect(useJobsPanel.getState().open).toBe(true);
+    await waitFor(() => {
+      expect(useJobsPanel.getState().open).toBe(true);
+    });
   });
 
   it("switches to an archive file and explains when mongodump is missing", async () => {

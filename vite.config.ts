@@ -21,6 +21,9 @@ export default defineConfig({
     host: tauriDevHost ?? false,
     watch: { ignored: ["**/src-tauri/**"] },
   },
+  // The editor is lazy-loaded; without this, opening it the first time makes the dev server
+  // re-optimize dependencies mid-session and the import fails until a reload.
+  optimizeDeps: { include: ["monaco-editor/editor/editor.api"] },
   envPrefix: ["VITE_", "TAURI_ENV_"],
   build: {
     target: "es2022",

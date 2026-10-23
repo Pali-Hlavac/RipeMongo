@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { useToolsInfo } from "@/features/about";
 import { useJobsPanel } from "@/features/jobs";
@@ -40,6 +40,7 @@ function DumpForm({ target, onDone }: { target: DumpTarget; onDone: () => void }
   const [path, setPath] = useState("");
   const [gzip, setGzip] = useState(false);
   const [pathError, setPathError] = useState<string | null>(null);
+  const showJobs = useRef(false);
   const start = useStartDump();
   const tools = useToolsInfo();
   const missing = tools.data?.tools.some((tool) => tool.tool === "mongodump" && !tool.version);
@@ -65,15 +66,24 @@ function DumpForm({ target, onDone }: { target: DumpTarget; onDone: () => void }
       { connectionId: target.connectionId, request: buildDumpRequest(target, kind, path, gzip) },
       {
         onSuccess: () => {
+          showJobs.current = true;
           onDone();
-          useJobsPanel.getState().setOpen(true);
         },
       },
     );
   };
 
   return (
-    <DialogContent className="max-w-lg">
+    <DialogContent
+      className="max-w-lg"
+      onCloseAutoFocus={(event) => {
+        // Radix returns focus to the sidebar menu after closing; opening the jobs panel before
+        // that would let the focus land outside it and close it again. Open it here instead.
+        if (!showJobs.current) return;
+        event.preventDefault();
+        useJobsPanel.getState().setOpen(true);
+      }}
+    >
       <DialogHeader>
         <DialogTitle>Dump {scope}</DialogTitle>
         <DialogDescription>

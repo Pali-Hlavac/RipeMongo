@@ -49,12 +49,12 @@ impl OutputParser for DumpProgress {
     fn line(&mut self, line: &str) -> Option<JobProgress> {
         if let Some(rest) = line.strip_prefix("writing ") {
             let namespace = rest.split(" to ").next().unwrap_or(rest);
-            self.current = Some(namespace.to_owned());
+            self.current = Some(clean(namespace).to_owned());
         } else if let Some(rest) = line.strip_prefix("done dumping ") {
-            // "shop.items (3 documents)"
+            // "`shop.items` (3 documents)"
             let (namespace, count) = rest.rsplit_once(" (")?;
             let count = count.split_whitespace().next()?.parse().ok()?;
-            self.done.insert(namespace.to_owned(), count);
+            self.done.insert(clean(namespace).to_owned(), count);
             self.collections += 1;
         } else if line.starts_with('[') {
             // "[#####...]  shop.items  600/1000  (60.0%)"
@@ -62,7 +62,10 @@ impl OutputParser for DumpProgress {
             let mut parts = rest.split_whitespace();
             let namespace = parts.next()?;
             let (done, _) = parts.next()?.split_once('/')?;
-            self.done.insert(namespace.to_owned(), done.parse().ok()?);
+            let namespace = clean(namespace).to_owned();
+            self.done.insert(namespace.clone(), done.parse().ok()?);
+            // Collections are dumped in parallel; the bar names the one still in progress.
+            self.current = Some(namespace);
         } else {
             return None;
         }
@@ -74,6 +77,11 @@ impl OutputParser for DumpProgress {
             message: self.current.clone(),
         })
     }
+}
+
+/// Recent tools quote names in messages (`` `shop.items` ``) but not in progress bars.
+fn clean(namespace: &str) -> &str {
+    namespace.trim().trim_matches('`')
 }
 
 /// 1204 → "1,204".
@@ -107,8 +115,9 @@ mod tests {
             .unwrap();
         assert_eq!((bar.done, bar.total), (600.0, Some(1_500.0)));
 
-        progress.line("done dumping shop.items (1000 documents)");
-        progress.line("writing shop.users to dump/shop/users.bson");
+        // Messages quote namespaces; the bar did not. Both mean the same collection.
+        progress.line("done dumping `shop.items` (1000 documents)");
+        progress.line("writing `shop.users` to `dump/shop/users.bson`");
         let last = progress
             .line("done dumping shop.users (204 documents)")
             .unwrap();
@@ -121,6 +130,10 @@ mod tests {
             progress.summary("C:/dumps"),
             "Dumped 2 collections (1,204 documents) to C:/dumps."
         );
+        let bar = progress
+            .line("[####....]  big.events  10/100  (10.0%)")
+            .unwrap();
+        assert_eq!(bar.message.as_deref(), Some("big.events"));
     }
 
     #[test]

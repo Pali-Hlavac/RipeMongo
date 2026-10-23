@@ -16,7 +16,8 @@ pub fn display_command(tool: Tool, display_uri: &str, args: &[String]) -> String
     parts.join(" ")
 }
 
-/// Leaves simple values bare and double-quotes everything else.
+/// Leaves simple values bare and double-quotes everything else. Backslashes stay as they are
+/// (Windows paths); only `"` is escaped, which Windows paths cannot contain.
 fn quote(value: &str) -> String {
     let simple = !value.is_empty()
         && value
@@ -25,7 +26,7 @@ fn quote(value: &str) -> String {
     if simple {
         value.to_owned()
     } else {
-        format!("\"{}\"", value.replace('\\', "\\\\").replace('"', "\\\""))
+        format!("\"{}\"", value.replace('"', "\\\""))
     }
 }
 
@@ -46,7 +47,7 @@ mod tests {
                 "mongodb://ann@localhost:27017/?tls=true",
                 &args
             ),
-            r#"mongodump --uri="mongodb://ann@localhost:27017/?tls=true" --db=shop --out="C:\\My dumps" --gzip"#
+            r#"mongodump --uri="mongodb://ann@localhost:27017/?tls=true" --db=shop --out="C:\My dumps" --gzip"#
         );
     }
 }
