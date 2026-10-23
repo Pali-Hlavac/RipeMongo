@@ -115,6 +115,17 @@ Every domain module follows the same layout:
 - **Errors:** `QueryHistoryError::{Storage, Invalid}` → `IO`/`INVALID_DATA`/`INVALID_INPUT`.
 - **Docs:** [features/documents.md](../features/documents.md).
 
+## `dump_profiles`
+
+- **Purpose:** saved dumps (name, connection, `DumpRequest`, created and last-run dates), at
+  most 200, in `dump-profiles.json` in the app-config directory. `DumpProfiles` validates the
+  request on save and does a locked read-modify-write through `storage::JsonFile`.
+  `run_dump_profile` starts the dump through `tools::dump::start_dump` (job title
+  "Dump shop (Nightly)") and records the run. Deleting a connection removes its saved dumps.
+- **Errors:** `DumpProfilesError::{Storage, Request, Invalid, NotFound}` → `IO`/`INVALID_DATA`,
+  `INVALID_INPUT`, `NOT_FOUND`.
+- **Docs:** [features/tools.md](../features/tools.md).
+
 ## `ssh`
 
 - **Purpose:** `SshTunnel::open` forwards a random loopback port to the MongoDB host through a
@@ -129,8 +140,10 @@ Every domain module follows the same layout:
   starts it (no stdin, piped output, killed on drop, no console window on Windows),
   `tools_info` runs `--version` on each. `run.rs` runs a tool inside a job (log, progress
   parser, cancel → kill, `Failed: …` → error); `credentials.rs` writes the temporary
-  `--config` file; `display.rs` renders the equivalent command; `dump/` builds `mongodump`
-  arguments, estimates totals and parses progress. See ADR 0009 and [sidecars.md](sidecars.md).
+  `--config` file; `display.rs` renders the equivalent command; `dump/` validates the request
+  and builds `mongodump` arguments (`args.rs`: query as canonical Extended JSON, oplog,
+  excluded collections and prefixes, parallelism), estimates totals and parses progress
+  (including the oplog). See ADR 0009 and [sidecars.md](sidecars.md).
 - **Errors:** `ToolsError::Missing` → `NOT_FOUND` (hint: reinstall / `pnpm sidecars`),
   `Invalid` → `INVALID_INPUT`, `Credentials`/`Start` → `IO`; a failed run →
   `OPERATION_FAILED` ("mongodump failed: …").

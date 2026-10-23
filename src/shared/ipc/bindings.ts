@@ -16,7 +16,10 @@ export const commands = {
 	listConnections: () => typedError<ConnectionProfile[], AppError>(__TAURI_INVOKE("list_connections")),
 	/**  Creates (empty `id`) or updates a connection and its keychain secrets. */
 	saveConnection: (profile: ConnectionProfile, secrets: SecretUpdates) => typedError<ConnectionProfile, AppError>(__TAURI_INVOKE("save_connection", { profile, secrets })),
-	/**  Deletes a connection, its secrets and its saved queries, and closes it if connected. */
+	/**
+	 *  Deletes a connection, its secrets, saved queries and saved dumps, and closes it if
+	 *  connected.
+	 */
 	deleteConnection: (connectionId: string) => typedError<null, AppError>(__TAURI_INVOKE("delete_connection", { connectionId })),
 	/**  Copies a connection (including secrets) as "<name> (copy)". */
 	duplicateConnection: (connectionId: string) => typedError<ConnectionProfile, AppError>(__TAURI_INVOKE("duplicate_connection", { connectionId })),
@@ -101,6 +104,14 @@ export const commands = {
 	dismissJob: (jobId: string) => typedError<null, AppError>(__TAURI_INVOKE("dismiss_job", { jobId })),
 	/**  Starts `mongodump` as a background job on an open connection. */
 	startDump: (connectionId: string, request: DumpRequest) => typedError<JobInfo, AppError>(__TAURI_INVOKE("start_dump", { connectionId, request })),
+	/**  Every saved dump whose connection still exists. */
+	listDumpProfiles: () => typedError<DumpProfile[], AppError>(__TAURI_INVOKE("list_dump_profiles")),
+	/**  Creates or updates a saved dump. */
+	saveDumpProfile: (profile: DumpProfileInput) => typedError<DumpProfile, AppError>(__TAURI_INVOKE("save_dump_profile", { profile })),
+	/**  Deletes a saved dump. */
+	deleteDumpProfile: (id: string) => typedError<null, AppError>(__TAURI_INVOKE("delete_dump_profile", { id })),
+	/**  Starts a saved dump as a background job; its connection must be open. */
+	runDumpProfile: (id: string) => typedError<JobInfo, AppError>(__TAURI_INVOKE("run_dump_profile", { id })),
 };
 
 /** Events */
@@ -260,7 +271,26 @@ export type DumpOutput =
 /**  A single archive file (`--archive`). */
 { kind: "archive"; path: string };
 
-/**  A dump of the whole server, one database, or one collection. */
+/**  A saved dump as listed in the app, with the current name of its connection. */
+export type DumpProfile = {
+	id: string,
+	name: string,
+	connectionId: string,
+	connectionName: string,
+	request: DumpRequest,
+	createdAt: string,
+	lastRunAt: string | null,
+};
+
+/**  What the dump dialog saves: a new profile (`id: None`) or changes to one. */
+export type DumpProfileInput = {
+	id: string | null,
+	name: string,
+	connectionId: string,
+	request: DumpRequest,
+};
+
+/**  A dump of the whole server, one database, or one collection, with its options. */
 export type DumpRequest = {
 	database: string | null,
 	/**  Requires `database`. */
@@ -268,6 +298,19 @@ export type DumpRequest = {
 	output: DumpOutput,
 	/**  Compress with gzip (`--gzip`). */
 	gzip: boolean,
+	/**  Filter in JSON, Extended JSON or shell syntax (`--query`); collection dumps only. */
+	query: string | null,
+	/**  Point-in-time snapshot (`--oplog`); whole-server dumps of a replica set only. */
+	oplog: boolean,
+	/**  Collections left out (`--excludeCollection`); database dumps only. */
+	excludeCollections: string[],
+	/**  Name prefixes left out (`--excludeCollectionsWithPrefix`); database dumps only. */
+	excludePrefixes: string[],
+	/**
+	 *  Collections dumped at the same time (`--numParallelCollections`); `None` keeps the
+	 *  tool's default.
+	 */
+	parallelCollections: number | null,
 };
 
 /**  Stable, machine-readable error category the frontend can branch on. */

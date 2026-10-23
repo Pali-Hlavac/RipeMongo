@@ -65,6 +65,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   verification and listed with their version in the About dialog (milestone 4); ADR 0009.
 - Dump (milestone 4): back up a whole server, a database or a collection from the sidebar into
   a folder or a single archive file, optionally gzip-compressed, with the bundled `mongodump`.
+  Options per scope: a query filter for a collection (same syntax as the documents filter),
+  ticking which collections of a database to include plus name prefixes to leave out, a
+  point-in-time oplog snapshot of a whole replica set, and how many collections run at a time.
+- Saved dumps (milestone 4): save a dump's settings under a name and run it again with one
+  click from "Saved dumps" (command palette or the connection's ⋯ menu); RipeMongo connects
+  first if needed. Edit and delete them there; deleting a connection deletes its saved dumps.
 - Background jobs (milestone 4): dumps run in the background with live progress, cancel, a
   summary or readable error at the end, the full tool log and the equivalent command (both
   copyable); a Jobs button in the status bar and a toast when a job ends; ADR 0010.

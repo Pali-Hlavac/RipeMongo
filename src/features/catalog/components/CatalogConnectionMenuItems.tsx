@@ -1,7 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { ArchiveIcon, DatabaseIcon, RefreshCwIcon } from "lucide-react";
+import { ArchiveIcon, DatabaseIcon, HistoryIcon, RefreshCwIcon } from "lucide-react";
 
-import { useDumpDialog } from "@/features/tools";
+import { useDumpDialog, useSavedDumpsDialog } from "@/features/tools";
 
 import { DropdownMenuItem } from "@/shared/ui/dropdown-menu";
 
@@ -27,6 +27,13 @@ export function CatalogConnectionMenuItems({ connectionId }: { connectionId: str
         }}
       >
         <ArchiveIcon aria-hidden /> Dump all databases…
+      </DropdownMenuItem>
+      <DropdownMenuItem
+        onSelect={() => {
+          useSavedDumpsDialog.getState().setOpen(true);
+        }}
+      >
+        <HistoryIcon aria-hidden /> Saved dumps…
       </DropdownMenuItem>
       <DropdownMenuItem
         onSelect={() => {

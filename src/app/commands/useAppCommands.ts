@@ -1,5 +1,6 @@
 /** Composes command-palette entries contributed by each feature. */
 import {
+  ArchiveIcon,
   InfoIcon,
   LayoutGridIcon,
   ListChecksIcon,
@@ -14,6 +15,7 @@ import type { PaletteCommand } from "@/features/command-palette";
 import { useConnectionPaletteCommands } from "@/features/connections";
 import { useJobsPanel } from "@/features/jobs";
 import { THEME_OPTIONS, useThemePreference } from "@/features/settings";
+import { useSavedDumpsDialog } from "@/features/tools";
 import { TAB_HOTKEYS, WELCOME_TAB, useTabsStore } from "@/features/workspace";
 import { APP_NAME } from "@/app.config";
 
@@ -66,6 +68,16 @@ export function useAppCommands(): PaletteCommand[] {
       keywords: ["dump", "restore", "import", "export", "progress"],
       run: () => {
         useJobsPanel.getState().setOpen(true);
+      },
+    },
+    {
+      id: "dumps.saved",
+      group: "Tools",
+      label: "Saved dumps",
+      icon: ArchiveIcon,
+      keywords: ["backup", "dump", "profile", "re-run"],
+      run: () => {
+        useSavedDumpsDialog.getState().setOpen(true);
       },
     },
     ...themeCommands,

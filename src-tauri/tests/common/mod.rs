@@ -4,6 +4,8 @@
 // Test-only helpers: each test binary uses a subset, and setup failures should panic loudly.
 #![allow(dead_code, clippy::expect_used)]
 
+pub mod jobs;
+
 use std::sync::Arc;
 use std::time::Duration;
 

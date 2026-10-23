@@ -8,6 +8,7 @@ use super::{
     ActiveConnectionInfo, ConnectionConfig, ConnectionError, ConnectionManager, ConnectionProfile,
     SecretUpdates, ServerInfo, StoredSecrets,
 };
+use crate::dump_profiles::DumpProfiles;
 use crate::error::CommandResult;
 use crate::query_history::QueryHistory;
 
@@ -31,18 +32,23 @@ pub async fn save_connection(
     Ok(manager.save(profile, &secrets)?)
 }
 
-/// Deletes a connection, its secrets and its saved queries, and closes it if connected.
+/// Deletes a connection, its secrets, saved queries and saved dumps, and closes it if
+/// connected.
 #[tauri::command]
 #[specta::specta]
 pub async fn delete_connection(
     manager: State<'_, ConnectionManager>,
     history: State<'_, QueryHistory>,
+    dumps: State<'_, DumpProfiles>,
     connection_id: String,
 ) -> CommandResult<()> {
     manager.delete(&connection_id).await?;
-    // The connection is gone either way; leftover history is never shown, so only log.
+    // The connection is gone either way; leftovers are never shown, so only log.
     if let Err(error) = history.forget_connection(&connection_id) {
         tracing::warn!(%error, "could not remove the query history of a deleted connection");
+    }
+    if let Err(error) = dumps.forget_connection(&connection_id) {
+        tracing::warn!(%error, "could not remove the saved dumps of a deleted connection");
     }
     Ok(())
 }

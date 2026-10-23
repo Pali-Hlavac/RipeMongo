@@ -1,10 +1,13 @@
 //! Reads `mongodump` output: which collection it is writing, per-collection progress bars and
-//! "done dumping" lines, summed into one document count.
+//! "done dumping" lines, summed into one document count, plus the oplog of `--oplog` dumps.
 
 use std::collections::HashMap;
 
 use crate::jobs::{JobProgress, ProgressUnit};
 use crate::tools::run::OutputParser;
+
+/// Label shown while `--oplog` dumps write the captured oplog.
+const OPLOG_LABEL: &str = "oplog";
 
 /// Progress of a dump, measured in documents.
 pub struct DumpProgress {
@@ -12,6 +15,7 @@ pub struct DumpProgress {
     done: HashMap<String, f64>,
     current: Option<String>,
     collections: usize,
+    oplog_entries: Option<f64>,
 }
 
 impl DumpProgress {
@@ -22,6 +26,7 @@ impl DumpProgress {
             done: HashMap::new(),
             current: None,
             collections: 0,
+            oplog_entries: None,
         }
     }
 
@@ -29,7 +34,8 @@ impl DumpProgress {
         self.done.values().sum()
     }
 
-    /// "Dumped 3 collections (1,204 documents) to <path>."
+    /// "Dumped 3 collections (1,204 documents) to <path>.", with "and 5 oplog entries" for
+    /// `--oplog` dumps.
     pub fn summary(&self, path: &str) -> String {
         let collections = match self.collections {
             1 => "1 collection".to_owned(),
@@ -41,13 +47,24 @@ impl DumpProgress {
         } else {
             format!("{} documents", thousands(count))
         };
-        format!("Dumped {collections} ({documents}) to {path}.")
+        let oplog = match self.oplog_entries {
+            Some(1.0) => " and 1 oplog entry".to_owned(),
+            Some(count) => format!(" and {} oplog entries", thousands(count)),
+            None => String::new(),
+        };
+        format!("Dumped {collections} ({documents}){oplog} to {path}.")
     }
 }
 
 impl OutputParser for DumpProgress {
     fn line(&mut self, line: &str) -> Option<JobProgress> {
-        if let Some(rest) = line.strip_prefix("writing ") {
+        if line.starts_with("writing captured oplog") {
+            self.current = Some(OPLOG_LABEL.to_owned());
+        } else if let Some(rest) = line.trim_start().strip_prefix("dumped ") {
+            // "dumped 5 oplog entries"; collections are never reported this way.
+            let count = rest.split_whitespace().next()?.parse().ok()?;
+            self.oplog_entries = Some(count);
+        } else if let Some(rest) = line.strip_prefix("writing ") {
             let namespace = rest.split(" to ").next().unwrap_or(rest);
             self.current = Some(clean(namespace).to_owned());
         } else if let Some(rest) = line.strip_prefix("done dumping ") {
@@ -146,6 +163,19 @@ mod tests {
         assert_eq!(
             progress.summary("x"),
             "Dumped 1 collection (12 documents) to x."
+        );
+    }
+
+    #[test]
+    fn reports_the_captured_oplog() {
+        let mut progress = DumpProgress::new(None);
+        progress.line("done dumping `shop.items` (2 documents)");
+        let writing = progress.line("writing captured oplog to ``").unwrap();
+        assert_eq!(writing.message.as_deref(), Some("oplog"));
+        progress.line("	dumped 3 oplog entries");
+        assert_eq!(
+            progress.summary("x"),
+            "Dumped 1 collection (2 documents) and 3 oplog entries to x."
         );
     }
 

@@ -131,10 +131,10 @@ favorite summary wrapping, and history removal when a connection is deleted.
 
 - [x] Sidecar fetch script (pinned version, SHA-256 verification), bundling for all 4 targets (installers built and checked on Windows; macOS/Linux packages come with the M8 release workflow)
 - [x] Background job registry: progress events, cancel, logs — ADR 0010
-- [ ] Dump UI: server / databases / collections, query filter, gzip, archive, oplog, include/exclude, parallelism
+- [x] Dump UI: server / databases / collections, query filter, gzip, archive, oplog, include/exclude, parallelism (mongodump has no database exclusion: include/exclude is per database)
 - [ ] Restore UI: drop before restore, `nsFrom`/`nsTo`, dry run
 - [x] Live progress, cancel, readable errors, copyable log, equivalent CLI command
-- [ ] Saved dump profiles (one-click re-run)
+- [x] Saved dump profiles (one-click re-run, connects first)
 - [ ] JSON/CSV import and export per collection with field selection and type mapping
 - [ ] Copy collection/database between connections
 - [x] Measure installer size — ADR 0009 (Windows, with the tools: NSIS 21.4 MiB, MSI 28.6 MiB)
@@ -183,8 +183,18 @@ Decisions for M4 (details in ADRs 0009 and 0010 as they are written):
   counted twice next to the progress bars; doubled backslashes in the displayed command; the
   jobs panel sometimes closed right after opening (focus returning to the sidebar); the label
   now names the collection still in progress; Monaco pre-bundled by Vite.
-- Slice 3 next: dump query filter, `--oplog`, include/exclude namespaces, parallelism, saved
-  dump profiles (one-click re-run).
+- Slice 3 complete: `DumpRequest` options with scope rules (`tools/dump/args.rs`: query parsed
+  like the documents filter and passed as canonical Extended JSON, `--oplog` for whole-server
+  dumps, `--excludeCollection` from a collection checklist plus prefixes, 1–16 collections in
+  parallel), oplog lines in progress and summary, JSON queries single-quoted in the displayed
+  command. `dump_profiles` module (`dump-profiles.json`, 4 commands, removed with their
+  connection), Saved dumps dialog (run connects first via `useEnsureConnected` passed in by
+  the app, edit, delete), "Save for one-click re-runs" in the dump dialog, palette and
+  connection-menu entries. `useAfterDialogClose` (shared) replaces the jobs-panel focus fix
+  and also fixes the palette opening dialogs. Integration tests: prefix exclusion,
+  parallelism, query into gzip archive, oplog dump of a replica set.
+- Slice 4 next: restore (drop before restore, `nsFrom`/`nsTo`, dry run), from a dump folder or
+  archive, with oplog replay for oplog dumps.
 
 ### M5 — Aggregation
 

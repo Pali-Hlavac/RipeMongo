@@ -11,7 +11,8 @@ use specta_typescript::Typescript;
 use tauri_specta::{collect_commands, collect_events, Builder};
 
 use crate::{
-    app_info, collections, connections, databases, documents, jobs, query_history, settings, tools,
+    app_info, collections, connections, databases, documents, dump_profiles, jobs, query_history,
+    settings, tools,
 };
 
 /// Location of the generated bindings, relative to the crate root.
@@ -76,6 +77,10 @@ pub fn builder() -> Builder<tauri::Wry> {
             jobs::commands::cancel_job,
             jobs::commands::dismiss_job,
             tools::commands::start_dump,
+            dump_profiles::commands::list_dump_profiles,
+            dump_profiles::commands::save_dump_profile,
+            dump_profiles::commands::delete_dump_profile,
+            dump_profiles::commands::run_dump_profile,
         ])
 }
 

@@ -51,6 +51,10 @@ const APP_COMMANDS: &[&str] = &[
     "cancel_job",
     "dismiss_job",
     "start_dump",
+    "list_dump_profiles",
+    "save_dump_profile",
+    "delete_dump_profile",
+    "run_dump_profile",
 ];
 
 /// Common-Controls v6 manifest, embedded into every linked artifact on Windows.

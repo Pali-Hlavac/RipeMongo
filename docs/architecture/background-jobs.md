@@ -19,7 +19,7 @@ Starting a job is the job's own command, for example `start_dump` in `tools/comm
 
 ```rust
 let connection = manager.tool_connection(&connection_id).await?; // keeps an SSH tunnel open
-Ok(start_dump(&jobs, connection_id, connection, request)?)       // returns the first JobInfo
+Ok(start_dump(&jobs, connection_id, connection, request, None)?) // returns the first JobInfo
 ```
 
 Inside, `jobs.start(spec, |ctx| async move { … })` runs the work on tokio. The work calls

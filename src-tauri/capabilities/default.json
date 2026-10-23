@@ -52,6 +52,10 @@
     "allow-get-job-log",
     "allow-cancel-job",
     "allow-dismiss-job",
-    "allow-start-dump"
+    "allow-start-dump",
+    "allow-list-dump-profiles",
+    "allow-save-dump-profile",
+    "allow-delete-dump-profile",
+    "allow-run-dump-profile"
   ]
 }

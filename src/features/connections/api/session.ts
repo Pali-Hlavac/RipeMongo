@@ -91,3 +91,24 @@ export function useTestConnection() {
     meta: { silent: true },
   });
 }
+
+/**
+ * Opens a connection unless it is already open (for actions started outside the sidebar, like
+ * a saved dump). Throws the connection error when it cannot connect.
+ */
+export function useEnsureConnected() {
+  const queryClient = useQueryClient();
+  return async (connectionId: string): Promise<void> => {
+    const active = await queryClient.query({
+      queryKey: connectionKeys.active(),
+      queryFn: () => unwrap(commands.listActiveConnections()),
+    });
+    if (active.some((connection) => connection.connectionId === connectionId)) return;
+    try {
+      await unwrap(commands.openConnection(connectionId));
+      useExpandedConnections.getState().setExpanded(connectionId, true);
+    } finally {
+      await queryClient.invalidateQueries({ queryKey: connectionKeys.active() });
+    }
+  };
+}

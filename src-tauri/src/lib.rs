@@ -5,6 +5,7 @@ pub mod collections;
 pub mod connections;
 pub mod databases;
 pub mod documents;
+pub mod dump_profiles;
 pub mod ejson;
 pub mod error;
 mod ipc;
@@ -36,6 +37,7 @@ pub fn run() {
             settings::init(app)?;
             connections::init(app)?;
             query_history::init(app)?;
+            dump_profiles::init(app)?;
             jobs::init(app);
             Ok(())
         })

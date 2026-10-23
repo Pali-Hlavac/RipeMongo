@@ -1,3 +1,4 @@
+import { useAfterDialogClose } from "@/shared/hooks/useAfterDialogClose";
 import { useHotkey } from "@/shared/hooks/useHotkey";
 import {
   Command,
@@ -21,15 +22,21 @@ export function CommandPalette({ commands }: { commands: readonly PaletteCommand
   const open = usePaletteStore((state) => state.open);
   const { setOpen, toggle } = usePaletteStore.getState();
   useHotkey(PALETTE_HOTKEY, toggle);
+  const closing = useAfterDialogClose();
 
+  // After closing, so a command that opens a dialog keeps the focus inside it.
   const runCommand = (command: PaletteCommand): void => {
+    closing.after(command.run);
     setOpen(false);
-    command.run();
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="overflow-hidden p-0" showCloseButton={false}>
+      <DialogContent
+        className="overflow-hidden p-0"
+        showCloseButton={false}
+        onCloseAutoFocus={closing.onCloseAutoFocus}
+      >
         <DialogTitle className="sr-only">Command palette</DialogTitle>
         <DialogDescription className="sr-only">Search for a command to run.</DialogDescription>
         <Command loop label="Search commands">

@@ -25,5 +25,11 @@ pub async fn start_dump(
     request: DumpRequest,
 ) -> CommandResult<JobInfo> {
     let connection = manager.tool_connection(&connection_id).await?;
-    Ok(start_dump_job(&jobs, connection_id, connection, request)?)
+    Ok(start_dump_job(
+        &jobs,
+        connection_id,
+        connection,
+        request,
+        None,
+    )?)
 }

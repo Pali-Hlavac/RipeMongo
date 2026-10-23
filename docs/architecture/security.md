@@ -52,7 +52,11 @@ and reload/print shortcuts in production builds.
   passed as `--config`, created readable only by the user (`0600` on Unix, the per-user temp
   folder on Windows) and deleted when the tool exits, so it never appears in a process list.
   The command shown in the app is built without secrets. Tools are started from Rust only;
-  the webview has no shell or process permission.
+  the webview has no shell or process permission. A dump's query filter is passed on the
+  command line (`--query`), like any other option, so it is visible to other local processes;
+  it never contains credentials.
+- Saved dumps (`dump-profiles.json`) store the connection id, never its connection string or
+  secrets; running one reads the secrets from the keychain like any other tool job.
 - Import/export paths come from native dialogs (`dialog:allow-open`, `dialog:allow-save`);
   imports are capped at 10 MiB.
 
