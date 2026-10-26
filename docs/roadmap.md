@@ -127,7 +127,7 @@ JSON and table views, paging, filter with field suggestions, sort, inline query 
 and favorites. Fixed afterwards: colon spacing, dimmer placeholders, no pager range on errors,
 favorite summary wrapping, and history removal when a connection is deleted.
 
-### M4 — Tools: dump, restore, import, export, copy
+### M4 — Tools: dump, restore, import, export, copy ✅
 
 - [x] Sidecar fetch script (pinned version, SHA-256 verification), bundling for all 4 targets (installers built and checked on Windows; macOS/Linux packages come with the M8 release workflow)
 - [x] Background job registry: progress events, cancel, logs — ADR 0010
@@ -276,7 +276,22 @@ Decisions for M4 (details in ADRs 0009 and 0010 as they are written):
   about twice as fast as one (JSON 203 s → 94 s, CSV 170 s → 90 s), no memory growth in
   RipeMongo, mongoimport under 60 MiB, and a cancel that ended in 0.3 s; results in
   `docs/development/testing.md`.
-- Next: slice 7 (docs pass, verification).
+- Slice 7 complete: docs pass (README status, feature statuses, stale "coming later" notes,
+  ADR list, CLAUDE.md, troubleshooting rows for missing tools and Windows page-file errors).
+  Verified in the real app (2026-10-26, MongoDB 8 in Docker, a 221 MB JSON file of 1 million
+  people, every 1,000th without the `email` a validator requires): the insert workers field
+  refuses 20; one worker imported 999,000 in about 54 s with the 1,000 invalid ones
+  reported; skip validation rules showed its warning and let them in; 8 workers imported the
+  file into a new collection in about 11 s; a gzip folder dump without two collections, its
+  restore under another name (view and index included), a CSV export with a field left out
+  (UTF-8, `Košice` intact) and a copy within the connection. Fixed there: an import with a
+  million duplicates printed a log line each, every one was sent to the window, and the
+  window fell behind and kept showing the job as running after it had ended (now at most 500
+  lines per update, a note how many were skipped, and the job list refreshes while jobs run;
+  the same import then ended in 6 seconds); the import summary blamed duplicates for
+  documents the validation rules rejected (it now counts both reasons).
+
+**Milestone 4 is complete.** Next: M4.5 (search and navigation).
 
 ### M4.5 — Search and navigation
 
