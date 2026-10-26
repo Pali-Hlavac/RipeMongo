@@ -13,15 +13,20 @@ import {
 import { Tooltip } from "@/shared/ui/tooltip";
 
 import { useConnections } from "../../api/profiles";
-import { buildConnectionTree } from "../../lib/tree";
+import { useSidebarNavigation } from "../../hooks/useSidebarNavigation";
 import { useConnectionDialogs } from "../../store/dialogs";
-import type { ConnectionProfile } from "../../types";
-import { ConnectionGroup } from "./ConnectionGroup";
+import { useSidebarFilter } from "../../store/filter";
+import { ConnectionTreeView } from "./ConnectionTreeView";
+import { SidebarFilterBox } from "./SidebarFilterBox";
 
 /** Left navigation: saved connections grouped into favorites, folders and the rest. */
 export function ConnectionSidebar() {
   const { data, error, isPending, refetch } = useConnections();
   const { openCreate, setTransfer } = useConnectionDialogs.getState();
+  const { treeRef, inputRef, focusInput, focusFirstRow, openFirstMatch, onTreeKeyDown } =
+    useSidebarNavigation(() => {
+      useSidebarFilter.getState().setInput("");
+    });
 
   return (
     <nav aria-label="Connections" className="flex h-full flex-col bg-muted/40">
@@ -70,7 +75,17 @@ export function ConnectionSidebar() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto p-1">
+      {data && data.length > 0 && (
+        <SidebarFilterBox
+          inputRef={inputRef}
+          onFocusRequest={focusInput}
+          onArrowDown={focusFirstRow}
+          onEnter={openFirstMatch}
+        />
+      )}
+      {/* Arrow keys between rows; the rows are the buttons inside. */}
+      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
+      <div ref={treeRef} className="min-h-0 flex-1 overflow-y-auto p-1" onKeyDown={onTreeKeyDown}>
         {isPending && <LoadingState label="Loading connections…" />}
         {error && (
           <ErrorState
@@ -97,19 +112,5 @@ export function ConnectionSidebar() {
           ))}
       </div>
     </nav>
-  );
-}
-
-function ConnectionTreeView({ profiles }: { profiles: ConnectionProfile[] }) {
-  const tree = buildConnectionTree(profiles);
-  const onlyUngrouped = tree.favorites.length === 0 && tree.folders.length === 0;
-  return (
-    <div className="flex flex-col gap-2">
-      <ConnectionGroup title="Favorites" connections={tree.favorites} />
-      {tree.folders.map((folder) => (
-        <ConnectionGroup key={folder.name} title={folder.name} connections={folder.connections} />
-      ))}
-      <ConnectionGroup title="Other" connections={tree.ungrouped} untitled={onlyUngrouped} />
-    </div>
   );
 }

@@ -295,12 +295,26 @@ Decisions for M4 (details in ADRs 0009 and 0010 as they are written):
 
 ### M4.5 — Search and navigation
 
-- [ ] Sidebar filter box (Ctrl/Cmd+Shift+F): fuzzy-matches connections, databases, collections and views; highlights matches, auto-expands parents, hides non-matching branches; keyboard navigation (↑/↓, Enter opens, Esc clears); "db.coll" syntax narrows by database
-- [ ] Filter covers only loaded names; databases of connected connections are loaded for it (with a cap and a "N more not searched" hint on very large servers)
+- [x] Sidebar filter box (Ctrl/Cmd+Shift+F): fuzzy-matches connections, databases, collections and views; highlights matches, auto-expands parents, hides non-matching branches; keyboard navigation (↑/↓, Enter opens, Esc clears); "db.coll" syntax narrows by database
+- [x] Filter covers only loaded names; databases of connected connections are loaded for it (with a cap and a "N more not searched" hint on very large servers)
 - [ ] Command palette "Go to collection…": jump to any collection/view across all connected connections, recently opened first
-- [ ] Search/filter in the connection list (name, host, folder, color label)
+- [x] Search/filter in the connection list (name, host, folder, color label)
 - [ ] Find in document views (Ctrl/Cmd+F): highlight keys/values on the current page, next/previous match — clearly labelled as page-only, not a database query
 - [ ] Tests, docs/features/search.md, user guide page, CHANGELOG
+
+Slices: (1) sidebar filter, connection-list filter and the loading behind it; (2) "Go to
+collection…"; (3) find in document views; (4) docs pass and real-app verification.
+
+- Slice 1 complete: `shared/lib/fuzzy.ts` (substring or word-start chunks, ranges and score)
+  and `Highlight`; `catalog/lib/filter.ts` (`db.coll` split at the first dot, database and
+  collection matching), `catalog/api/search.ts` (`useCatalogSearch`: databases of every
+  connected connection, collections of up to 100 databases each through the tree's query
+  keys, "N more databases were not searched"), `catalog/store/filter-expanded.ts` (rows
+  toggled by hand while filtering, per filter text). Connections: `lib/filter.ts` (name,
+  folder, host, color label with the whole text, since hosts contain dots), filter box with
+  Ctrl/Cmd+Shift+F, `ConnectionTreeView` with an empty state, `useSidebarNavigation` (↓ from the
+  box, ↑/↓ between rows, Enter opens the first matching collection, Esc clears). No backend
+  changes. Tests: fuzzy, both filter libs, `SidebarFilter.test.tsx`.
 
 ### M5 — Aggregation
 

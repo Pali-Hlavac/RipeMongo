@@ -104,6 +104,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Saved dumps (milestone 4): save a dump's settings under a name and run it again with one
   click from "Saved dumps" (command palette or the connection's ⋯ menu); RipeMongo connects
   first if needed. Edit and delete them there; deleting a connection deletes its saved dumps.
+- Sidebar filter (milestone 4.5): a box above the connections (Ctrl/Cmd+Shift+F) shows only
+  the connections, databases, collections and views whose names match, with the matched
+  letters highlighted and the parents of matches opened. Fuzzy matching (`oi` finds
+  `orderItems`), connections also by folder, host or color label, `db.coll` to find
+  collections in certain databases; ↑/↓ between rows, Enter opens the first matching
+  collection, Esc clears. The databases of connected connections and the collections of up to
+  100 databases each are loaded for it; the tree says how many were not searched.
 - Background jobs (milestone 4): dumps run in the background with live progress, cancel, a
   summary or readable error at the end, the full tool log and the equivalent command (both
   copyable); a Jobs button in the status bar and a toast when a job ends; ADR 0010.

@@ -15,7 +15,9 @@ The dot next to each connection shows its state:
 | Red      | The last attempt to connect failed |
 
 Click the arrow next to a connected connection to see its databases and collections; see
-[Databases and collections](databases-and-collections.md).
+[Databases and collections](databases-and-collections.md). The box at the top filters the
+sidebar by name (**Ctrl+Shift+F**); see
+[Finding connections and collections](search.md).
 
 Drag the border between the sidebar and the main area to resize it.
 

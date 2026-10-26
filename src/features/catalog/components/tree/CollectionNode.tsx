@@ -3,40 +3,26 @@ import {
   CopyIcon,
   DownloadIcon,
   UploadIcon,
-  ClockIcon,
-  EyeIcon,
   FilePlus2Icon,
   PencilIcon,
-  Table2Icon,
   Trash2Icon,
-  type LucideIcon,
 } from "lucide-react";
 
 import { useCopyDialog, useDumpDialog, useExportDialog, useImportDialog } from "@/features/tools";
 import { useTabsStore } from "@/features/workspace";
+import { Highlight } from "@/shared/components/Highlight";
 import { cn } from "@/shared/lib/cn";
+import type { MatchRange } from "@/shared/lib/fuzzy";
 import { formatCompactCount, formatCount } from "@/shared/lib/format";
 import { DropdownMenuItem, DropdownMenuSeparator } from "@/shared/ui/dropdown-menu";
 
 import { useCollectionStats } from "../../api/queries";
 import { collectionTabId, openCollectionTab } from "../../lib/tabs";
 import { useCatalogDialogs } from "../../store/dialogs";
-import type { CollectionInfo, CollectionKind } from "../../types";
+import type { CollectionInfo } from "../../types";
+import { KIND_ICONS, KIND_LABELS } from "../kinds";
 import { DEPTH_PADDING } from "./depth";
 import { RowMenu } from "./RowMenu";
-
-const KIND_ICONS: Record<CollectionKind, LucideIcon> = {
-  collection: Table2Icon,
-  view: EyeIcon,
-  timeseries: ClockIcon,
-};
-
-/** Spoken after the name of non-standard kinds, which only an icon shows visually. */
-const KIND_LABELS: Record<CollectionKind, string> = {
-  collection: "collection",
-  view: "view",
-  timeseries: "time series",
-};
 
 interface CollectionNodeProps {
   connectionId: string;
@@ -44,10 +30,18 @@ interface CollectionNodeProps {
   info: CollectionInfo;
   /** Fetch the document count; off for very large databases to avoid a request storm. */
   showCount: boolean;
+  /** Set when the sidebar filter matched it: the characters to highlight. */
+  match?: MatchRange[];
 }
 
 /** A collection or view; click opens its tab. */
-export function CollectionNode({ connectionId, database, info, showCount }: CollectionNodeProps) {
+export function CollectionNode({
+  connectionId,
+  database,
+  info,
+  showCount,
+  match,
+}: CollectionNodeProps) {
   const { name, kind } = info;
   const active = useTabsStore(
     (state) => state.activeTabId === collectionTabId(connectionId, database, name),
@@ -76,6 +70,8 @@ export function CollectionNode({ connectionId, database, info, showCount }: Coll
           type="button"
           aria-current={active ? "page" : undefined}
           title={`${database}.${name}`}
+          data-sidebar-row=""
+          data-sidebar-match={match ? "collection" : undefined}
           className={cn(
             "flex min-w-0 flex-1 items-center gap-2 rounded-sm py-1 pr-1 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring",
             DEPTH_PADDING[2],
@@ -85,7 +81,9 @@ export function CollectionNode({ connectionId, database, info, showCount }: Coll
           }}
         >
           <Icon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
-          <span className="truncate">{name}</span>
+          <span className="truncate">
+            <Highlight text={name} ranges={match} />
+          </span>
           {kind !== "collection" && <span className="sr-only">({KIND_LABELS[kind]})</span>}
           {count != null && (
             <span

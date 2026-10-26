@@ -11,6 +11,8 @@ do nothing while a dialog is open, so they never change what is behind it.
 | Previous tab                                 | Ctrl+Shift+Tab     | ⌃⇧Tab              |
 | Move between tabs (tab bar focused)          | ← / →              | ← / →              |
 | Connect to the selected connection (sidebar) | Enter              | Enter              |
+| Filter the sidebar                           | Ctrl+Shift+F       | ⌘⇧F                |
+| Move between sidebar rows                    | ↑ / ↓              | ↑ / ↓              |
 | Close a dialog or menu                       | Esc                | Esc                |
 | Run the query (query bar)                    | Enter              | Enter              |
 | Show query suggestions                       | Ctrl+Space         | ⌃Space             |

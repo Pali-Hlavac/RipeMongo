@@ -12,33 +12,40 @@ import {
 import { useId } from "react";
 
 import { useCopyDialog, useDumpDialog, useImportDialog } from "@/features/tools";
+import { Highlight } from "@/shared/components/Highlight";
 import { cn } from "@/shared/lib/cn";
 import { formatBytes } from "@/shared/lib/format";
 import { DropdownMenuItem, DropdownMenuSeparator } from "@/shared/ui/dropdown-menu";
 
 import { catalogKeys } from "../../api/keys";
-import { useCollections } from "../../api/queries";
+import type { TreeFilter } from "../../lib/filter";
 import { useCatalogDialogs } from "../../store/dialogs";
-import { useExpandedDatabases, useIsDatabaseExpanded } from "../../store/expanded";
+import { databaseKey, useExpandedDatabases, useIsDatabaseExpanded } from "../../store/expanded";
+import { useFilterExpanded, useFilterExpandedStore } from "../../store/filter-expanded";
 import type { DatabaseInfo } from "../../types";
-import { CollectionNode } from "./CollectionNode";
+import { CollectionList } from "./CollectionList";
 import { DEPTH_PADDING } from "./depth";
 import { RowMenu } from "./RowMenu";
-import { TreeStatus } from "./TreeStatus";
-
-/** Above this many collections, document counts are not fetched for every row. */
-const COUNT_COLLECTIONS_LIMIT = 100;
 
 interface DatabaseNodeProps {
   connectionId: string;
   info: DatabaseInfo;
+  /** Set while the sidebar filter is active and this database matched. */
+  filter?: TreeFilter;
 }
 
 /** A database row; expanding it lists its collections and views. */
-export function DatabaseNode({ connectionId, info }: DatabaseNodeProps) {
+export function DatabaseNode({ connectionId, info, filter }: DatabaseNodeProps) {
   const { name } = info;
-  const expanded = useIsDatabaseExpanded(connectionId, name);
-  const toggle = useExpandedDatabases((state) => state.toggle);
+  const key = databaseKey(connectionId, name);
+  const match = filter?.search.databases.get(name);
+  const stored = useIsDatabaseExpanded(connectionId, name);
+  const byFilter = useFilterExpanded(key, filter?.text ?? "", stored || (match?.expand ?? false));
+  const expanded = filter ? byFilter : stored;
+  const toggle = () => {
+    if (filter) useFilterExpandedStore.getState().setExpanded(filter.text, key, !expanded);
+    else useExpandedDatabases.getState().toggle(connectionId, name);
+  };
   const open = useCatalogDialogs((state) => state.open);
   const queryClient = useQueryClient();
   const listId = useId();
@@ -50,20 +57,22 @@ export function DatabaseNode({ connectionId, info }: DatabaseNodeProps) {
           type="button"
           aria-expanded={expanded}
           aria-controls={expanded ? listId : undefined}
+          data-sidebar-row=""
+          data-sidebar-match={match?.ranges.length ? "database" : undefined}
           className={cn(
             "flex min-w-0 flex-1 items-center gap-1.5 rounded-sm py-1 pr-1 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring",
             DEPTH_PADDING[1],
           )}
-          onClick={() => {
-            toggle(connectionId, name);
-          }}
+          onClick={toggle}
         >
           <ChevronRightIcon
             className={cn("size-3.5 shrink-0 transition-transform", expanded && "rotate-90")}
             aria-hidden
           />
           <DatabaseIcon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
-          <span className="truncate">{name}</span>
+          <span className="truncate">
+            <Highlight text={name} ranges={match?.ranges} />
+          </span>
           {info.sizeOnDisk != null && info.sizeOnDisk > 0 && (
             <span className="ml-auto shrink-0 text-xs text-muted-foreground tabular-nums">
               {formatBytes(info.sizeOnDisk)}
@@ -119,46 +128,14 @@ export function DatabaseNode({ connectionId, info }: DatabaseNodeProps) {
           </DropdownMenuItem>
         </RowMenu>
       </div>
-      {expanded && <CollectionList id={listId} connectionId={connectionId} database={name} />}
+      {expanded && (
+        <CollectionList
+          id={listId}
+          connectionId={connectionId}
+          database={name}
+          match={match?.showAll === false ? match.collections : undefined}
+        />
+      )}
     </li>
-  );
-}
-
-interface CollectionListProps {
-  id: string;
-  connectionId: string;
-  database: string;
-}
-
-function CollectionList({ id, connectionId, database }: CollectionListProps) {
-  const { data, error, isPending, refetch } = useCollections(connectionId, database);
-  const showCount = (data?.length ?? 0) <= COUNT_COLLECTIONS_LIMIT;
-
-  return (
-    <div id={id}>
-      <TreeStatus
-        depth={2}
-        pending={isPending}
-        error={error}
-        loadingLabel="Loading collections…"
-        onRetry={() => void refetch()}
-      />
-      {data?.length === 0 && (
-        <p className={cn("py-1 text-xs text-muted-foreground", DEPTH_PADDING[2])}>No collections</p>
-      )}
-      {data && data.length > 0 && (
-        <ul aria-label={`Collections in ${database}`} className="flex flex-col gap-px">
-          {data.map((collection) => (
-            <CollectionNode
-              key={collection.name}
-              connectionId={connectionId}
-              database={database}
-              info={collection}
-              showCount={showCount}
-            />
-          ))}
-        </ul>
-      )}
-    </div>
   );
 }
