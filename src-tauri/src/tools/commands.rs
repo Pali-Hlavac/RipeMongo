@@ -2,6 +2,7 @@
 
 use tauri::State;
 
+use super::copy::{start_copy as start_copy_job, CopyEnd, CopyRequest};
 use super::dump::{start_dump as start_dump_job, DumpRequest};
 use super::export::{start_export as start_export_job, ExportRequest};
 use super::import::{
@@ -116,4 +117,37 @@ pub async fn start_import(
 ) -> CommandResult<JobInfo> {
     let connection = manager.tool_connection(&connection_id).await?;
     Ok(start_import_job(&jobs, connection_id, connection, request)?)
+}
+
+/// Starts a copy of a database or collection (`mongodump` piped into `mongorestore`) from an
+/// open connection into another open connection, or into the same one under another name.
+#[tauri::command]
+#[specta::specta]
+pub async fn start_copy(
+    manager: State<'_, ConnectionManager>,
+    jobs: State<'_, JobRegistry>,
+    connection_id: String,
+    target_connection_id: String,
+    request: CopyRequest,
+) -> CommandResult<JobInfo> {
+    let source = manager.tool_connection(&connection_id).await?;
+    let target = manager.tool_connection(&target_connection_id).await?;
+    let target_name = if connection_id == target_connection_id {
+        None
+    } else {
+        manager
+            .list()?
+            .into_iter()
+            .find(|profile| profile.id == target_connection_id)
+            .map(|profile| profile.name)
+    };
+    let source = CopyEnd {
+        connection_id,
+        connection: source,
+    };
+    let target = CopyEnd {
+        connection_id: target_connection_id,
+        connection: target,
+    };
+    Ok(start_copy_job(&jobs, source, target, request, target_name).await?)
 }

@@ -9,6 +9,7 @@ import { ConnectionDialogs, useEnsureConnected } from "@/features/connections";
 import { JobsPanel, useJobEvents } from "@/features/jobs";
 import { ThemeController, useSettings, useThemePreference } from "@/features/settings";
 import {
+  CopyDialog,
   DumpDialog,
   ExportDialog,
   ImportDialog,
@@ -30,9 +31,10 @@ export function App() {
   const commands = useAppCommands();
   const ensureConnected = useEnsureConnected();
   const queryClient = useQueryClient();
-  // A restore or import (even a cancelled one) may have created collections and documents.
+  // A restore, import or copy (even a cancelled one) may have created collections and
+  // documents; the job belongs to the connection written to.
   useJobEvents((job) => {
-    if (job.kind === "restore" || job.kind === "import") {
+    if (job.kind === "restore" || job.kind === "import" || job.kind === "copy") {
       void queryClient.invalidateQueries({ queryKey: catalogKeys.connection(job.connectionId) });
       void queryClient.invalidateQueries({ queryKey: documentKeys.connection(job.connectionId) });
     }
@@ -53,6 +55,7 @@ export function App() {
       <RestoreDialog />
       <ExportDialog />
       <ImportDialog />
+      <CopyDialog ensureConnected={ensureConnected} />
       <JobsPanel />
       <Toaster theme={preference} position="bottom-right" richColors closeButton />
     </>

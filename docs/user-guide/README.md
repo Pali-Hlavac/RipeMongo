@@ -21,12 +21,14 @@ are not available yet are listed at the bottom.
   dumps again, restore a dump, follow the progress
 - [Exporting and importing](import-export.md): save a collection as a JSON or CSV file, or
   add documents from one
+- [Copying data](copying.md): copy a database or collection to another connection, or within
+  one
 - [Keyboard shortcuts](keyboard-shortcuts.md)
 
 ## Coming later
 
-Aggregations, indexes, schema analysis,
-performance monitoring and copying between connections are being built. See the
+Aggregations, indexes, schema analysis and
+performance monitoring are being built. See the
 [roadmap](../roadmap.md) for the plan.
 
 ## Getting help

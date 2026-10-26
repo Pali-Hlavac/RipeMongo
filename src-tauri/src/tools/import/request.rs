@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 
 use super::{ImportColumn, ImportFormat, ImportMode, ParseErrors};
+use crate::tools::names::check_collection_name;
 use crate::tools::ToolsError;
 
 /// An import of one file into one collection.
@@ -38,8 +39,6 @@ pub struct ImportRequest {
     pub stop_on_error: bool,
 }
 
-/// Characters a collection name cannot contain.
-const FORBIDDEN_COLLECTION_CHARS: [char; 2] = ['$', '\0'];
 /// Characters that break mongoimport's `--fields` list with types.
 const FORBIDDEN_FIELD_CHARS: [char; 3] = [',', '(', ')'];
 
@@ -78,6 +77,9 @@ impl ImportRequest {
         let collection = self.collection.trim();
         if database.is_empty() {
             return Err(invalid("Choose the database to import into."));
+        }
+        if collection.is_empty() {
+            return Err(invalid("Enter the collection to import into."));
         }
         check_collection_name(collection)?;
         let path = self.path.trim();
@@ -176,16 +178,4 @@ fn parse_grace(errors: ParseErrors) -> Option<&'static str> {
         ParseErrors::SkipRow => Some("skipRow"),
         ParseErrors::AutoCast => Some("autoCast"),
     }
-}
-
-fn check_collection_name(name: &str) -> Result<(), ToolsError> {
-    if name.is_empty() {
-        return Err(invalid("Enter the collection to import into."));
-    }
-    if name.contains(FORBIDDEN_COLLECTION_CHARS) || name.starts_with("system.") {
-        return Err(invalid(&format!(
-            "“{name}” cannot be a collection name: it must not contain $ or start with “system.”."
-        )));
-    }
-    Ok(())
 }

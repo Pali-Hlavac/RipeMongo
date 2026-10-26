@@ -16,7 +16,8 @@ need the command line.
 - Visual aggregation pipeline builder with per-stage previews
 - Schema analysis, explain plans, index and validation management
 - Server performance dashboard
-- Built-in dump / restore / import / export with progress, cancel and saved profiles
+- Built-in dump / restore / import / export / copy between servers with progress, cancel and
+  saved profiles
 - Light, dark and system themes, a command palette, and keyboard shortcuts everywhere
 
 ## Download

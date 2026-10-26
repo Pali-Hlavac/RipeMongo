@@ -8,12 +8,8 @@ use specta::Type;
 
 use super::RestoreSource;
 use crate::tools::dump::MAX_PARALLEL_COLLECTIONS;
+use crate::tools::names::{check_database_name, escape_namespace as escape};
 use crate::tools::ToolsError;
-
-/// Characters a database name cannot contain (MongoDB's rules, Windows included).
-const FORBIDDEN_DATABASE_CHARS: &str = "/\\. \"$*<>:|?";
-/// Longest database name MongoDB accepts, in bytes.
-const MAX_DATABASE_NAME_BYTES: usize = 63;
 
 /// Restore one database of the dump under another name.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type)]
@@ -73,6 +69,9 @@ impl RestoreRequest {
             return Err(invalid("Choose the dump to restore (a full path)."));
         }
         for (_, to) in self.effective_renames() {
+            if to.is_empty() {
+                return Err(invalid("Enter the new database name."));
+            }
             check_database_name(to)?;
         }
         let excludes: Vec<&str> = self
@@ -131,33 +130,4 @@ impl RestoreRequest {
 
 fn invalid(message: &str) -> ToolsError {
     ToolsError::Invalid(message.to_owned())
-}
-
-fn check_database_name(name: &str) -> Result<(), ToolsError> {
-    if name.is_empty() {
-        return Err(invalid("Enter the new database name."));
-    }
-    if name.len() > MAX_DATABASE_NAME_BYTES
-        || name
-            .chars()
-            .any(|c| FORBIDDEN_DATABASE_CHARS.contains(c) || c == '\0')
-    {
-        return Err(invalid(&format!(
-            "“{name}” cannot be a database name: use at most {MAX_DATABASE_NAME_BYTES} \
-             characters, without spaces or any of / \\ . \" $ * < > : | ?"
-        )));
-    }
-    Ok(())
-}
-
-/// Namespace patterns treat `*` as a wildcard and `$` as a variable; `\` escapes both.
-fn escape(name: &str) -> String {
-    let mut escaped = String::with_capacity(name.len());
-    for c in name.chars() {
-        if matches!(c, '\\' | '*' | '$') {
-            escaped.push('\\');
-        }
-        escaped.push(c);
-    }
-    escaped
 }

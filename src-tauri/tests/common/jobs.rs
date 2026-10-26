@@ -1,15 +1,17 @@
-//! Helpers for tests that run tool jobs: a registry without UI events, dump, restore, export
-//! and import runners.
+//! Helpers for tests that run tool jobs: a registry without UI events, dump, restore, export,
+//! import and copy runners.
 
 use std::sync::Arc;
 use std::time::Duration;
 
 use ripemongo_lib::connections::ConnectionManager;
 use ripemongo_lib::jobs::{JobEvents, JobInfo, JobRegistry, JobStatus};
+use ripemongo_lib::tools::copy::{start_copy, CopyEnd, CopyRequest};
 use ripemongo_lib::tools::dump::{start_dump, DumpRequest};
 use ripemongo_lib::tools::export::{start_export, ExportRequest};
 use ripemongo_lib::tools::import::{start_import, ImportRequest};
 use ripemongo_lib::tools::restore::{inspect_dump, start_restore, RestoreRequest};
+use ripemongo_lib::tools::ToolsError;
 use ripemongo_lib::tools::{locate, Tool};
 
 use super::ROOT_PASSWORD;
@@ -114,5 +116,42 @@ pub async fn import(
     let started = start_import(jobs, id.to_owned(), connection, request).expect("import started");
     let command = started.command.expect("command");
     assert!(command.starts_with("mongoimport --uri="), "{command}");
+    finished(jobs, &started.id).await
+}
+
+/// Starts a copy between two open connections; the error when it is refused up front.
+pub async fn start_copy_job(
+    manager: &ConnectionManager,
+    jobs: &JobRegistry,
+    (source, target): (&str, &str),
+    request: CopyRequest,
+) -> Result<JobInfo, ToolsError> {
+    let name = (source != target).then(|| "Target".to_owned());
+    let source = copy_end(manager, source).await;
+    let target = copy_end(manager, target).await;
+    start_copy(jobs, source, target, request, name).await
+}
+
+async fn copy_end(manager: &ConnectionManager, id: &str) -> CopyEnd {
+    CopyEnd {
+        connection_id: id.to_owned(),
+        connection: manager.tool_connection(id).await.expect("connection"),
+    }
+}
+
+/// Runs a copy between two open connections to the end; checks the displayed command.
+pub async fn copy(
+    manager: &ConnectionManager,
+    jobs: &JobRegistry,
+    ends: (&str, &str),
+    request: CopyRequest,
+) -> JobInfo {
+    let started = start_copy_job(manager, jobs, ends, request)
+        .await
+        .expect("copy started");
+    let command = started.command.expect("command");
+    assert!(command.starts_with("mongodump --uri="), "{command}");
+    assert!(command.contains(" | mongorestore --uri="), "{command}");
+    assert!(!command.contains(ROOT_PASSWORD), "{command}");
     finished(jobs, &started.id).await
 }

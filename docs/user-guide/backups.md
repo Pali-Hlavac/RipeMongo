@@ -107,5 +107,6 @@ The list is cleared when you quit RipeMongo. Quitting while a job runs stops it.
 
 - You need to be connected, and the database user needs permission to read what you dump.
 - Disconnecting while a dump or restore runs does not interrupt it.
-- Importing and exporting JSON or CSV files and copying data between connections are coming
-  soon.
+- To move data to another server without keeping a file, copy it instead (see
+  [Copying data](copying.md)). For JSON or CSV files, see
+  [Exporting and importing](import-export.md).

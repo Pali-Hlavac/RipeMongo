@@ -11,7 +11,8 @@ use std::time::Duration;
 
 use mongodb::bson::doc;
 use ripemongo_lib::connections::{
-    ConnectionConfig, ConnectionManager, ConnectionProfile, HostPort,
+    AuthConfig, ConnectionConfig, ConnectionManager, ConnectionProfile, HostPort, ScramVariant,
+    SecretUpdate, SecretUpdates,
 };
 use ripemongo_lib::secrets::MemorySecretStore;
 use testcontainers_modules::testcontainers::core::{IntoContainerPort, WaitFor};
@@ -26,6 +27,9 @@ pub const ROOT_PASSWORD: &str = "s3cret-p@ss";
 pub const REPLICA_SET: &str = "rs0";
 const PRIMARY_POLLS: u32 = 60;
 const PRIMARY_POLL_INTERVAL: Duration = Duration::from_millis(500);
+/// The auth container restarts mongod after init; retry until it accepts connections.
+const READY_ATTEMPTS: usize = 30;
+const READY_DELAY: Duration = Duration::from_millis(500);
 
 /// True when a Docker daemon answers; otherwise the calling test should return early.
 pub fn docker_available() -> bool {
@@ -133,4 +137,30 @@ pub fn profile(name: &str, config: ConnectionConfig) -> ConnectionProfile {
         color: None,
         config,
     }
+}
+
+/// Saves and connects `name` to the auth container as the root user.
+pub async fn connect_with_auth(manager: &ConnectionManager, name: &str, port: u16) -> String {
+    let config = ConnectionConfig {
+        auth: AuthConfig::Scram {
+            username: ROOT_USER.into(),
+            auth_source: Some("admin".into()),
+            variant: ScramVariant::Sha256,
+        },
+        ..local_config(port)
+    };
+    let secrets = SecretUpdates {
+        password: SecretUpdate::Set(ROOT_PASSWORD.into()),
+        ..SecretUpdates::default()
+    };
+    let saved = manager
+        .save(profile(name, config), &secrets)
+        .expect("saved");
+    for _ in 0..READY_ATTEMPTS {
+        if manager.connect(&saved.id).await.is_ok() {
+            return saved.id;
+        }
+        tokio::time::sleep(READY_DELAY).await;
+    }
+    panic!("server never accepted the password");
 }

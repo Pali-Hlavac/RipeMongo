@@ -1,5 +1,6 @@
 import {
   ArchiveIcon,
+  CopyIcon,
   DownloadIcon,
   UploadIcon,
   ClockIcon,
@@ -11,7 +12,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import { useDumpDialog, useExportDialog, useImportDialog } from "@/features/tools";
+import { useCopyDialog, useDumpDialog, useExportDialog, useImportDialog } from "@/features/tools";
 import { useTabsStore } from "@/features/workspace";
 import { cn } from "@/shared/lib/cn";
 import { formatCompactCount, formatCount } from "@/shared/lib/format";
@@ -137,6 +138,15 @@ export function CollectionNode({ connectionId, database, info, showCount }: Coll
               }}
             >
               <UploadIcon aria-hidden /> Import from JSON or CSV…
+            </DropdownMenuItem>
+          )}
+          {kind !== "view" && (
+            <DropdownMenuItem
+              onSelect={() => {
+                useCopyDialog.getState().open({ connectionId, database, collection: name });
+              }}
+            >
+              <CopyIcon aria-hidden /> Copy collection…
             </DropdownMenuItem>
           )}
           <DropdownMenuSeparator />

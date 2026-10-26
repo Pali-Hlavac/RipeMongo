@@ -60,6 +60,11 @@ and reload/print shortcuts in production builds.
   command line (`--query`), like any other option, so it is visible to other local processes;
   it never contains credentials.
 - Restoring with "drop" asks the user to type the connection name first (confirm-by-typing).
+- A copy gives each tool its own `--config` file (source and target connection) and masks
+  both connections' secrets in both outputs. Replacing the target asks the user to type its
+  name. A copy whose target collection is the source collection itself (same UUID, also
+  through another saved connection to the same server) is refused before anything starts, so
+  `--drop` can never delete the data being read.
   Reading a dump (`inspect_dump`) only reads the folder listing or the archive's prelude.
 - Saved dumps (`dump-profiles.json`) store the connection id, never its connection string or
   secrets; running one reads the secrets from the keychain like any other tool job.

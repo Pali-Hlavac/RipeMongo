@@ -3,6 +3,8 @@
 mod args;
 mod progress;
 mod request;
+#[cfg(test)]
+mod tests;
 
 pub use args::MAX_PARALLEL_COLLECTIONS;
 pub use progress::DumpProgress;
@@ -68,7 +70,7 @@ pub fn start_dump(
 /// Estimated number of documents a dump will write (metadata counts, or a time-limited count
 /// with a query filter). `None` when it cannot be determined, for example without the
 /// privileges to list databases.
-async fn estimate_documents(
+pub(crate) async fn estimate_documents(
     client: &Client,
     request: &DumpRequest,
     query: Option<Document>,

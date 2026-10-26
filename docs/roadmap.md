@@ -138,7 +138,7 @@ favorite summary wrapping, and history removal when a connection is deleted.
 - [x] JSON/CSV import and export per collection with field selection and type mapping (CSV/TSV with any delimiter read by RipeMongo and piped to mongoimport)
 - [ ] Import speed options: parallel insert workers (`--numInsertionWorkers`, 1–16) and "Skip validation rules" (`--bypassDocumentValidation`, with a warning)
 - [ ] Large-file import test (a generated JSON and CSV file of several GB, not committed): progress, cancel and memory use stay flat; the same file imported with 1 and with several insert workers, both times recorded in `docs/development/testing.md` (opt-in, not in CI)
-- [ ] Copy collection/database between connections
+- [x] Copy collection/database between connections (also within one connection under another name)
 - [x] Measure installer size — ADR 0009 (Windows, with the tools: NSIS 21.4 MiB, MSI 28.6 MiB)
 
 Slices, in order: (1) sidecar fetch script, lock file, bundling config and the `tools` module
@@ -245,7 +245,19 @@ Decisions for M4 (details in ADRs 0009 and 0010 as they are written):
   mongoimport's words. Fixed there: the column list scrolled inside the scrolling import
   dialog (about four columns visible) and sat after the value options; it now follows the
   delimiter and header line and the dialog scrolls once.
-- Slice 6 next: copy a collection or database between connections.
+- Slice 6 complete: copy. `tools/pipe.rs` (`run_pipe`: two tools, stdout → stdin, both logs,
+  the tool that stopped first is blamed), `tools/copy/` (`CopyRequest` → arguments of both
+  tools, renames via `--nsFrom/--nsTo`, `--drop`, `--noIndexRestore`; `ensure_different`
+  compares collection UUIDs so a copy onto itself is refused even through another saved
+  connection; `CopyProgress`), `tools/names.rs` shared with restore and import, `start_copy`,
+  `tests/copy.rs`. Frontend `CopyDialog` (target connection connected on start, names,
+  query or collection checklist, indexes, replace confirmed by typing) from the database and
+  collection menus. Found while probing: the tools print their connection string with the
+  password when they cannot connect (now masked in every job, commit `14a31bb`); when
+  mongorestore cannot connect it fails without a `Failed:` line and mongodump then reports a
+  broken pipe.
+- Next: one real-app pass over slice 6, then the import speed options and the large-file
+  import test, then slice 7 (docs pass, verification).
 
 ### M4.5 — Search and navigation
 

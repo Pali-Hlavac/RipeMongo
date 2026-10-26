@@ -119,6 +119,11 @@ export const commands = {
 	inspectImportFile: (path: string, delimiter: string | null) => typedError<ImportPreview, AppError>(__TAURI_INVOKE("inspect_import_file", { path, delimiter })),
 	/**  Starts `mongoimport` as a background job on an open connection. */
 	startImport: (connectionId: string, request: ImportRequest) => typedError<JobInfo, AppError>(__TAURI_INVOKE("start_import", { connectionId, request })),
+	/**
+	 *  Starts a copy of a database or collection (`mongodump` piped into `mongorestore`) from an
+	 *  open connection into another open connection, or into the same one under another name.
+	 */
+	startCopy: (connectionId: string, targetConnectionId: string, request: CopyRequest) => typedError<JobInfo, AppError>(__TAURI_INVOKE("start_copy", { connectionId, targetConnectionId, request })),
 	/**  Every saved dump whose connection still exists. */
 	listDumpProfiles: () => typedError<DumpProfile[], AppError>(__TAURI_INVOKE("list_dump_profiles")),
 	/**  Creates or updates a saved dump. */
@@ -276,6 +281,26 @@ export type ConnectionSecrets = {
 export type ConnectionsFileInfo = {
 	connectionCount: number,
 	hasEncryptedSecrets: boolean,
+};
+
+/**  A copy of a database or collection into a connection (the same one or another). */
+export type CopyRequest = {
+	database: string,
+	/**  `None` copies the whole database. */
+	collection: string | null,
+	targetDatabase: string,
+	/**  The collection's name in the target; collection copies only. */
+	targetCollection: string | null,
+	/**  Filter in JSON, Extended JSON or shell syntax; collection copies only. */
+	query: string | null,
+	/**  Collections left out; database copies only. */
+	excludeCollections: string[],
+	/**  Name prefixes left out; database copies only. */
+	excludePrefixes: string[],
+	/**  Create the source's indexes in the target (otherwise `--noIndexRestore`). */
+	indexes: boolean,
+	/**  Drop each copied collection in the target first (`--drop`). */
+	drop: boolean,
 };
 
 /**  A database as shown in the sidebar. */

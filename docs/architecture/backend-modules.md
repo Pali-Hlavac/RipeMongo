@@ -150,7 +150,11 @@ Every domain module follows the same layout:
   `mongoexport` arguments (JSON/CSV, fields, query, sort, skip, limit); `import/` reads a file
   before import (`preview.rs`: format, delimiter, columns, suggested types from
   `columns.rs`), builds `mongoimport` arguments with typed fields and feeds delimited text
-  through `feed.rs`. `text.rs` formats counts and parses sizes.
+  through `feed.rs`. `copy/` builds the arguments of both tools of a copy, refuses copying
+  onto itself (collection UUIDs) and reads both outputs (`CopyProgress`); `pipe.rs` runs
+  two tools with the first one's stdout piped into the second one's stdin. `names.rs` checks
+  database and collection names and escapes namespace patterns. `text.rs` formats counts and
+  parses sizes.
   See ADR 0009 and [sidecars.md](sidecars.md).
 - **Errors:** `ToolsError::Missing` → `NOT_FOUND` (hint: reinstall / `pnpm sidecars`),
   `Invalid` → `INVALID_INPUT`, `Credentials`/`Start` → `IO`; a failed run →

@@ -89,6 +89,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   suggested from the values. Insert, replace or update existing documents, drop the collection
   first (confirmed by typing its name), what to do with values that do not fit their type;
   live progress, a summary, and the sidebar and documents reload afterwards.
+- Copy (milestone 4): "Copy database…" and "Copy collection…" in the sidebar's ⋯ menus copy
+  the documents, indexes and options into another saved connection (connected when the copy
+  starts) or into the same one under another name, with `mongodump` piped straight into
+  `mongorestore` (nothing saved on disk). A query filter for a collection, collections to
+  leave out of a database, copy indexes or not, replace existing collections (confirmed by
+  typing the name); copying a collection onto itself is refused, also through another saved
+  connection to the same server. Live progress, a summary, and the target's sidebar and
+  documents reload afterwards.
 - Saved dumps (milestone 4): save a dump's settings under a name and run it again with one
   click from "Saved dumps" (command palette or the connection's ⋯ menu); RipeMongo connects
   first if needed. Edit and delete them there; deleting a connection deletes its saved dumps.

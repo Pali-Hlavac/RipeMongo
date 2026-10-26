@@ -6,6 +6,7 @@ use std::io::Write;
 use std::process::Stdio;
 
 use tokio::io::{AsyncBufReadExt, AsyncRead, BufReader};
+use tokio::process::Child;
 use tokio::sync::mpsc;
 use tokio_util::io::SyncIoBridge;
 
@@ -14,9 +15,9 @@ use crate::error::{AppError, ErrorCode};
 use crate::jobs::{JobContext, JobProgress};
 
 /// Output lines buffered between the readers and the job.
-const LINE_BUFFER: usize = 256;
+pub(super) const LINE_BUFFER: usize = 256;
 /// Prefix the tools put before the reason of a fatal error.
-const FAILED_PREFIX: &str = "Failed: ";
+pub(super) const FAILED_PREFIX: &str = "Failed: ";
 
 /// Turns tool output into progress. Lines arrive without the tools' timestamp prefix.
 pub trait OutputParser: Send {
@@ -49,15 +50,7 @@ pub async fn run_tool(
         credentials,
         input,
     } = invocation;
-    let path = locate(tool)?;
-    let mut command = tool_command(&path);
-    command.arg(credentials.arg()).args(&args);
-    if input.is_some() {
-        command.stdin(Stdio::piped());
-    }
-    let mut child = command
-        .spawn()
-        .map_err(|source| ToolsError::Start { tool, source })?;
+    let mut child = spawn(tool, &credentials, &args, input.is_some())?;
     // Closing the pipe (when the input is written or fails) tells the tool the data ended.
     let feeder = match (input, child.stdin.take()) {
         (Some(input), Some(stdin)) => {
@@ -69,17 +62,17 @@ pub async fn run_tool(
 
     let (sender, mut lines) = mpsc::channel(LINE_BUFFER);
     if let Some(stdout) = child.stdout.take() {
-        tokio::spawn(forward_lines(stdout, sender.clone()));
+        tokio::spawn(forward_lines(stdout, (), sender.clone()));
     }
     if let Some(stderr) = child.stderr.take() {
-        tokio::spawn(forward_lines(stderr, sender));
+        tokio::spawn(forward_lines(stderr, (), sender));
     }
 
     let mut failure = None;
     loop {
         tokio::select! {
             line = lines.recv() => {
-                let Some(line) = line else { break };
+                let Some(((), line)) = line else { break };
                 let line = credentials.redact(&line);
                 ctx.log(&line);
                 let message = strip_timestamp(&line);
@@ -121,10 +114,34 @@ pub async fn run_tool(
     .with_hint("The job log has the tool's full output."))
 }
 
-async fn forward_lines(stream: impl AsyncRead + Unpin, sender: mpsc::Sender<String>) {
+/// Starts `tool` with the credentials file and `args`; `stdin` gives it a piped standard
+/// input instead of an empty one.
+pub(super) fn spawn(
+    tool: Tool,
+    credentials: &CredentialsFile,
+    args: &[String],
+    stdin: bool,
+) -> Result<Child, AppError> {
+    let path = locate(tool)?;
+    let mut command = tool_command(&path);
+    command.arg(credentials.arg()).args(args);
+    if stdin {
+        command.stdin(Stdio::piped());
+    }
+    Ok(command
+        .spawn()
+        .map_err(|source| ToolsError::Start { tool, source })?)
+}
+
+/// Sends each line of `stream`, tagged with where it comes from.
+pub(super) async fn forward_lines<T: Copy>(
+    stream: impl AsyncRead + Unpin,
+    tag: T,
+    sender: mpsc::Sender<(T, String)>,
+) {
     let mut lines = BufReader::new(stream).lines();
     while let Ok(Some(line)) = lines.next_line().await {
-        if sender.send(line).await.is_err() {
+        if sender.send((tag, line)).await.is_err() {
             break;
         }
     }

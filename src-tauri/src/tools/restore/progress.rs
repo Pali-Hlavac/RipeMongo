@@ -13,6 +13,14 @@ const LISTED_IN_SUMMARY: usize = 5;
 /// Dry runs list these too, but mongorestore never restores them as collections.
 const NOT_RESTORED: [&str; 1] = ["admin.system.version"];
 
+/// Counts from `finished restoring` lines.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct RestoreTotals {
+    pub documents: f64,
+    pub failures: f64,
+    pub collections: usize,
+}
+
 /// Progress of a restore. Folder dumps know each data file's size, so progress is measured in
 /// bytes read; archives give no sizes up front, so it falls back to documents restored.
 #[derive(Default)]
@@ -36,6 +44,15 @@ impl RestoreProgress {
         Self {
             sizes,
             ..Self::default()
+        }
+    }
+
+    /// Documents restored and failed, and collections finished, so far.
+    pub fn totals(&self) -> RestoreTotals {
+        RestoreTotals {
+            documents: self.documents,
+            failures: self.failures,
+            collections: self.collections,
         }
     }
 

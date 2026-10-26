@@ -11,11 +11,11 @@ interface DumpCollectionsFieldProps {
   database: string;
   excluded: string[];
   prefixes: string;
-  onChange: (patch: Partial<DumpFormValues>) => void;
+  onChange: (patch: Partial<Pick<DumpFormValues, "excluded" | "prefixes">>) => void;
 }
 
 /**
- * Which collections a database dump includes: a checklist (unticked ones are left out, so
+ * Which collections a database dump or copy includes: a checklist (unticked ones are left out, so
  * collections created later are included) and name prefixes to leave out.
  */
 export function DumpCollectionsField({

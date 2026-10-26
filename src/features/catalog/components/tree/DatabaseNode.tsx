@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   ArchiveIcon,
   ChevronRightIcon,
+  CopyIcon,
   DatabaseIcon,
   PlusIcon,
   RefreshCwIcon,
@@ -10,7 +11,7 @@ import {
 } from "lucide-react";
 import { useId } from "react";
 
-import { useDumpDialog, useImportDialog } from "@/features/tools";
+import { useCopyDialog, useDumpDialog, useImportDialog } from "@/features/tools";
 import { cn } from "@/shared/lib/cn";
 import { formatBytes } from "@/shared/lib/format";
 import { DropdownMenuItem, DropdownMenuSeparator } from "@/shared/ui/dropdown-menu";
@@ -90,6 +91,13 @@ export function DatabaseNode({ connectionId, info }: DatabaseNodeProps) {
             }}
           >
             <UploadIcon aria-hidden /> Import into a new collection…
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onSelect={() => {
+              useCopyDialog.getState().open({ connectionId, database: name, collection: null });
+            }}
+          >
+            <CopyIcon aria-hidden /> Copy database…
           </DropdownMenuItem>
           <DropdownMenuItem
             onSelect={() => {

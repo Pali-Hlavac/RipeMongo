@@ -1,4 +1,4 @@
-/** Which export or import dialog is open, and for what. */
+/** Which export, import or copy dialog is open, and for what. */
 import { create } from "zustand";
 
 /** The query of a documents tab, carried into an export. */
@@ -50,6 +50,29 @@ interface ImportDialogState {
 }
 
 export const useImportDialog = create<ImportDialogState>()((set) => ({
+  target: null,
+  open: (target) => {
+    set({ target });
+  },
+  close: () => {
+    set({ target: null });
+  },
+}));
+
+/** What a copy starts from; `collection: null` copies the whole database. */
+export interface CopyTarget {
+  connectionId: string;
+  database: string;
+  collection: string | null;
+}
+
+interface CopyDialogState {
+  target: CopyTarget | null;
+  open: (target: CopyTarget) => void;
+  close: () => void;
+}
+
+export const useCopyDialog = create<CopyDialogState>()((set) => ({
   target: null,
   open: (target) => {
     set({ target });

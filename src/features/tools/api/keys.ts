@@ -10,6 +10,7 @@ export const toolsKeys = {
     [...toolsKeys.all, "dump-contents", source] as const,
   importPreview: (path: string | null, delimiter: string | null) =>
     [...toolsKeys.all, "import-preview", path, delimiter] as const,
+  connections: () => [...toolsKeys.all, "connections"] as const,
   fields: (connectionId: string, database: string, collection: string) =>
     [...toolsKeys.all, "fields", connectionId, database, collection] as const,
 };

@@ -1,6 +1,6 @@
 # Background jobs
 
-Long-running work (dump, and later restore, import, export, copy and schema sampling) runs as
+Long-running work (dump, restore, import, export, copy, and later schema sampling) runs as
 a background job: it does not block a command call or the UI, reports progress, keeps a log,
 and can be cancelled. Decision record: [ADR 0010](../adr/0010-background-jobs.md).
 
@@ -42,6 +42,13 @@ exit into `"<tool> failed: <reason>"`, where the reason is the tool's own `Faile
 An invocation may carry an `Input` closure (CSV imports): the tool then gets a piped stdin
 that the closure writes on a blocking thread (`SyncIoBridge`); a failure of the closure fails
 the job when the tool itself succeeded.
+
+`run_pipe(ctx, source, sink, parser)` (copies) starts two tools, copies the first one's
+stdout into the second one's stdin with `tokio::io::copy`, logs both outputs with the tool's
+name in front, kills both on cancel and waits for both. When both fail, the error names the
+one that exited first; the other usually only lost its pipe ("The pipe has been ended" from
+mongodump when mongorestore cannot connect, "reading beginning of archive: EOF" from
+mongorestore when mongodump cannot).
 
 `tools/dump/progress.rs` sums `mongodump`'s per-collection progress bars and
 `done dumping <ns> (<n> documents)` lines; the total is estimated beforehand from collection

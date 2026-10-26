@@ -37,7 +37,7 @@ src/
 | `catalog`         | Database tree, collection header, create/rename/drop dialogs   | [navigation](../features/navigation.md)                 |
 | `documents`       | Paged documents, views, query bar, insert/edit/clone/delete    | [documents](../features/documents.md)                   |
 | `jobs`            | Jobs list/log caches, job events, status-bar button, panel     | [tools](../features/tools.md)                           |
-| `tools`           | Dump dialog (later restore, import, export, copy)              | [tools](../features/tools.md)                           |
+| `tools`           | Dump, restore, export, import and copy dialogs, saved dumps    | [tools](../features/tools.md)                           |
 
 ## State rules
 

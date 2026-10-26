@@ -9,7 +9,7 @@ mod request;
 mod tests;
 
 pub use contents::{inspect_dump, DumpContents, DumpNamespace, RestoreSource};
-pub use progress::RestoreProgress;
+pub use progress::{RestoreProgress, RestoreTotals};
 pub use request::{DatabaseRename, RestoreRequest};
 
 use std::collections::HashMap;

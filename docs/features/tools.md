@@ -1,4 +1,4 @@
-# Tools: dump, restore, export and import (later copy)
+# Tools: dump, restore, export, import and copy
 
 ## What it does
 
@@ -110,7 +110,29 @@
     shop.people.", plus the documents that failed. When an import ends, the sidebar and that
     connection's open documents reload.
 
-Planned next (M4): copying between connections.
+- **Copy** a database or collection into another saved connection, or into the same one
+  under another name: database ⋯ → "Copy database…", collection ⋯ → "Copy collection…" (not
+  on views). `mongodump --archive` writes to its standard output, which RipeMongo pipes into
+  `mongorestore --archive` (`tools/pipe.rs`); nothing is written to disk. Indexes, collection
+  options, validators and views come along.
+  - **Target:** any saved connection (connected when the copy starts, like saved dumps), the
+    database name there and, for a collection, the collection name. Defaults: the same names
+    in another connection, `<name>_copy` in the same one (until the user types a name).
+    Renames become `--nsFrom/--nsTo` (escaped).
+  - **Collection:** a query filter, like dumps. **Database:** the collection checklist and
+    name prefixes of the dump dialog.
+  - **Copy indexes** (off: `--noIndexRestore`). **Replace** (`--drop`): each copied
+    collection is dropped in the target first, confirmed by typing the target collection or
+    database name. Without it documents are added; an existing `_id` fails and is counted.
+  - **Onto itself** is refused before anything starts: the same connection and names (also
+    checked in the form), and any target collection whose UUID equals the source's, which
+    catches two saved connections to the same server (`--drop` would delete the data being
+    read).
+  - Progress counts the documents mongodump has read (the pipe keeps it a few kilobytes ahead
+    of mongorestore) against the same estimate as a dump, then "Creating the indexes of …".
+    The summary uses mongorestore's counts: "Copied 1,204 documents (2 collections) to shop
+    on Staging.", plus the documents that could not be written. The sidebar and open
+    documents of the target connection reload when a copy ends.
 
 ## How it works
 
@@ -139,7 +161,7 @@ Planned next (M4): copying between connections.
    focus return cannot close the new dialog. The dump and restore dialogs scroll their fields
    and keep errors and buttons in a fixed footer (`<Button form={formId}>`).
 7. `useJobEvents(onFinished)` lets the app react to finished jobs: `App` reloads the catalog
-   of the restore's connection.
+   and documents of the connection a restore, import or copy wrote to.
 8. `ExportDialog` (store `useExportDialog`, `store/transfer.ts`) samples fields with
    `useSampledFields`, keeps the form in `ExportFormValues` (unticked fields, so everything
    starts ticked) and builds an `ExportRequest` with `buildExportRequest`. `start_export`
@@ -155,14 +177,23 @@ Planned next (M4): copying between connections.
    closure: `run_tool` then pipes stdin and runs it on a blocking thread through
    `SyncIoBridge`; closing the pipe ends the data. The first log line says what RipeMongo did
    with the file; the displayed command ends with "< (the file's rows as CSV, see the log)".
+10. `CopyDialog` (store `useCopyDialog`) lists saved connections (`useCopyConnections`),
+    keeps `CopyFormValues` and builds a `CopyRequest`. `useStartCopy` calls the app's
+    `ensureConnected` for the target, then `start_copy(connectionId, targetConnectionId,
+request)`. The command takes both tool connections, checks the request
+    (`CopyRequest::dump_args`/`restore_args`, names from `tools/names.rs`), refuses copying
+    onto itself (`ensure_different`: collection UUIDs from `listCollections`) and starts a
+    job (kind `copy`, connection = target) that runs `run_pipe` with `CopyProgress`. Each tool
+    gets its own `--config` file; the displayed command is `mongodump … | mongorestore …`, and
+    log lines are prefixed with the tool's name.
 
 ## Key files
 
-| Area     | Files                                                                                                                                                                                       |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Backend  | `src-tauri/src/tools/{dump/,restore/,export/,import/,run.rs,credentials.rs,display.rs,text.rs}`, `src-tauri/src/dump_profiles/`, `src-tauri/src/jobs/`, `src-tauri/src/documents/fields.rs` |
-| Frontend | `src/features/tools/` (dump, restore, export and import dialogs, saved dumps), `src/features/jobs/` (panel, events, log)                                                                    |
-| Tests    | `src-tauri/tests/{dump,restore,export,import}.rs`, `tools/*/tests.rs`, `dump_profiles/tests.rs`, `*Dialog.test.tsx`, `lib/*.test.ts`                                                        |
+| Area     | Files                                                                                                                                                                                                              |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Backend  | `src-tauri/src/tools/{dump/,restore/,export/,import/,copy/,run.rs,pipe.rs,names.rs,credentials.rs,display.rs,text.rs}`, `src-tauri/src/dump_profiles/`, `src-tauri/src/jobs/`, `src-tauri/src/documents/fields.rs` |
+| Frontend | `src/features/tools/` (dump, restore, export, import and copy dialogs, saved dumps), `src/features/jobs/` (panel, events, log)                                                                                     |
+| Tests    | `src-tauri/tests/{dump,restore,export,import,copy}.rs`, `tools/*/tests.rs`, `dump_profiles/tests.rs`, `*Dialog.test.tsx`, `lib/*.test.ts`                                                                          |
 
 ## Edge cases and limitations
 
@@ -191,6 +222,13 @@ Planned next (M4): copying between connections.
   Date layouts cannot contain a literal `T`; use the ISO 8601 types for those. Decimal commas
   (`1,5`) are not converted. A text file that cannot be read halfway fails the job after
   mongoimport has imported the rows before it. JSON files cannot leave fields out.
+- Copy: both connections must be reachable from this computer; data passes through it (no
+  server-to-server copy). Replacing drops only the copied collections, not the whole target
+  database. Views are copied with a database; a single view cannot be copied (its definition
+  refers to collections by name). Users and roles are not copied. When both tools fail, the
+  one that stopped first is named (the other only lost its pipe); mongorestore's connection
+  errors come without `Failed:`, so its last line is used. The UUID check is skipped when
+  the collection lists cannot be read; the same-name check in the form still applies.
 - Authentication methods the tools do not support fail with their own message.
 - Jobs are not kept after the app quits; quitting stops running tools.
 
@@ -212,6 +250,13 @@ Planned next (M4): copying between connections.
   same again (duplicates counted), drop, a JSON array merged into existing documents, a
   semicolon file with a byte order mark using the suggested types, a nested renamed field and
   a column left out, a type failure (stop) and skip-row, a 20,000-row file without header.
+- `cargo test --test copy` (Docker + `pnpm sidecars`): from a server without auth into one with
+  SCRAM auth: a collection with a query under another name with its index, a database
+  without one collection (with its view), the same again (duplicates counted), with replace
+  and without indexes; copying onto itself refused (same connection, and another saved
+  connection to the same server), a copy within one server under another name, and a target
+  name the server refuses (mongorestore is blamed, not mongodump's broken pipe). The logs
+  never contain the password.
 - `cargo test tools::` arguments and scope rules, parsing (oplog lines, restore output, the
   archive prelude, dump folders), quoting;
   `cargo test dump_profiles::` the store; `cargo test jobs::` registry behavior.

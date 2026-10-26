@@ -1,5 +1,5 @@
 /** Shared test data for the tools feature. */
-import type { DumpProfile, DumpRequest, JobInfo } from "@/shared/ipc/bindings";
+import type { ConnectionProfile, DumpProfile, DumpRequest, JobInfo } from "@/shared/ipc/bindings";
 
 export const runningJob: JobInfo = {
   id: "j1",
@@ -41,5 +41,35 @@ export function dumpProfile(overrides: Partial<DumpProfile> = {}): DumpProfile {
     createdAt: "2026-10-20T10:00:00Z",
     lastRunAt: null,
     ...overrides,
+  };
+}
+
+/** A saved connection to a local server without auth. */
+export function connectionProfile(id: string, name: string): ConnectionProfile {
+  return {
+    id,
+    name,
+    folder: null,
+    favorite: false,
+    color: null,
+    config: {
+      scheme: "standard",
+      hosts: [{ host: "localhost", port: 27017 }],
+      auth: { mechanism: "none" },
+      tls: {
+        enabled: null,
+        caFile: null,
+        certificateKeyFile: null,
+        allowInvalidCertificates: false,
+        allowInvalidHostnames: false,
+      },
+      replicaSet: null,
+      readPreference: null,
+      directConnection: null,
+      appName: null,
+      defaultDatabase: null,
+      extraOptions: [],
+      ssh: null,
+    },
   };
 }

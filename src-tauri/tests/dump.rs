@@ -7,44 +7,15 @@
 mod common;
 
 use std::path::Path;
-use std::time::Duration;
 
 use common::jobs::{dump, registry, tools_available};
 use common::*;
 use mongodb::bson::{doc, Document};
-use ripemongo_lib::connections::{
-    AuthConfig, ConnectionConfig, ConnectionManager, ScramVariant, SecretUpdate, SecretUpdates,
-};
+use ripemongo_lib::connections::SecretUpdates;
 use ripemongo_lib::jobs::JobStatus;
 use ripemongo_lib::tools::dump::{DumpOutput, DumpRequest};
 
-/// The auth container restarts mongod after init; retry until it accepts connections.
-const READY_ATTEMPTS: usize = 30;
-const READY_DELAY: Duration = Duration::from_millis(500);
 const ITEMS: i32 = 250;
-
-async fn connect_with_auth(manager: &ConnectionManager, port: u16) -> String {
-    let config = ConnectionConfig {
-        auth: AuthConfig::Scram {
-            username: ROOT_USER.into(),
-            auth_source: Some("admin".into()),
-            variant: ScramVariant::Sha256,
-        },
-        ..local_config(port)
-    };
-    let secrets = SecretUpdates {
-        password: SecretUpdate::Set(ROOT_PASSWORD.into()),
-        ..SecretUpdates::default()
-    };
-    let saved = manager.save(profile("Dump", config), &secrets).unwrap();
-    for _ in 0..READY_ATTEMPTS {
-        if manager.connect(&saved.id).await.is_ok() {
-            return saved.id;
-        }
-        tokio::time::sleep(READY_DELAY).await;
-    }
-    panic!("server never accepted the password");
-}
 
 fn path(path: &Path) -> String {
     path.to_string_lossy().into_owned()
@@ -61,7 +32,7 @@ async fn dumps_with_options_and_reports_failures() {
     }
     let (_container, port) = start_mongo_with_auth().await;
     let (manager, dir) = manager();
-    let id = connect_with_auth(&manager, port).await;
+    let id = connect_with_auth(&manager, "Dump", port).await;
     let database = manager.client(&id).await.unwrap().database("shop");
     let items: Vec<Document> = (0..ITEMS).map(|n| doc! { "n": n }).collect();
     database
