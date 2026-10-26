@@ -2,10 +2,14 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 
 import { AboutDialog } from "@/features/about";
-import { catalogKeys, CatalogDialogs } from "@/features/catalog";
+import { catalogKeys, CatalogDialogs, GoToCollectionDialog } from "@/features/catalog";
 import { CommandPalette } from "@/features/command-palette";
 import { documentKeys } from "@/features/documents";
-import { ConnectionDialogs, useEnsureConnected } from "@/features/connections";
+import {
+  ConnectionDialogs,
+  useConnectedProfiles,
+  useEnsureConnected,
+} from "@/features/connections";
 import { JobsPanel, useJobEvents } from "@/features/jobs";
 import { ThemeController, useSettings, useThemePreference } from "@/features/settings";
 import {
@@ -30,6 +34,7 @@ export function App() {
   const { preference } = useThemePreference();
   const commands = useAppCommands();
   const ensureConnected = useEnsureConnected();
+  const connected = useConnectedProfiles();
   const queryClient = useQueryClient();
   // A restore, import or copy (even a cancelled one) may have created collections and
   // documents; the job belongs to the connection written to.
@@ -47,6 +52,7 @@ export function App() {
       <ThemeController />
       <AppLayout />
       <CommandPalette commands={commands} />
+      <GoToCollectionDialog connections={connected} />
       <AboutDialog />
       <ConnectionDialogs />
       <CatalogDialogs />

@@ -111,6 +111,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   collections in certain databases; ↑/↓ between rows, Enter opens the first matching
   collection, Esc clears. The databases of connected connections and the collections of up to
   100 databases each are loaded for it; the tree says how many were not searched.
+- Go to collection (milestone 4.5): Ctrl/Cmd+P or "Go to collection…" in the command palette
+  jumps to any collection or view of the connected connections, with the same matching as the
+  sidebar filter and the collections opened recently in this session listed first.
 - Background jobs (milestone 4): dumps run in the background with live progress, cancel, a
   summary or readable error at the end, the full tool log and the equivalent command (both
   copyable); a Jobs button in the status bar and a toast when a job ends; ADR 0010.

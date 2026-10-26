@@ -7,13 +7,15 @@ status bar, a command palette, an About dialog and global keyboard shortcuts.
 
 ## Shortcuts
 
-| Action                              | Windows / Linux | macOS |
-| ----------------------------------- | --------------- | ----- |
-| Command palette                     | Ctrl+K          | ⌘K    |
-| Close tab                           | Ctrl+W          | ⌘W    |
-| Next tab                            | Ctrl+Tab        | ⌃Tab  |
-| Previous tab                        | Ctrl+Shift+Tab  | ⌃⇧Tab |
-| Move between tabs (tab bar focused) | ← / →           | ← / → |
+| Action                                   | Windows / Linux | macOS |
+| ---------------------------------------- | --------------- | ----- |
+| Command palette                          | Ctrl+K          | ⌘K    |
+| Close tab                                | Ctrl+W          | ⌘W    |
+| Next tab                                 | Ctrl+Tab        | ⌃Tab  |
+| Previous tab                             | Ctrl+Shift+Tab  | ⌃⇧Tab |
+| Move between tabs (tab bar focused)      | ← / →           | ← / → |
+| Go to collection ([search](search.md))   | Ctrl+P          | ⌘P    |
+| Filter the sidebar ([search](search.md)) | Ctrl+Shift+F    | ⌘⇧F   |
 
 ## How it works
 

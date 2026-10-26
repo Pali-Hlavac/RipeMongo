@@ -297,7 +297,7 @@ Decisions for M4 (details in ADRs 0009 and 0010 as they are written):
 
 - [x] Sidebar filter box (Ctrl/Cmd+Shift+F): fuzzy-matches connections, databases, collections and views; highlights matches, auto-expands parents, hides non-matching branches; keyboard navigation (↑/↓, Enter opens, Esc clears); "db.coll" syntax narrows by database
 - [x] Filter covers only loaded names; databases of connected connections are loaded for it (with a cap and a "N more not searched" hint on very large servers)
-- [ ] Command palette "Go to collection…": jump to any collection/view across all connected connections, recently opened first
+- [x] Command palette "Go to collection…": jump to any collection/view across all connected connections, recently opened first
 - [x] Search/filter in the connection list (name, host, folder, color label)
 - [ ] Find in document views (Ctrl/Cmd+F): highlight keys/values on the current page, next/previous match — clearly labelled as page-only, not a database query
 - [ ] Tests, docs/features/search.md, user guide page, CHANGELOG
@@ -315,6 +315,12 @@ collection…"; (3) find in document views; (4) docs pass and real-app verificat
   Ctrl/Cmd+Shift+F, `ConnectionTreeView` with an empty state, `useSidebarNavigation` (↓ from the
   box, ↑/↓ between rows, Enter opens the first matching collection, Esc clears). No backend
   changes. Tests: fuzzy, both filter libs, `SidebarFilter.test.tsx`.
+- Slice 2 complete: "Go to collection…" (Ctrl/Cmd+P, palette entry under Navigation).
+  `useCatalogLists` split out of the sidebar search and shared; `lib/goto.ts` ranks entries
+  (recently opened first, then score with collection-name matches above database-name
+  matches, then names); `store/recent.ts` records collection tabs as they become active
+  (session only, 20); the app passes the connected profiles in (`useConnectedProfiles`). At
+  most 100 results with a footer for more matches, databases not searched and loading.
 
 ### M5 — Aggregation
 

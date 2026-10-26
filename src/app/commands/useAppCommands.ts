@@ -6,11 +6,13 @@ import {
   ListChecksIcon,
   MonitorIcon,
   MoonIcon,
+  SearchIcon,
   SunIcon,
   XIcon,
 } from "lucide-react";
 
 import { useAboutStore } from "@/features/about";
+import { GO_TO_COLLECTION_HOTKEY, useGoToCollection } from "@/features/catalog";
 import type { PaletteCommand } from "@/features/command-palette";
 import { useConnectionPaletteCommands } from "@/features/connections";
 import { useJobsPanel } from "@/features/jobs";
@@ -39,6 +41,17 @@ export function useAppCommands(): PaletteCommand[] {
   }));
 
   return [
+    {
+      id: "navigation.goToCollection",
+      group: "Navigation",
+      label: "Go to collection…",
+      icon: SearchIcon,
+      hotkey: GO_TO_COLLECTION_HOTKEY,
+      keywords: ["open", "jump", "find", "view", "namespace"],
+      run: () => {
+        useGoToCollection.getState().setOpen(true);
+      },
+    },
     ...connectionCommands,
     {
       id: "tabs.welcome",

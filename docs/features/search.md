@@ -26,6 +26,18 @@
 - Nothing matches: an empty state says so, mentions that only connected connections are
   searched inside, and offers **Clear filter**.
 
+### Go to collection
+
+- **Ctrl/Cmd+P**, or "Go to collection…" in the command palette, opens a picker over every
+  collection and view of the **connected** connections. Typing matches like the sidebar filter
+  (fuzzy, `db.coll`); each result shows its database (and connection, when several are
+  connected) with the matched letters highlighted. Enter opens (or focuses) its tab.
+- **Recently opened first**: collections whose tab was activated in this session are listed
+  under "Recently opened", newest first; the rest follow by score (collection-name matches
+  above database-name matches), then by connection, database and collection name.
+- At most 100 results are listed; the footer says how many more matched, how many databases
+  were not searched, or that lists are still loading.
+
 ## How it works
 
 ```
@@ -57,6 +69,13 @@ ConnectionSidebar ── SidebarFilterBox (store/filter.ts: input)
   main button of each row carries `data-sidebar-row`, rows the filter matched carry
   `data-sidebar-match="connection" | "database" | "collection"`. Keys pressed inside row menus
   are ignored.
+- **Go to collection** (`catalog/components/goto/`) mounts its list only while open and uses
+  the same loader (`useCatalogLists`, shared with `useCatalogSearch`) with the query's
+  candidate databases, flattens the loaded collections into entries and ranks them with
+  `lib/goto.ts`. The app passes the connected profiles in (`useConnectedProfiles` from the
+  connections feature), so catalog does not import connections. `store/recent.ts` subscribes
+  to the tabs store and records every collection tab that becomes active (20, in memory).
+  Ctrl+P is also the browser's print shortcut, which the app already blocks.
 - No backend changes: the existing `list_databases` and `list_collections` commands are used.
 
 ## Key files
@@ -68,6 +87,9 @@ ConnectionSidebar ── SidebarFilterBox (store/filter.ts: input)
 | `src/features/catalog/lib/filter.ts`                                 | `db.coll` parsing, database/collection match |
 | `src/features/catalog/api/search.ts`                                 | Loads what the filter searches, with a limit |
 | `src/features/catalog/store/filter-expanded.ts`                      | Rows toggled by hand while filtering         |
+| `src/features/catalog/components/goto/`                              | Go to collection dialog and result list      |
+| `src/features/catalog/lib/goto.ts`                                   | Entries, matching and ranking for the picker |
+| `src/features/catalog/store/recent.ts`                               | Recently opened collections (this session)   |
 | `src/features/connections/lib/filter.ts`                             | Connection match (name, folder, host, color) |
 | `src/features/connections/components/sidebar/SidebarFilterBox.tsx`   | The box and its shortcut                     |
 | `src/features/connections/components/sidebar/ConnectionTreeView.tsx` | Applies the filter to the groups             |
@@ -81,6 +103,7 @@ ConnectionSidebar ── SidebarFilterBox (store/filter.ts: input)
 - A favorite appears twice (Favorites and its folder), as without the filter.
 - Very large servers: at most 100 databases per connection are listed for a plain-text
   search; `database.collection` narrows which ones.
+- Recently opened collections are remembered only while the app runs.
 
 ## How to test
 
@@ -88,6 +111,10 @@ ConnectionSidebar ── SidebarFilterBox (store/filter.ts: input)
   `catalog/lib/filter.test.ts` (parsing, plain text, `db.coll`, unloaded collections),
   `connections/lib/filter.test.ts` (name, folder, host, color, catalog matches, loading),
   `SidebarFilter.test.tsx` (hiding and highlighting, Enter opens the first collection, arrow
-  keys and Esc, empty state, shortcut, the 100-database limit and its hint).
+  keys and Esc, empty state, shortcut, the 100-database limit and its hint),
+  `goto.test.ts` (order without a query, recent first, scores, `db.coll`),
+  `GoToCollectionDialog.test.tsx` (Ctrl+P, results from two connections, Enter opens the tab,
+  recently opened group, nothing connected, no matches).
 - Manual: connect to a server with a few databases, type part of a collection name, then
-  `db.` plus part of a collection name; use ↓, Enter and Esc.
+  `db.` plus part of a collection name; use ↓, Enter and Esc. Press Ctrl+P, type part of a
+  name, press Enter; open another collection and check that Ctrl+P lists it first.

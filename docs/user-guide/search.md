@@ -29,3 +29,14 @@ it left out; type `database.collection` to search the others.
 
 You can still open and close rows while filtering. Clearing the filter brings the sidebar back
 exactly as it was.
+
+## Jump to any collection
+
+Press **Ctrl+P** (**⌘P** on macOS), or choose **Go to collection…** in the command palette, and
+type part of a collection's name. The list covers every collection and view of the connections
+you are connected to and shows which database (and connection) each one belongs to. Press
+**Enter** to open the highlighted one.
+
+The collections you opened most recently are at the top, so switching back to one is usually
+just **Ctrl+P** and **Enter**. As in the sidebar, `shop.ord` finds collections like `orders` in
+databases like `shop`.

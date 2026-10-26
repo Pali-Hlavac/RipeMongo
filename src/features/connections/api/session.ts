@@ -11,6 +11,7 @@ import { useExpandedConnections } from "../store/expanded";
 import { useConnectionStatusStore } from "../store/status";
 import type { ConnectionConfig, ConnectionProfile, SecretUpdates } from "../types";
 import { connectionKeys } from "./keys";
+import { useConnections } from "./profiles";
 
 /** Connections that are currently open. */
 export function useActiveConnections() {
@@ -18,6 +19,14 @@ export function useActiveConnections() {
     queryKey: connectionKeys.active(),
     queryFn: () => unwrap(commands.listActiveConnections()),
   });
+}
+
+/** Saved connections that are currently open. */
+export function useConnectedProfiles(): ConnectionProfile[] {
+  const { data: profiles = [] } = useConnections();
+  const { data: active = [] } = useActiveConnections();
+  const ids = new Set(active.map((connection) => connection.connectionId));
+  return profiles.filter((profile) => ids.has(profile.id));
 }
 
 /** Id of the workspace tab showing a connection's overview. */
