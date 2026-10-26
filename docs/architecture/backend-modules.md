@@ -173,7 +173,6 @@ Every domain module follows the same layout:
 
 | Module                   | Milestone | Purpose                                 |
 | ------------------------ | --------- | --------------------------------------- |
-| `import_export`          | 4         | JSON/CSV import and export              |
 | `aggregation`            | 5         | Pipeline execution and previews         |
 | `indexes`, `validation`  | 6         | Index and validator management, explain |
 | `schema`, `server_stats` | 7         | Schema sampling, performance metrics    |

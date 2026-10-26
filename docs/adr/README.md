@@ -20,8 +20,9 @@ that supersedes the old one, and update the old one's status.
 | [0013](0013-ssh-tunnels.md)                          | SSH tunnels via russh, forcing a direct connection | Accepted |
 
 Planned:
-0014 no mongosh in v1 · 0015 testing strategy ·
-0016 pipeline code export in the frontend.
+0014 no mongosh in v1 · 0015 testing strategy · 0016 pipeline code export in the frontend ·
+0017 auto-update via the Tauri updater · 0018 production and read-only connection modes ·
+0019 local write log and revert · 0020 scheduled dumps.
 
 ## Template
 

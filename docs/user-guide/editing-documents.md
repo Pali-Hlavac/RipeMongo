@@ -11,7 +11,7 @@ Views and read-only collections show their documents without these buttons.
 3. Click **Insert** or press **Ctrl+Enter** (**⌘Enter** on macOS).
 
 If you leave out `_id`, the database creates one for you. You can add up to 10,000 documents
-at once; for more, use Import (coming in a later update).
+at once; for more, [import a file](import-export.md).
 
 ## Edit a document
 
@@ -82,5 +82,5 @@ preview then shows the matching documents as they are now.
 2. Check the count and the examples, then click **Delete … documents**.
 3. Type the collection name and click **Delete documents**.
 
-Bulk changes cannot be undone. Consider exporting the collection first (coming with dump and
-export in a later update).
+Bulk changes cannot be undone. Consider [exporting](import-export.md) or
+[backing up](backups.md) the collection first.

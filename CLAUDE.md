@@ -29,8 +29,9 @@ React feature component
   `AppError { code, message, hint }` (`src-tauri/src/error.rs`). Messages are for end users.
 - **Background jobs**: `jobs::JobRegistry` runs cancellable tokio tasks that report progress
   and log lines through typed events (`JobUpdated`, `JobLogged`); the frontend keeps jobs in
-  TanStack Query. Tools run inside jobs via `tools::run::run_tool`, credentials in a temp
-  `--config` file. See [docs/architecture/background-jobs.md](docs/architecture/background-jobs.md).
+  TanStack Query. Tools run inside jobs via `tools::run::run_tool` (a copy pipes two tools
+  with `tools::pipe::run_pipe`), credentials in a temp `--config` file, secrets masked in
+  their output. See [docs/architecture/background-jobs.md](docs/architecture/background-jobs.md).
 - **Sidecars**: mongo-tools binaries in `src-tauri/binaries/` (git-ignored), fetched by
   `pnpm sidecars` with a pinned version + SHA-256 checks, found and started by the `tools`
   module. See [docs/architecture/sidecars.md](docs/architecture/sidecars.md).

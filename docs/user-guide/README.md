@@ -27,8 +27,8 @@ are not available yet are listed at the bottom.
 
 ## Coming later
 
-Aggregations, indexes, schema analysis and
-performance monitoring are being built. See the
+Searching the sidebar and jumping to any collection, aggregations, indexes, schema analysis
+and performance monitoring are being built. See the
 [roadmap](../roadmap.md) for the plan.
 
 ## Getting help

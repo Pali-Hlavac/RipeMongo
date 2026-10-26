@@ -4,20 +4,23 @@ A fast, cross-platform desktop GUI for MongoDB. It aims to fully replace MongoDB
 ships the official database tools (dump, restore, import, export) inside the app, so you never
 need the command line.
 
-> **Status: early development (milestone 1 of 8).** The app shell runs, but connecting to
-> MongoDB is not implemented yet. See the [CHANGELOG](CHANGELOG.md) for what works today.
+> **Status: early development, not released yet.** Connections (TLS, SSH tunnels, keychain
+> secrets), browsing, querying and editing documents, and the bundled database tools (dump,
+> restore, import, export, copy between servers) work. Search, aggregation, indexes and schema
+> analysis come next. See the [CHANGELOG](CHANGELOG.md) for what works today and the
+> [roadmap](docs/roadmap.md) for the plan.
 
 ![RipeMongo app shell (milestone 1)](docs/assets/screenshot-shell.png)
 
-## Planned highlights
+## Highlights
 
 - Connection manager with keychain-stored secrets, TLS and SSH tunnels
 - Document browsing in list, JSON and table views, with full BSON / Extended JSON support
-- Visual aggregation pipeline builder with per-stage previews
-- Schema analysis, explain plans, index and validation management
-- Server performance dashboard
 - Built-in dump / restore / import / export / copy between servers with progress, cancel and
   saved profiles
+- Planned: visual aggregation pipeline builder with per-stage previews
+- Planned: schema analysis, explain plans, index and validation management
+- Planned: server performance dashboard
 - Light, dark and system themes, a command palette, and keyboard shortcuts everywhere
 
 ## Download

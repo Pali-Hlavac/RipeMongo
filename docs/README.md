@@ -40,5 +40,5 @@ See [features/README.md](features/README.md) for the full list with implementati
 
 ## Plan and roadmap
 
-- [roadmap.md](roadmap.md): approved plan, milestones M1–M8 with checklists, agreed decisions
+- [roadmap.md](roadmap.md): approved plan, milestones M1–M9 (and M4.5) with checklists, agreed decisions
 - [project-brief.md](project-brief.md): the original requirements
