@@ -45,7 +45,8 @@ Without **Replace**, the documents are added to what is already there. A documen
 - Both servers must be reachable from your computer, and the data passes through it, so a
   large copy takes as long as your connection needs to download and upload it.
 - RipeMongo refuses to copy a collection onto itself, even when two saved connections lead to
-  the same server.
+  the same server. If a server does not answer within a few seconds, it cannot check this,
+  so a copy with **Replace** is refused; try again when both servers are reachable.
 - Users and roles are not copied. A single view cannot be copied on its own; copy its
   database instead.
 - You can cancel a copy in the Background jobs window. What was already copied stays in the

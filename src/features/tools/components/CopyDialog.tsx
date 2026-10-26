@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog";
 
-import { useStartCopy } from "../api/copy";
+import { useCopyConnections, useStartCopy } from "../api/copy";
 import type { EnsureConnected } from "../api/profiles";
 import {
   buildCopyRequest,
@@ -73,6 +73,10 @@ function CopyForm({ target, ensureConnected, onDone }: CopyFormProps) {
   );
   const scope = copyScope(target);
   const name = targetName(target, values);
+  const connections = useCopyConnections();
+  const targetConnection =
+    connections.data?.find((connection) => connection.id === values.targetConnectionId)?.name ??
+    "the target connection";
 
   const change = (patch: Partial<CopyFormValues>) => {
     setValues((current) => ({ ...current, ...patch }));
@@ -170,13 +174,15 @@ function CopyForm({ target, ensureConnected, onDone }: CopyFormProps) {
         description={
           target.collection === null ? (
             <>
-              Each collection copied into <strong>{name}</strong> is deleted there first, with its
-              documents and indexes. This cannot be undone.
+              Each collection copied into <strong>{name}</strong> on{" "}
+              <strong>{targetConnection}</strong> is deleted there first, with its documents and
+              indexes. This cannot be undone.
             </>
           ) : (
             <>
-              <strong>{`${values.database.trim()}.${name}`}</strong> is deleted in the target first,
-              with its documents and indexes. This cannot be undone.
+              <strong>{`${values.database.trim()}.${name}`}</strong> on{" "}
+              <strong>{targetConnection}</strong> is deleted first, with its documents and indexes.
+              This cannot be undone.
             </>
           )
         }

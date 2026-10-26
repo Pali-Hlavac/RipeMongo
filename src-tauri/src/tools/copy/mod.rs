@@ -10,6 +10,7 @@ pub use progress::CopyProgress;
 pub use request::CopyRequest;
 
 use std::collections::HashMap;
+use std::time::Duration;
 
 use futures_util::TryStreamExt;
 use mongodb::bson::Binary;
@@ -21,6 +22,10 @@ use super::run::Invocation;
 use super::{display_command, CredentialsFile, Tool, ToolsError};
 use crate::connections::ToolConnection;
 use crate::jobs::{JobInfo, JobKind, JobRegistry, JobSpec};
+
+/// Longest the check for copying onto itself may wait for the collection lists; the dialog
+/// waits for it.
+const CHECK_TIME_LIMIT: Duration = Duration::from_secs(5);
 
 /// One side of a copy: a live connection and its saved id.
 pub struct CopyEnd {
@@ -99,8 +104,9 @@ pub async fn start_copy(
 
 /// Refuses a copy whose target collection is the source collection itself, which happens
 /// when two saved connections reach the same server: `--drop` would delete the data being
-/// read. Collections are compared by their UUID; when the lists cannot be read, the copy
-/// goes ahead.
+/// read. Collections are compared by their UUID. When the lists cannot be read in time, a
+/// copy that replaces collections is refused; any other copy goes ahead (at worst it skips
+/// documents that already exist).
 async fn ensure_different(
     source: &Client,
     target: &Client,
@@ -108,10 +114,22 @@ async fn ensure_different(
 ) -> Result<(), ToolsError> {
     let database = request.database.trim();
     let target_database = request.target_database.trim();
-    let (Ok(from), Ok(to)) = tokio::join!(
-        collection_ids(source, database),
-        collection_ids(target, target_database)
-    ) else {
+    let lists = tokio::time::timeout(CHECK_TIME_LIMIT, async {
+        tokio::join!(
+            collection_ids(source, database),
+            collection_ids(target, target_database)
+        )
+    })
+    .await;
+    let Ok((Ok(from), Ok(to))) = lists else {
+        if request.drop {
+            return Err(ToolsError::Invalid(format!(
+                "RipeMongo could not list the collections of both connections within {} \
+                 seconds, so it cannot make sure the target is not the source. Check that both \
+                 servers are reachable, or copy without replacing.",
+                CHECK_TIME_LIMIT.as_secs()
+            )));
+        }
         return Ok(());
     };
     let pairs: Vec<(&str, &str)> = match (&request.collection, &request.target_collection) {

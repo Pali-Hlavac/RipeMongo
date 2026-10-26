@@ -227,8 +227,10 @@ request)`. The command takes both tool connections, checks the request
   database. Views are copied with a database; a single view cannot be copied (its definition
   refers to collections by name). Users and roles are not copied. When both tools fail, the
   one that stopped first is named (the other only lost its pipe); mongorestore's connection
-  errors come without `Failed:`, so its last line is used. The UUID check is skipped when
-  the collection lists cannot be read; the same-name check in the form still applies.
+  errors come without `Failed:`, so its last line is used. The UUID check waits at most
+  5 seconds for the collection lists. When they cannot be read in time, a copy with replace
+  is refused (it could otherwise drop the source); any other copy goes ahead, and the
+  same-name check in the form still applies.
 - Authentication methods the tools do not support fail with their own message.
 - Jobs are not kept after the app quits; quitting stops running tools.
 

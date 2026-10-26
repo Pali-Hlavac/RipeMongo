@@ -256,8 +256,19 @@ Decisions for M4 (details in ADRs 0009 and 0010 as they are written):
   password when they cannot connect (now masked in every job, commit `14a31bb`); when
   mongorestore cannot connect it fails without a `Failed:` line and mongodump then reports a
   broken pipe.
-- Next: one real-app pass over slice 6, then the import speed options and the large-file
-  import test, then slice 7 (docs pass, verification).
+- Verified in the real app (2026-10-26, MongoDB 8 in Docker: a source without auth with
+  300,000 orders, a target with a password): a collection copy with a non-ASCII query into the
+  target connection, which was connected on start (20,000 documents, both indexes); a
+  database copy without one collection and with replace, confirmed by typing (orders
+  replaced, the view and a unique index came along, an unrelated collection in the target
+  stayed); a copy within the source as `customers_backup`, after the form refused the
+  source's own name; a copy into a paused target failed naming mongorestore, with the
+  password masked in the message and the log. Fixed there: the check for copying onto itself
+  waited 30 seconds for an unreachable target before anything happened (now at most 5
+  seconds; with replace it then refuses); the replace confirmation now names the target
+  connection (both sides had a `shop`); the log dialog of a copy speaks of both tools.
+- Next: the import speed options and the large-file import test, then slice 7 (docs pass,
+  verification).
 
 ### M4.5 — Search and navigation
 

@@ -21,6 +21,8 @@ export function JobLogDialog({ job, onClose }: { job: JobInfo; onClose: () => vo
   const log = useJobLog(job.id);
   const end = useRef<HTMLDivElement>(null);
   const lines = log.data?.length ?? 0;
+  // A copy runs mongodump piped into mongorestore.
+  const piped = job.kind === "copy";
 
   // Follow new output like a terminal.
   useEffect(() => {
@@ -38,7 +40,9 @@ export function JobLogDialog({ job, onClose }: { job: JobInfo; onClose: () => vo
         <DialogHeader>
           <DialogTitle>{job.title}</DialogTitle>
           <DialogDescription>
-            The command RipeMongo ran and everything the tool printed.
+            {piped
+              ? "The commands RipeMongo ran, one piped into the other, and everything the tools printed."
+              : "The command RipeMongo ran and everything the tool printed."}
           </DialogDescription>
         </DialogHeader>
         {job.command && (
@@ -57,8 +61,8 @@ export function JobLogDialog({ job, onClose }: { job: JobInfo; onClose: () => vo
               {job.command}
             </code>
             <p className="text-xs text-muted-foreground">
-              Passwords are left out. RipeMongo passes them to the tool in a temporary file, never
-              on the command line.
+              Passwords are left out. RipeMongo passes them to {piped ? "each tool" : "the tool"} in
+              a temporary file, never on the command line.
             </p>
           </section>
         )}

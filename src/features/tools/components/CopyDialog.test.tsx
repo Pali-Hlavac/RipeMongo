@@ -114,6 +114,7 @@ describe("CopyDialog", () => {
     await user.click(screen.getByRole("checkbox", { name: "Replace collections that exist" }));
     await user.click(screen.getByRole("button", { name: "Replace and copy" }));
     const confirm = await screen.findByRole("dialog", { name: "Replace and copy?" });
+    expect(confirm).toHaveTextContent("Each collection copied into archive on Local is deleted");
     expect(commands.startCopy).not.toHaveBeenCalled();
     await user.type(within(confirm).getByRole("textbox"), "archive");
     await user.click(within(confirm).getByRole("button", { name: "Replace and copy" }));
