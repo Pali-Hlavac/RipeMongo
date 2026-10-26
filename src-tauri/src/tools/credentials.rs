@@ -1,9 +1,13 @@
 //! Passes the connection string to a tool through a temporary `--config` file, so the
-//! password never appears on a command line (where other processes could read it).
+//! password never appears on a command line (where other processes could read it), and
+//! masks the connection's secrets in what the tool prints.
 
 use std::io::Write;
 
 use tempfile::NamedTempFile;
+
+use crate::connections::uri::SecretMask;
+use crate::connections::ToolConnection;
 
 const PREFIX: &str = "ripemongo-";
 const SUFFIX: &str = ".yaml";
@@ -12,17 +16,28 @@ const SUFFIX: &str = ".yaml";
 /// (`0600` on Unix; the per-user temp folder on Windows). Deleted when dropped.
 pub struct CredentialsFile {
     file: NamedTempFile,
+    mask: SecretMask,
 }
 
 impl CredentialsFile {
-    pub fn new(uri: &str) -> std::io::Result<Self> {
+    pub fn new(connection: &ToolConnection) -> std::io::Result<Self> {
+        Self::write(connection.uri(), connection.mask().clone())
+    }
+
+    fn write(uri: &str, mask: SecretMask) -> std::io::Result<Self> {
         let mut file = tempfile::Builder::new()
             .prefix(PREFIX)
             .suffix(SUFFIX)
             .tempfile()?;
         writeln!(file, "uri: {}", yaml_quote(uri))?;
         file.flush()?;
-        Ok(Self { file })
+        Ok(Self { file, mask })
+    }
+
+    /// A line of tool output without the connection's secrets: the tools print their whole
+    /// connection string, password included, when they cannot connect.
+    pub fn redact(&self, line: &str) -> String {
+        self.mask.apply(line)
     }
 
     /// The `--config=<path>` argument.
@@ -62,13 +77,19 @@ mod tests {
 
     #[test]
     fn writes_the_uri_and_deletes_the_file_on_drop() {
-        let file = CredentialsFile::new("mongodb://u:secret@localhost/").unwrap();
+        let file =
+            CredentialsFile::write("mongodb://u:secret@localhost/", SecretMask::new(["secret"]))
+                .unwrap();
         let path = file.file.path().to_path_buf();
         assert_eq!(
             std::fs::read_to_string(&path).unwrap(),
             "uri: \"mongodb://u:secret@localhost/\"\n"
         );
         assert!(file.arg().starts_with("--config="));
+        assert_eq!(
+            file.redact("failed to connect to mongodb://u:secret@localhost/"),
+            "failed to connect to mongodb://u:****@localhost/"
+        );
         drop(file);
         assert!(!path.exists());
     }

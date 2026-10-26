@@ -3,7 +3,7 @@
 use std::sync::Arc;
 
 use super::registry::ActiveConnection;
-use super::uri::build_connection_string;
+use super::uri::{build_connection_string, SecretMask};
 use super::ConnectionSecrets;
 
 /// A connection string for a tool, with and without secrets. Holding it keeps the live
@@ -11,6 +11,7 @@ use super::ConnectionSecrets;
 pub struct ToolConnection {
     uri: String,
     display_uri: String,
+    mask: SecretMask,
     lease: Arc<ActiveConnection>,
 }
 
@@ -19,6 +20,17 @@ impl ToolConnection {
         Self {
             uri: build_connection_string(&active.effective, Some(secrets)),
             display_uri: build_connection_string(&active.effective, None),
+            mask: SecretMask::new(
+                [
+                    &secrets.password,
+                    &secrets.aws_session_token,
+                    &secrets.tls_key_password,
+                    &secrets.ssh_password,
+                    &secrets.ssh_key_passphrase,
+                ]
+                .into_iter()
+                .filter_map(|secret| secret.as_deref()),
+            ),
             lease: active,
         }
     }
@@ -31,6 +43,11 @@ impl ToolConnection {
     /// The connection string without any secret, safe to show and log.
     pub fn display_uri(&self) -> &str {
         &self.display_uri
+    }
+
+    /// Masks this connection's secrets in tool output.
+    pub fn mask(&self) -> &SecretMask {
+        &self.mask
     }
 
     /// The driver client of the same connection (used to estimate totals).

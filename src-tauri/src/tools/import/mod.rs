@@ -52,7 +52,7 @@ pub fn start_import(
             columns: request.included_columns(),
             read: Arc::new(AtomicU64::new(0)),
         });
-    let credentials = CredentialsFile::new(connection.uri()).map_err(ToolsError::Credentials)?;
+    let credentials = CredentialsFile::new(&connection).map_err(ToolsError::Credentials)?;
     let mut command = display_command(Tool::Mongoimport, connection.display_uri(), &args);
     if csv.is_some() {
         command.push_str(" < (the file's rows as CSV, see the log)");

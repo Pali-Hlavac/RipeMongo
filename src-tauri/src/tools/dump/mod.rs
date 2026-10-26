@@ -36,7 +36,7 @@ pub fn start_dump(
 ) -> Result<JobInfo, ToolsError> {
     let args = request.args()?;
     let query = request.query_filter()?;
-    let credentials = CredentialsFile::new(connection.uri()).map_err(ToolsError::Credentials)?;
+    let credentials = CredentialsFile::new(&connection).map_err(ToolsError::Credentials)?;
     let title = match name {
         Some(name) => format!("{} ({name})", request.title()),
         None => request.title(),

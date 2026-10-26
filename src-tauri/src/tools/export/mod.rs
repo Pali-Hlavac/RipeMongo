@@ -21,7 +21,7 @@ pub fn start_export(
     request: ExportRequest,
 ) -> Result<JobInfo, ToolsError> {
     let args = request.args()?;
-    let credentials = CredentialsFile::new(connection.uri()).map_err(ToolsError::Credentials)?;
+    let credentials = CredentialsFile::new(&connection).map_err(ToolsError::Credentials)?;
     let spec = JobSpec {
         kind: JobKind::Export,
         title: request.title(),

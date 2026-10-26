@@ -51,7 +51,11 @@ and reload/print shortcuts in production builds.
 - The bundled tools receive the connection string (with password) in a temporary YAML file
   passed as `--config`, created readable only by the user (`0600` on Unix, the per-user temp
   folder on Windows) and deleted when the tool exits, so it never appears in a process list.
-  The command shown in the app is built without secrets. Tools are started from Rust only;
+  The command shown in the app is built without secrets. The tools print their whole
+  connection string, password included, when they cannot connect, so every line of their
+  output is masked (`SecretMask`: the connection's secrets as typed and percent-encoded, plus
+  any `user:password@`) before it reaches the job log or an error message. Secrets shorter than
+  four characters are masked only as a URI password. Tools are started from Rust only;
   the webview has no shell or process permission. A dump's query filter is passed on the
   command line (`--query`), like any other option, so it is visible to other local processes;
   it never contains credentials.

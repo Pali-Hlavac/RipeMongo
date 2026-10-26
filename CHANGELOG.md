@@ -101,6 +101,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Connection secrets are stored only in the OS keychain and never sent back to the webview;
   connection strings are redacted in logs and error messages.
 - The bundled tools receive credentials in a private temporary file, never on the command line.
+- The tools print their whole connection string, password included, when they cannot connect.
+  Their output is now masked before it reaches a job's log or error message.
 
 ### Not yet implemented
 

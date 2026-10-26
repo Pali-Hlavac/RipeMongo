@@ -19,7 +19,7 @@ use specta::Type;
 
 pub use build::build_connection_string;
 pub use error::UriError;
-pub use redact::redact_uri;
+pub use redact::{redact_uri, SecretMask};
 
 use super::{ConnectionConfig, ConnectionSecrets};
 

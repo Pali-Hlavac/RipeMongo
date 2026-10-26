@@ -1,5 +1,5 @@
-//! Runs a tool as part of a job: feeds its standard input if asked, streams its output into
-//! the job log, turns output lines into progress, kills it on cancel and turns a failure into
+//! Runs a tool as part of a job: feeds its standard input if asked, streams its output
+//! (without secrets) into the job log, turns output lines into progress, kills it on cancel and turns a failure into
 //! a readable error.
 
 use std::io::Write;
@@ -80,6 +80,7 @@ pub async fn run_tool(
         tokio::select! {
             line = lines.recv() => {
                 let Some(line) = line else { break };
+                let line = credentials.redact(&line);
                 ctx.log(&line);
                 let message = strip_timestamp(&line);
                 if let Some(reason) = message.strip_prefix(FAILED_PREFIX) {

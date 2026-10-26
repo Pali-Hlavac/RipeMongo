@@ -35,7 +35,7 @@ pub fn start_restore(
     }
     let args = request.args(contents.gzip)?;
     let sizes = target_sizes(&request, contents);
-    let credentials = CredentialsFile::new(connection.uri()).map_err(ToolsError::Credentials)?;
+    let credentials = CredentialsFile::new(&connection).map_err(ToolsError::Credentials)?;
     let spec = JobSpec {
         kind: JobKind::Restore,
         title: request.title(),
