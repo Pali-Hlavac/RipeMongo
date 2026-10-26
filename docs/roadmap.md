@@ -136,6 +136,8 @@ favorite summary wrapping, and history removal when a connection is deleted.
 - [x] Live progress, cancel, readable errors, copyable log, equivalent CLI command
 - [x] Saved dump profiles (one-click re-run, connects first)
 - [x] JSON/CSV import and export per collection with field selection and type mapping (CSV/TSV with any delimiter read by RipeMongo and piped to mongoimport)
+- [ ] Import speed options: parallel insert workers (`--numInsertionWorkers`, 1–16) and "Skip validation rules" (`--bypassDocumentValidation`, with a warning)
+- [ ] Large-file import test (a generated JSON and CSV file of several GB, not committed): progress, cancel and memory use stay flat; the same file imported with 1 and with several insert workers, both times recorded in `docs/development/testing.md` (opt-in, not in CI)
 - [ ] Copy collection/database between connections
 - [x] Measure installer size — ADR 0009 (Windows, with the tools: NSIS 21.4 MiB, MSI 28.6 MiB)
 
@@ -245,6 +247,15 @@ Decisions for M4 (details in ADRs 0009 and 0010 as they are written):
   delimiter and header line and the dialog scrolls once.
 - Slice 6 next: copy a collection or database between connections.
 
+### M4.5 — Search and navigation
+
+- [ ] Sidebar filter box (Ctrl/Cmd+Shift+F): fuzzy-matches connections, databases, collections and views; highlights matches, auto-expands parents, hides non-matching branches; keyboard navigation (↑/↓, Enter opens, Esc clears); "db.coll" syntax narrows by database
+- [ ] Filter covers only loaded names; databases of connected connections are loaded for it (with a cap and a "N more not searched" hint on very large servers)
+- [ ] Command palette "Go to collection…": jump to any collection/view across all connected connections, recently opened first
+- [ ] Search/filter in the connection list (name, host, folder, color label)
+- [ ] Find in document views (Ctrl/Cmd+F): highlight keys/values on the current page, next/previous match — clearly labelled as page-only, not a database query
+- [ ] Tests, docs/features/search.md, user guide page, CHANGELOG
+
 ### M5 — Aggregation
 
 - [ ] Visual stage builder: add, drag-and-drop reorder, enable/disable, delete
@@ -252,6 +263,8 @@ Decisions for M4 (details in ADRs 0009 and 0010 as they are written):
 - [ ] Text mode synced with the builder; stage templates; operator autocomplete
 - [ ] Save pipelines; create view from pipeline
 - [ ] Export to JS, Python, Java, C#, Go, Rust — ADR 0016
+- [ ] Export find queries (filter, projection, sort, collation, skip, limit) to the same languages,
+      sharing the pipeline code generator (from the query bar)
 
 ### M6 — Indexes, explain, validation
 
@@ -270,9 +283,78 @@ Decisions for M4 (details in ADRs 0009 and 0010 as they are written):
 - [ ] `runCommand` / admin command console with results in the shared viewers — ADR 0014
 - [ ] Keyboard shortcuts everywhere; accessibility pass (focus, ARIA, contrast)
 - [ ] Remember window size, open tabs and last connection
+- [ ] Settings page: date display timezone (UTC / local, applied in all document views and the
+      shell syntax tooltip), default page size and view, default max time, connect timeout
 - [ ] E2E smoke tests: connect, query, edit document, dump/restore — ADR 0015
 - [ ] Release workflow: build, sign, notarize installers for all platforms with sidecars
+- [ ] Auto-update with the Tauri updater plugin (signed update manifests from the release
+      workflow, "Check for updates" in the palette and About, release notes from CHANGELOG) — ADR 0017
 - [ ] `docs/development/release.md` finalized
+
+### M9 — Safety and everyday productivity
+
+Safety:
+
+- [ ] Per-connection **production** and **read-only** modes. Read-only blocks every write, drop,
+      import and restore in the backend (one guard in Rust, not just hidden buttons); production
+      asks for confirm-by-typing on every write. A colored window border and a badge in the tab
+      and status bar show the mode — ADR 0018
+- [ ] Bulk update/delete: "Back up the matching documents first" exports them to a file (export
+      job) before writing; on by default for production connections
+- [ ] Local write log: single-document edits, inline edits and deletes store the document as it
+      was; a "Recent changes" panel can revert one (with the same conflict check as edits) — ADR 0019
+
+Saved dumps:
+
+- [ ] Destination name templates (`{connection}`, `{db}`, `{date}`, `{time}`) so re-runs no
+      longer overwrite the previous dump
+- [ ] Retention: keep only the last N dumps of a saved dump
+- [ ] Schedules (daily, weekly, at a time); in-app scheduler vs. the OS task scheduler decided in
+      ADR 0020; missed runs reported on the next start
+
+Connections:
+
+- [ ] Import connections from MongoDB Compass exports (plus Studio 3T and NoSQLBooster if their
+      formats allow); passwords go straight to the keychain
+
+Documents:
+
+- [ ] Value context menu: Filter by this value, Exclude this value, Copy value, Copy field path
+- [ ] Field operations in the list view: rename, remove and add a field (with conflict checks)
+- [ ] Table view: columns for nested paths (expand a column), hide/reorder columns (remembered
+      per collection), inline cell editing, multi-select rows → delete, export, copy as JSON/CSV
+- [ ] Exact count on demand (button, cancellable, no 10 s limit)
+- [ ] Bulk update options: upsert, `arrayFilters`, hint, collation
+- [ ] Watch a collection live with change streams (replica sets and sharded clusters): inserts,
+      updates and deletes stream into a live view; pause/resume; optional filter
+- [ ] Query tabs: several queries on the same collection side by side as separate tabs, renamable,
+      reopened from history
+
+(Moved next to related work: find-query code export → M5, date timezone and other defaults →
+M8 settings page, auto-update → M8 release workflow.)
+
+## Ideas backlog (not scheduled)
+
+Kept for later; move an item into a milestone when it is picked up.
+
+Admin features Compass lacks:
+
+- [ ] GridFS browser: list, upload, download files (bundle `mongofiles` like the other tools)
+- [ ] Users and roles: create users, grant/revoke roles
+- [ ] Replica set and sharding status: member health, replication lag, chunk distribution, balancer
+- [ ] Compare two databases (e.g. staging vs. production): collections, counts, indexes,
+      validation rules; diff of two documents
+- [ ] Atlas Search and vector search indexes
+
+Smaller items:
+
+- [ ] SSH: jump hosts, SSH agent, reading `~/.ssh/config`
+- [ ] Authentication: Kerberos (GSSAPI), browser sign-in flow for OIDC
+- [ ] Job history kept across restarts
+- [ ] Drag a file onto the window to start an import or restore
+- [ ] Password-protected dump archives
+- [ ] Test-data generator for developers
+- [ ] Optional AI query assistant (natural language → filter) with the user's own API key
 
 ## ADR plan
 
@@ -288,6 +370,10 @@ Decisions for M4 (details in ADRs 0009 and 0010 as they are written):
 | 0014      | No mongosh port in v1                                                                  | M8        | Planned  |
 | 0015      | Testing strategy                                                                       | M8        | Planned  |
 | 0016      | Pipeline code export in the frontend                                                   | M5        | Planned  |
+| 0017      | Auto-update via the Tauri updater                                                      | M8        | Planned  |
+| 0018      | Production and read-only connection modes                                              | M9        | Planned  |
+| 0019      | Local write log and revert                                                             | M9        | Planned  |
+| 0020      | Scheduled dumps                                                                        | M9        | Planned  |
 
 ## Working agreement
 

@@ -60,7 +60,9 @@ and reload/print shortcuts in production builds.
 - Saved dumps (`dump-profiles.json`) store the connection id, never its connection string or
   secrets; running one reads the secrets from the keychain like any other tool job.
 - Import/export paths come from native dialogs (`dialog:allow-open`, `dialog:allow-save`);
-  imports are capped at 10 MiB.
+  connection files (saved connections import) are capped at 10 MiB. Data imports have no
+  size limit: JSON files are read by mongoimport itself and delimited text is streamed row by
+  row, never loaded whole into memory.
 
 ## Reporting vulnerabilities
 
