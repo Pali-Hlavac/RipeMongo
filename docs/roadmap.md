@@ -136,8 +136,8 @@ favorite summary wrapping, and history removal when a connection is deleted.
 - [x] Live progress, cancel, readable errors, copyable log, equivalent CLI command
 - [x] Saved dump profiles (one-click re-run, connects first)
 - [x] JSON/CSV import and export per collection with field selection and type mapping (CSV/TSV with any delimiter read by RipeMongo and piped to mongoimport)
-- [ ] Import speed options: parallel insert workers (`--numInsertionWorkers`, 1–16) and "Skip validation rules" (`--bypassDocumentValidation`, with a warning)
-- [ ] Large-file import test (a generated JSON and CSV file of several GB, not committed): progress, cancel and memory use stay flat; the same file imported with 1 and with several insert workers, both times recorded in `docs/development/testing.md` (opt-in, not in CI)
+- [x] Import speed options: parallel insert workers (`--numInsertionWorkers`, 1–16) and "Skip validation rules" (`--bypassDocumentValidation`, with a warning)
+- [x] Large-file import test (a generated JSON and CSV file of several GB, not committed): progress, cancel and memory use stay flat; the same file imported with 1 and with several insert workers, both times recorded in `docs/development/testing.md` (opt-in, not in CI)
 - [x] Copy collection/database between connections (also within one connection under another name)
 - [x] Measure installer size — ADR 0009 (Windows, with the tools: NSIS 21.4 MiB, MSI 28.6 MiB)
 
@@ -267,8 +267,16 @@ Decisions for M4 (details in ADRs 0009 and 0010 as they are written):
   waited 30 seconds for an unreachable target before anything happened (now at most 5
   seconds; with replace it then refuses); the replace confirmation now names the target
   connection (both sides had a `shop`); the log dialog of a copy speaks of both tools.
-- Next: the import speed options and the large-file import test, then slice 7 (docs pass,
-  verification).
+- Import speed options and large-file test complete: `ImportRequest` gained
+  `insertion_workers` (1–16, `--numInsertionWorkers`) and `bypass_validation`
+  (`--bypassDocumentValidation`), shown under "Insert workers" and "Skip validation rules" (a
+  warning appears when ticked); `tests/import.rs` imports into a collection with validation
+  rules with and without skipping them and a 20,000-row file with 4 workers. The opt-in
+  `tests/import_large.rs` (3 GB JSON, 2.5 GB CSV, 9.6 million documents) showed 8 workers
+  about twice as fast as one (JSON 203 s → 94 s, CSV 170 s → 90 s), no memory growth in
+  RipeMongo, mongoimport under 60 MiB, and a cancel that ended in 0.3 s; results in
+  `docs/development/testing.md`.
+- Next: slice 7 (docs pass, verification).
 
 ### M4.5 — Search and navigation
 

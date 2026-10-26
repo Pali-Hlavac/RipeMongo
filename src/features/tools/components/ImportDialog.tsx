@@ -27,6 +27,7 @@ import { useImportDialog, type ImportTarget } from "../store/transfer";
 import { ImportColumnsField } from "./ImportColumnsField";
 import { ImportFileFields } from "./ImportFileFields";
 import { ImportCsvFields, ImportOptionsFields } from "./ImportOptionsFields";
+import { ImportSpeedFields } from "./ImportSpeedFields";
 
 /** Import dialog for a collection or a new collection; mount once at the app root. */
 export function ImportDialog() {
@@ -166,7 +167,16 @@ function ImportForm({ target, onDone }: { target: ImportTarget; onDone: () => vo
             </ImportCsvFields>
           </>
         )}
-        {preview.data && <ImportOptionsFields values={values} onChange={change} />}
+        {preview.data && (
+          <>
+            <ImportOptionsFields values={values} onChange={change} />
+            <ImportSpeedFields
+              values={values}
+              workersError={errors.workers ?? null}
+              onChange={change}
+            />
+          </>
+        )}
       </form>
       {/* Outside the scrolling form so the buttons and errors always stay visible. */}
       {missing && (

@@ -5,6 +5,8 @@
 #![allow(dead_code, clippy::expect_used)]
 
 pub mod jobs;
+pub mod large;
+pub mod load;
 
 use std::sync::Arc;
 use std::time::Duration;

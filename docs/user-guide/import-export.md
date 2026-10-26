@@ -107,3 +107,17 @@ Afterwards the sidebar and the open collection show the new documents.
   counts the failures.
 - **Drop the collection first**: deletes every document and index of the collection before
   importing. You confirm by typing the collection's name. This cannot be undone.
+
+## Faster imports
+
+For large files, two options can make the import faster:
+
+- **Insert workers**: how many batches of documents are written at the same time, from 1 to 16. Leave it empty for one. On a server with several processor cores, 4 to 8 workers often
+  import about twice as fast. More workers put more load on the server, and the documents are
+  no longer added in the order of the file. With **Replace** or **Update fields**, a file
+  that contains the same document twice may then keep either version.
+- **Skip validation rules**: imports documents even when they break the collection's
+  validation rules (the rules that say, for example, which fields a document must have).
+  Documents the rules would reject then end up in the collection, and apps that rely on the
+  rules may not handle them. Use it only for data you trust. Your database user needs the
+  permission to bypass validation.

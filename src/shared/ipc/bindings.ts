@@ -584,6 +584,10 @@ export type ImportRequest = {
 	drop: boolean,
 	/**  Stop at the first document that fails (`--stopOnError`). */
 	stopOnError: boolean,
+	/**  Documents inserted at the same time (`--numInsertionWorkers`); `None` keeps one. */
+	insertionWorkers: number | null,
+	/**  Skip the collection's validation rules (`--bypassDocumentValidation`). */
+	bypassValidation: boolean,
 };
 
 /**  Result of an import. */

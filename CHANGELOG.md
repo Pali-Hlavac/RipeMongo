@@ -89,6 +89,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   suggested from the values. Insert, replace or update existing documents, drop the collection
   first (confirmed by typing its name), what to do with values that do not fit their type;
   live progress, a summary, and the sidebar and documents reload afterwards.
+- Import speed options: **Insert workers** (1–16 batches written at the same time,
+  `--numInsertionWorkers`) and **Skip validation rules** (`--bypassDocumentValidation`, with a
+  warning). An opt-in load test imports generated JSON and CSV files of several GB with one
+  and with several workers and checks progress, cancelling and flat memory.
 - Copy (milestone 4): "Copy database…" and "Copy collection…" in the sidebar's ⋯ menus copy
   the documents, indexes and options into another saved connection (connected when the copy
   starts) or into the same one under another name, with `mongodump` piped straight into

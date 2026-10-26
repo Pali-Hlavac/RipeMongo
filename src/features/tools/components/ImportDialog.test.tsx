@@ -131,4 +131,32 @@ describe("ImportDialog", () => {
       expect.objectContaining({ format: "json", drop: true, columns: [] }),
     );
   });
+
+  it("checks the insert workers and warns before skipping validation rules", async () => {
+    vi.mocked(commands.inspectImportFile).mockImplementation(() =>
+      ok({ format: "json", size: 10, delimiter: ",", columns: [] }),
+    );
+    const user = userEvent.setup();
+    renderWithProviders(<ImportDialog />);
+    openDialog();
+
+    await user.type(screen.getByRole("textbox", { name: "File" }), "C:\\data\\people.json");
+    await user.tab();
+    const workers = await screen.findByRole("spinbutton", { name: "Insert workers" });
+    await user.type(workers, "20");
+    await user.click(screen.getByRole("button", { name: "Start import" }));
+    expect(screen.getByText("Enter a whole number from 1 to 16.")).toBeInTheDocument();
+    expect(commands.startImport).not.toHaveBeenCalled();
+
+    await user.clear(workers);
+    await user.type(workers, "8");
+    expect(screen.queryByText(/Use it only for data you trust/)).not.toBeInTheDocument();
+    await user.click(screen.getByRole("checkbox", { name: "Skip validation rules" }));
+    expect(screen.getByText(/Use it only for data you trust/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Start import" }));
+    expect(commands.startImport).toHaveBeenCalledWith(
+      "c1",
+      expect.objectContaining({ insertionWorkers: 8, bypassValidation: true }),
+    );
+  });
 });

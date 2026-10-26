@@ -105,6 +105,11 @@
     matching documents (upsert) or update their fields (merge), matched on `_id` or on typed
     fields (`--upsertFields`). **Stop at the first failure** (`--stopOnError`). **Drop the
     collection first** (`--drop`), confirmed by typing the collection name.
+  - **Speed:** **Insert workers** (`--numInsertionWorkers`, 1–16, blank keeps one), checked in
+    the form and in `ImportRequest::args`. Several workers insert batches at the same time, so
+    documents no longer arrive in file order. **Skip validation rules**
+    (`--bypassDocumentValidation`) shows a warning when ticked; the user needs the
+    `bypassDocumentValidation` privilege.
   - Progress is measured in bytes of the file: mongoimport's own bar for JSON files, the bytes
     RipeMongo has read for text files. The summary: "Imported 1,204 documents into
     shop.people.", plus the documents that failed. When an import ends, the sidebar and that
@@ -251,7 +256,12 @@ request)`. The command takes both tool connections, checks the request
 - `cargo test --test import` (Docker + `pnpm sidecars`): JSON lines with Extended JSON, the
   same again (duplicates counted), drop, a JSON array merged into existing documents, a
   semicolon file with a byte order mark using the suggested types, a nested renamed field and
-  a column left out, a type failure (stop) and skip-row, a 20,000-row file without header.
+  a column left out, a type failure (stop) and skip-row, a collection with validation rules
+  imported into with and without skipping them, a 20,000-row file without header with 4
+  insert workers.
+- `cargo test --test import_large -- --ignored` (opt-in, not in CI): generated JSON and CSV
+  files of several GB, each imported with 1 and with several insert workers, then a cancel
+  partway; see [testing](../development/testing.md#large-file-import).
 - `cargo test --test copy` (Docker + `pnpm sidecars`): from a server without auth into one with
   SCRAM auth: a collection with a query under another name with its index, a database
   without one collection (with its view), the same again (duplicates counted), with replace

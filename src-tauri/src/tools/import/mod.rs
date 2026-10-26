@@ -13,7 +13,7 @@ mod types;
 pub use columns::{suggest_type, ColumnType, TypeSuggestion};
 pub use preview::{inspect_import_file, ImportPreview, PreviewColumn};
 pub use progress::ImportProgress;
-pub use request::ImportRequest;
+pub use request::{ImportRequest, MAX_INSERTION_WORKERS};
 pub use types::{ImportColumn, ImportFormat, ImportMode, ParseErrors};
 
 use std::path::PathBuf;

@@ -56,4 +56,5 @@ panic = "abort"
 strip = true
 
 [dev-dependencies]
+sysinfo = { version = "0.36.1", default-features = false, features = ["system"] }
 testcontainers-modules = { version = "0.15", features = ["mongo"] }

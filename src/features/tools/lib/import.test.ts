@@ -5,6 +5,7 @@ import {
   collectionFromPath,
   importColumns,
   initialImportValues,
+  parseWorkers,
   validateImportForm,
   type ImportFormValues,
 } from "./import";
@@ -70,6 +71,15 @@ describe("import form", () => {
     expect(validateImportForm(values(), csv)).toEqual({});
   });
 
+  it("accepts 1 to 16 insert workers, or blank for one", () => {
+    expect(parseWorkers("")).toBeNull();
+    expect(parseWorkers(" 8 ")).toBe(8);
+    for (const bad of ["0", "17", "2.5", "two"]) expect(parseWorkers(bad)).toBeUndefined();
+    expect(validateImportForm(values({ workers: "0" }), csv).workers).toBe(
+      "Enter a whole number from 1 to 16.",
+    );
+  });
+
   it("builds CSV and JSON requests", () => {
     const request = buildImportRequest(
       target,
@@ -79,6 +89,8 @@ describe("import form", () => {
         matchFields: " email, ,name ",
         ignoreBlanks: true,
         parseErrors: "skipRow",
+        workers: "4",
+        bypassValidation: true,
       }),
       csv,
     );
@@ -92,6 +104,8 @@ describe("import form", () => {
       parseErrors: "skipRow",
       mode: "merge",
       matchFields: ["email", "name"],
+      insertionWorkers: 4,
+      bypassValidation: true,
     });
     expect(request.columns[0]).toEqual({
       include: true,
@@ -115,6 +129,8 @@ describe("import form", () => {
       parseErrors: "stop",
       matchFields: [],
       drop: true,
+      insertionWorkers: null,
+      bypassValidation: false,
     });
   });
 });

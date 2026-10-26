@@ -1,7 +1,7 @@
 //! Integration test: `mongoimport` jobs from JSON lines, a JSON array (merge mode) and a
 //! semicolon-separated file with a byte order mark, typed and renamed columns, a column left
-//! out, duplicates, drop and a value that does not fit its type. Needs Docker and
-//! `pnpm sidecars`.
+//! out, duplicates, drop, a value that does not fit its type, validation rules skipped and
+//! several insert workers. Needs Docker and `pnpm sidecars`.
 
 // Setup helpers should panic loudly, as in `common`.
 #![allow(clippy::unwrap_used)]
@@ -39,6 +39,8 @@ fn request(collection: &str, path: &Path, format: ImportFormat) -> ImportRequest
         match_fields: Vec::new(),
         drop: false,
         stop_on_error: false,
+        insertion_workers: None,
+        bypass_validation: false,
     }
 }
 
@@ -162,7 +164,24 @@ async fn imports_json_and_typed_csv() {
     let summary = succeeded(&jobs, import(&manager, &jobs, &id, csv).await);
     assert_eq!(summary, "Imported 0 documents into shop.people.");
 
-    // A large comma-separated file without a header is streamed to the end.
+    // Validation rules reject a document unless the import skips them.
+    database
+        .create_collection("checked")
+        .validator(doc! { "$jsonSchema": { "required": ["email"] } })
+        .await
+        .unwrap();
+    let mixed = dir.path().join("checked.json");
+    std::fs::write(&mixed, "{\"_id\":1,\"email\":\"a@x\"}\n{\"_id\":2}\n").unwrap();
+    let checked = request("checked", &mixed, ImportFormat::Json);
+    let summary = succeeded(&jobs, import(&manager, &jobs, &id, checked.clone()).await);
+    assert!(summary.starts_with("Imported 1 document into"), "{summary}");
+    let mut bypass = checked;
+    bypass.bypass_validation = true;
+    let summary = succeeded(&jobs, import(&manager, &jobs, &id, bypass).await);
+    assert!(summary.starts_with("Imported 1 document into"), "{summary}");
+    find(&database, "checked", doc! { "_id": 2 }).await;
+
+    // A large comma-separated file without a header is streamed to the end by several workers.
     let big = dir.path().join("big.csv");
     let rows: String = (0..ROWS).map(|n| format!("{n},row {n}\n")).collect();
     std::fs::write(&big, rows).unwrap();
@@ -171,6 +190,7 @@ async fn imports_json_and_typed_csv() {
     stream.columns = columns_of(&big);
     stream.columns[0].field = "n".into();
     stream.columns[1].field = "label".into();
+    stream.insertion_workers = Some(4);
     let summary = succeeded(&jobs, import(&manager, &jobs, &id, stream).await);
     assert_eq!(summary, "Imported 20,000 documents into shop.big.");
     let last = find(&database, "big", doc! { "n": 19_999 }).await;

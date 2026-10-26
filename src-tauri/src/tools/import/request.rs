@@ -37,7 +37,14 @@ pub struct ImportRequest {
     pub drop: bool,
     /// Stop at the first document that fails (`--stopOnError`).
     pub stop_on_error: bool,
+    /// Documents inserted at the same time (`--numInsertionWorkers`); `None` keeps one.
+    pub insertion_workers: Option<u32>,
+    /// Skip the collection's validation rules (`--bypassDocumentValidation`).
+    pub bypass_validation: bool,
 }
+
+/// Most insert workers the dialog offers; more rarely helps and loads the server.
+pub const MAX_INSERTION_WORKERS: u32 = 16;
 
 /// Characters that break mongoimport's `--fields` list with types.
 const FORBIDDEN_FIELD_CHARS: [char; 3] = [',', '(', ')'];
@@ -130,6 +137,17 @@ impl ImportRequest {
         }
         if self.stop_on_error {
             args.push("--stopOnError".into());
+        }
+        if let Some(workers) = self.insertion_workers {
+            if !(1..=MAX_INSERTION_WORKERS).contains(&workers) {
+                return Err(invalid(&format!(
+                    "Use between 1 and {MAX_INSERTION_WORKERS} insert workers."
+                )));
+            }
+            args.push(format!("--numInsertionWorkers={workers}"));
+        }
+        if self.bypass_validation {
+            args.push("--bypassDocumentValidation".into());
         }
         Ok(args)
     }

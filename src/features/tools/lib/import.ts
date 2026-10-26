@@ -10,6 +10,8 @@ import type { ImportTarget } from "../store/transfer";
 
 /** Date layout offered when a column becomes a date without a suggested one. */
 export const DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
+/** Most insert workers; the backend enforces the same limit. */
+export const MAX_INSERTION_WORKERS = 16;
 
 /** How one CSV column is imported. */
 export interface ColumnValues {
@@ -39,6 +41,9 @@ export interface ImportFormValues {
   matchFields: string;
   drop: boolean;
   stopOnError: boolean;
+  /** Insert workers as typed; empty keeps mongoimport's single worker. */
+  workers: string;
+  bypassValidation: boolean;
 }
 
 export function initialImportValues(target: ImportTarget): ImportFormValues {
@@ -54,6 +59,8 @@ export function initialImportValues(target: ImportTarget): ImportFormValues {
     matchFields: "",
     drop: false,
     stopOnError: false,
+    workers: "",
+    bypassValidation: false,
   };
 }
 
@@ -81,10 +88,21 @@ export function importColumns(
   });
 }
 
+/** The insert workers typed by the user; `undefined` when not a whole number in range. */
+export function parseWorkers(text: string): number | null | undefined {
+  const trimmed = text.trim();
+  if (trimmed === "") return null;
+  const value = Number(trimmed);
+  return Number.isInteger(value) && value >= 1 && value <= MAX_INSERTION_WORKERS
+    ? value
+    : undefined;
+}
+
 export interface ImportFormErrors {
   path?: string;
   collection?: string;
   columns?: string;
+  workers?: string;
 }
 
 /** Checks what the backend cannot explain field by field; empty when the form is complete. */
@@ -95,6 +113,9 @@ export function validateImportForm(
   const errors: ImportFormErrors = {};
   if (values.path.trim() === "") errors.path = "Choose a file.";
   if (values.collection.trim() === "") errors.collection = "Enter a collection name.";
+  if (parseWorkers(values.workers) === undefined) {
+    errors.workers = `Enter a whole number from 1 to ${MAX_INSERTION_WORKERS}.`;
+  }
   if (preview?.format === "csv") {
     const included = importColumns(preview, values).filter((column) => column.include);
     const names = included.map((column) => column.field.trim());
@@ -142,5 +163,7 @@ export function buildImportRequest(
             .filter((field) => field !== ""),
     drop: values.drop,
     stopOnError: values.stopOnError,
+    insertionWorkers: parseWorkers(values.workers) ?? null,
+    bypassValidation: values.bypassValidation,
   };
 }

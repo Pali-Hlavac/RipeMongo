@@ -37,6 +37,8 @@ fn request(format: ImportFormat) -> ImportRequest {
         match_fields: Vec::new(),
         drop: false,
         stop_on_error: false,
+        insertion_workers: None,
+        bypass_validation: false,
     }
 }
 
@@ -47,6 +49,8 @@ fn json_imports_read_the_file_directly() {
     json.match_fields = vec![" email ".into(), String::new()];
     json.drop = true;
     json.stop_on_error = true;
+    json.insertion_workers = Some(MAX_INSERTION_WORKERS);
+    json.bypass_validation = true;
     json.ignore_blanks = true;
     let args = json.args().unwrap();
     assert_eq!(&args[..2], ["--db=shop", "--collection=people"]);
@@ -57,7 +61,9 @@ fn json_imports_read_the_file_directly() {
             "--mode=merge",
             "--upsertFields=email",
             "--drop",
-            "--stopOnError"
+            "--stopOnError",
+            "--numInsertionWorkers=16",
+            "--bypassDocumentValidation"
         ]
     );
     assert!(args[2].starts_with("--file="));
@@ -106,6 +112,9 @@ fn rejects_bad_names_and_settings() {
     assert!(error(&|r| r.columns[2].field = "zip".into()).contains("Two columns"));
     assert!(error(&|r| r.columns[0].field = " ".into()).contains("needs a field name"));
     assert!(error(&|r| r.columns[1].date_format = String::new()).contains("date format"));
+    for workers in [0, MAX_INSERTION_WORKERS + 1] {
+        assert!(error(&|r| r.insertion_workers = Some(workers)).contains("insert workers"));
+    }
     assert!(
         error(&|r| r.columns.iter_mut().for_each(|c| c.include = false))
             .contains("at least one column")
