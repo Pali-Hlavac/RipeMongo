@@ -4,7 +4,10 @@ import { useContext, useState } from "react";
 import { cn } from "@/shared/lib/cn";
 
 import type { BsonField, BsonValue } from "../../lib/bson";
+import { findPrefix, isWithin, pathKey } from "../../lib/find";
 import { CurrentDocumentContext, useDocumentActions } from "../actions/context";
+import { useFind } from "../find/context";
+import { FindText } from "../find/FindText";
 import { ValueText } from "../ValueText";
 import { InlineValueEditor } from "./InlineValueEditor";
 
@@ -23,19 +26,28 @@ interface FieldRowProps {
   path: string;
   value: BsonValue;
   depth: number;
+  /** An array item: its name is the position, which find does not search. */
+  inArray?: boolean;
 }
 
 /**
  * One field of a document; objects and arrays expand to show their contents. Scalar values
  * of writable collections are edited in place: double-click, or focus and press Enter.
  */
-export function FieldRow({ name, path, value, depth }: FieldRowProps) {
-  const [expanded, setExpanded] = useState(false);
+export function FieldRow({ name, path, value, depth, inArray = false }: FieldRowProps) {
+  // Unset follows "Find on this page" (open when it holds hits) until toggled by hand.
+  const [toggled, setToggled] = useState<boolean | null>(null);
+  const document = useContext(CurrentDocumentContext);
+  const find = useFind();
+  const documentKey = document?.key ?? "";
+  const expanded = toggled ?? find.open.has(pathKey(documentKey, path));
   const nested = children(value);
   const indent = { paddingLeft: depth * INDENT_PX };
   const key = (
     <span className="shrink-0 font-mono">
-      <span className="text-syntax-key">{name}</span>
+      <span className="text-syntax-key">
+        {inArray ? name : <FindText text={name} prefix={findPrefix(documentKey, path, "key")} />}
+      </span>
       <span className="text-muted-foreground">:</span>
     </span>
   );
@@ -57,7 +69,7 @@ export function FieldRow({ name, path, value, depth }: FieldRowProps) {
         className="flex w-full min-w-0 items-baseline gap-1.5 rounded-sm py-px text-left outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
         style={indent}
         onClick={() => {
-          setExpanded((open) => !open);
+          setToggled(!expanded);
         }}
       >
         <ChevronRightIcon
@@ -79,6 +91,7 @@ export function FieldRow({ name, path, value, depth }: FieldRowProps) {
               path={`${path}.${childName}`}
               value={child}
               depth={depth + 1}
+              inArray={value.type === "array"}
             />
           ))}
         </ul>
@@ -90,11 +103,19 @@ export function FieldRow({ name, path, value, depth }: FieldRowProps) {
 function LeafValue({ path, value }: { path: string; value: BsonValue }) {
   const actions = useDocumentActions();
   const document = useContext(CurrentDocumentContext);
+  const { current } = useFind();
   const [editing, setEditing] = useState(false);
   const editable =
     !actions.readOnly && document !== null && path !== "_id" && !path.startsWith("_id.");
+  const prefix = findPrefix(document?.key ?? "", path, "value");
+  // The value holding the current hit wraps instead of being cut off, so the hit is visible.
+  const fit = isWithin(current, prefix) ? "whitespace-pre-wrap break-all" : "truncate";
 
-  if (!editable) return <ValueText value={value} mode="shell" className="min-w-0 truncate" />;
+  if (!editable) {
+    return (
+      <ValueText value={value} mode="shell" className={cn("min-w-0", fit)} findPrefix={prefix} />
+    );
+  }
   if (editing) {
     return (
       <InlineValueEditor
@@ -114,7 +135,10 @@ function LeafValue({ path, value }: { path: string; value: BsonValue }) {
     <button
       type="button"
       title="Double-click or press Enter to edit"
-      className="min-w-0 truncate rounded-sm text-left outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+      className={cn(
+        "min-w-0 rounded-sm text-left outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring",
+        fit,
+      )}
       onDoubleClick={() => {
         setEditing(true);
       }}
@@ -125,7 +149,12 @@ function LeafValue({ path, value }: { path: string; value: BsonValue }) {
         }
       }}
     >
-      <ValueText value={value} mode="shell" />
+      <ValueText
+        value={value}
+        mode="shell"
+        className={fit === "truncate" ? undefined : fit}
+        findPrefix={prefix}
+      />
     </button>
   );
 }

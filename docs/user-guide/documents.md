@@ -34,6 +34,17 @@ The document is copied as text that you can paste into a query or another tool.
 Click the circular arrow next to the view buttons to load the current page again, for example
 after another program changed the data.
 
+## Find text on the page
+
+Press **Ctrl+F** (**⌘F** on macOS) or click the magnifier next to the reload button, then type.
+RipeMongo highlights the text wherever it appears in the documents you are looking at, in field
+names and values, and opens nested fields that contain it. "2 of 7" tells you where you are;
+press **Enter** for the next match and **Shift+Enter** for the previous one. **Esc** closes the
+find bar.
+
+This only searches the documents on the current page, not the whole collection. To find
+documents in the database, use the filter in the query bar.
+
 ## Export and import
 
 Click **Export** above the documents to save the documents you are looking at (with the filter

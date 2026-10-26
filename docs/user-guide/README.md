@@ -14,7 +14,7 @@ are not available yet are listed at the bottom.
 - [Connections](connections.md): save, organize, secure and share connections
 - [Databases and collections](databases-and-collections.md): browse, create, rename and drop
 - [Finding connections and collections](search.md): filter the sidebar by name, jump to any
-  collection
+  collection, find text on the page
 - [Viewing documents](documents.md): list, JSON and table views, paging, copying
 - [Finding documents](querying.md): filters, suggestions, sort and projection, history
 - [Editing documents](editing-documents.md): insert, edit, clone and delete documents, or
@@ -29,7 +29,7 @@ are not available yet are listed at the bottom.
 
 ## Coming later
 
-Finding text in the documents on screen, aggregations, indexes, schema analysis
+Aggregations, indexes, schema analysis
 and performance monitoring are being built. See the
 [roadmap](../roadmap.md) for the plan.
 

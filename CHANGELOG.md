@@ -114,6 +114,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Go to collection (milestone 4.5): Ctrl/Cmd+P or "Go to collection…" in the command palette
   jumps to any collection or view of the connected connections, with the same matching as the
   sidebar filter and the collections opened recently in this session listed first.
+- Find on this page (milestone 4.5): Ctrl/Cmd+F in a collection tab (or the magnifier in the
+  documents toolbar) highlights text in the loaded page in all three views (field names and
+  values in List, the text in JSON, cells in Table), opens nested fields that contain it and
+  steps through the matches with Enter and Shift+Enter. It is labelled as searching only the
+  page, not the database.
 - Background jobs (milestone 4): dumps run in the background with live progress, cancel, a
   summary or readable error at the end, the full tool log and the equivalent command (both
   copyable); a Jobs button in the status bar and a toast when a job ends; ADR 0010.

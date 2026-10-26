@@ -40,3 +40,9 @@ you are connected to and shows which database (and connection) each one belongs 
 The collections you opened most recently are at the top, so switching back to one is usually
 just **Ctrl+P** and **Enter**. As in the sidebar, `shop.ord` finds collections like `orders` in
 databases like `shop`.
+
+## Find text in the documents on screen
+
+Inside a collection, **Ctrl+F** (**⌘F**) highlights text in the documents of the current page;
+see [Viewing documents](documents.md#find-text-on-the-page). To search the whole collection,
+use the query bar ([Finding documents](querying.md)).

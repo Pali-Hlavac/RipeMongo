@@ -299,7 +299,7 @@ Decisions for M4 (details in ADRs 0009 and 0010 as they are written):
 - [x] Filter covers only loaded names; databases of connected connections are loaded for it (with a cap and a "N more not searched" hint on very large servers)
 - [x] Command palette "Go to collection…": jump to any collection/view across all connected connections, recently opened first
 - [x] Search/filter in the connection list (name, host, folder, color label)
-- [ ] Find in document views (Ctrl/Cmd+F): highlight keys/values on the current page, next/previous match — clearly labelled as page-only, not a database query
+- [x] Find in document views (Ctrl/Cmd+F): highlight keys/values on the current page, next/previous match — clearly labelled as page-only, not a database query
 - [ ] Tests, docs/features/search.md, user guide page, CHANGELOG
 
 Slices: (1) sidebar filter, connection-list filter and the loading behind it; (2) "Go to
@@ -321,6 +321,14 @@ collection…"; (3) find in document views; (4) docs pass and real-app verificat
   matches, then names); `store/recent.ts` records collection tabs as they become active
   (session only, 20); the app passes the connected profiles in (`useConnectedProfiles`). At
   most 100 results with a footer for more matches, databases not searched and loading.
+- Slice 3 complete: find on this page. `documents/lib/find.ts` (case-insensitive occurrences of
+  what each view shows: list names and leaf values without array positions, JSON text, table
+  cells; ids per occurrence; paths to open), `useDocumentFind` (Ctrl/Cmd+F, not behind
+  dialogs; Enter / Shift+Enter wrap; a new page restarts), `FindBar` (count, page-only note),
+  `FindContext` + `FindText` marks; list rows holding hits open until toggled, hidden fields
+  with hits show, the value with the current hit wraps; the table scrolls the virtualizer to
+  the current row when it is not rendered. Toolbar magnifier. Found while testing: a fresh
+  `[]` per render for an unloaded page reset find state in a loop (now a stable constant).
 
 ### M5 — Aggregation
 

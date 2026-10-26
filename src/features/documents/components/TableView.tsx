@@ -6,14 +6,16 @@ import {
   useTable,
 } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import { cn } from "@/shared/lib/cn";
 
 import { getField, type BsonValue } from "../lib/bson";
 import { columnNames } from "../lib/columns";
+import { findPrefix } from "../lib/find";
 import type { LoadedDocument } from "../types";
 import { useDocumentActions } from "./actions/context";
+import { useFind } from "./find/context";
 import { ValueText } from "./ValueText";
 
 const ROW_HEIGHT = 32;
@@ -48,7 +50,12 @@ export function TableView({
             cell: (info) => {
               const value = info.getValue();
               return value ? (
-                <ValueText value={value} mode="preview" className="block truncate" />
+                <ValueText
+                  value={value}
+                  mode="preview"
+                  className="block truncate"
+                  findPrefix={findPrefix(info.row.original.key, name, "cell")}
+                />
               ) : (
                 <span className="text-muted-foreground/60" aria-label="No value">
                   —
@@ -80,6 +87,13 @@ export function TableView({
     initialRect: INITIAL_RECT,
   });
   const width = table.getTotalSize() + NUMBER_COLUMN_WIDTH;
+  // "Find on this page": render the row of the current hit; its mark then scrolls into view.
+  const { currentDocument } = useFind();
+  useEffect(() => {
+    if (currentDocument === null) return;
+    const rendered = virtualizer.getVirtualItems().some((item) => item.index === currentDocument);
+    if (!rendered) virtualizer.scrollToIndex(currentDocument, { align: "auto" });
+  }, [currentDocument, virtualizer]);
 
   return (
     <div ref={scrollRef} className="h-full overflow-auto">

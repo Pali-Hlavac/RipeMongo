@@ -16,6 +16,8 @@
 - **Paging**: 10–1000 documents per page (default 20), previous/next, "1–20 of about 1,500".
 - **Copy** a document (hover a card) as shell syntax.
 - **Reload** re-runs the current page and count.
+- **Find on this page** (Ctrl/Cmd+F or the toolbar magnifier) highlights text in the loaded
+  documents of the current view, page only; see [search.md](search.md).
 - **Query bar**: filter (always visible) plus Options for projection, sort, collation, skip,
   limit and max time; Enter or Find applies, Reset clears. Shell syntax everywhere (ADR 0012).
   A rejected query shows the backend message under the bar and marks the named part invalid.

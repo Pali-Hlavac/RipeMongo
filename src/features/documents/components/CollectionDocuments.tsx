@@ -10,6 +10,7 @@ import { cn } from "@/shared/lib/cn";
 
 import { documentKeys, type CollectionTarget } from "../api/keys";
 import { useDocumentCount, useDocumentPage } from "../api/queries";
+import { useDocumentFind } from "../hooks/useDocumentFind";
 import { useRecordSuccessfulQuery } from "../hooks/useRecordSuccessfulQuery";
 import { fieldPaths } from "../lib/fields";
 import { pageHasMore, pageWindow, visibleCount } from "../lib/query";
@@ -17,10 +18,15 @@ import { useCollectionView, type DocumentView } from "../store/view";
 import type { FindRequest, LoadedDocument } from "../types";
 import { DocumentActionsProvider } from "./actions/DocumentActionsProvider";
 import { DocumentsToolbar } from "./DocumentsToolbar";
+import { FindContext } from "./find/context";
+import { FindBar } from "./find/FindBar";
 import { JsonView } from "./JsonView";
 import { DocumentListView } from "./list/DocumentListView";
 import { QueryBar } from "./query/QueryBar";
 import { TableView } from "./TableView";
+
+/** Stable while no page is loaded, so per-page state (find) is not reset on every render. */
+const NO_DOCUMENTS: LoadedDocument[] = [];
 
 interface CollectionDocumentsProps extends CollectionTarget {
   /** Workspace tab id; view settings and the query are kept per tab. */
@@ -44,11 +50,12 @@ export function CollectionDocuments({ tabId, readOnly, ...target }: CollectionDo
   };
   const page = useDocumentPage(target, request);
   const count = useDocumentCount(target, query.filter);
-  const documents = page.data?.documents ?? [];
+  const documents = page.data?.documents ?? NO_DOCUMENTS;
   const reload = () => {
     void queryClient.invalidateQueries({ queryKey: documentKeys.collection(target) });
   };
   const fields = useMemo(() => fieldPaths(page.data?.documents ?? []), [page.data]);
+  const find = useDocumentFind(state.view, documents);
   // Placeholder data is the previous query's page, so it does not count as success yet.
   useRecordSuccessfulQuery(target, query, page.isSuccess && !page.isPlaceholderData);
   // A rejected query (syntax, bad option) is explained in the query bar, next to the input.
@@ -85,7 +92,21 @@ export function CollectionDocuments({ tabId, readOnly, ...target }: CollectionDo
           hasMore={pageHasMore(query, state.skip, documents.length, page.data?.hasMore ?? false)}
           count={visibleCount(query, count.data)}
           ready={page.data !== undefined && !page.error}
+          onFind={find.show}
         />
+        {find.open && (
+          <FindBar
+            inputRef={find.inputRef}
+            needle={find.needle}
+            onNeedleChange={find.setNeedle}
+            count={find.count}
+            position={find.position}
+            documents={documents.length}
+            onNext={find.next}
+            onPrevious={find.previous}
+            onClose={find.close}
+          />
+        )}
         <div
           className={cn(
             "min-h-0 flex-1",
@@ -106,7 +127,9 @@ export function CollectionDocuments({ tabId, readOnly, ...target }: CollectionDo
             (documents.length === 0 ? (
               <NoDocuments filtered={query.filter.trim() !== ""} pastEnd={state.skip > 0} />
             ) : (
-              <DocumentsBody view={state.view} documents={documents} firstRow={state.skip + 1} />
+              <FindContext.Provider value={find.state}>
+                <DocumentsBody view={state.view} documents={documents} firstRow={state.skip + 1} />
+              </FindContext.Provider>
             ))}
         </div>
       </section>

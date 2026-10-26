@@ -1,12 +1,15 @@
-import { DownloadIcon, PlusIcon, RefreshCwIcon, UploadIcon } from "lucide-react";
+import { DownloadIcon, PlusIcon, RefreshCwIcon, SearchIcon, UploadIcon } from "lucide-react";
 
 import { useExportDialog, useImportDialog } from "@/features/tools";
 
 import { cn } from "@/shared/lib/cn";
+import { formatHotkey } from "@/shared/lib/hotkeys";
+import { isMacPlatform } from "@/shared/lib/platform";
 import { Button } from "@/shared/ui/button";
 import { Tooltip } from "@/shared/ui/tooltip";
 
 import type { CollectionTarget } from "../api/keys";
+import { FIND_HOTKEY } from "../hooks/useDocumentFind";
 import type { CollectionViewState, DocumentView } from "../store/view";
 import type { DocumentCount } from "../types";
 import { useDocumentActions } from "./actions/context";
@@ -26,6 +29,8 @@ interface DocumentsToolbarProps {
   hasMore: boolean;
   count: DocumentCount | undefined;
   ready: boolean;
+  /** Opens "Find on this page". */
+  onFind: () => void;
 }
 
 /** View switcher, reload and pager above the documents. */
@@ -40,8 +45,10 @@ export function DocumentsToolbar({
   hasMore,
   count,
   ready,
+  onFind,
 }: DocumentsToolbarProps) {
   const actions = useDocumentActions();
+  const findLabel = `Find on this page (${formatHotkey(FIND_HOTKEY, isMacPlatform())})`;
   return (
     <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-1.5">
       <ViewSwitcher
@@ -59,6 +66,17 @@ export function DocumentsToolbar({
           onClick={onReload}
         >
           <RefreshCwIcon aria-hidden className={cn(reloading && "animate-spin")} />
+        </Button>
+      </Tooltip>
+      <Tooltip content={findLabel}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-7"
+          aria-label={findLabel}
+          onClick={onFind}
+        >
+          <SearchIcon aria-hidden />
         </Button>
       </Tooltip>
       {!actions.readOnly && (

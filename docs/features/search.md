@@ -38,6 +38,24 @@
 - At most 100 results are listed; the footer says how many more matched, how many databases
   were not searched, or that lists are still loading.
 
+### Find on this page
+
+- **Ctrl/Cmd+F** in a collection tab (or the magnifier in the documents toolbar) opens a find
+  bar under the toolbar. It **only searches the documents of the current page**, never the
+  database; the bar says so ("Searches only the 20 documents on this page, not the
+  collection. Use the filter to query the database.").
+- Matching is a plain substring, ignoring case, of **what the current view shows**:
+  - **List**: field names (not array positions) and leaf values as displayed (`7`,
+    `"text"`, `ObjectId("…")`); objects and arrays holding hits open by themselves (until
+    toggled by hand), hidden fields with hits are shown, a value with hits is shown whole and
+    the one holding the current hit wraps instead of being cut off;
+  - **JSON**: each document's text (field names included);
+  - **Table**: the cells (nested values are shown as "{ 3 fields }", so they match only
+    that); the row of the current hit is scrolled into the virtualized grid.
+- Every hit is marked; the current one stands out. "3 of 12", **Enter** / **Shift+Enter** or
+  the arrows for next / previous (wrapping around), **Esc** or × closes and removes the marks.
+  A new page or reload starts again at its first hit; switching views recounts.
+
 ## How it works
 
 ```
@@ -76,6 +94,14 @@ ConnectionSidebar ── SidebarFilterBox (store/filter.ts: input)
   connections feature), so catalog does not import connections. `store/recent.ts` subscribes
   to the tabs store and records every collection tab that becomes active (20, in memory).
   Ctrl+P is also the browser's print shortcut, which the app already blocks.
+- **Find on this page** (`documents`): `lib/find.ts` computes the hits per view (`listHits`,
+  `jsonHits`, `tableHits`) from the same text functions the views render, each with an id
+  made of document key, path, part and occurrence number. `useDocumentFind` (open state,
+  text, current index, Ctrl+F) feeds a `FindContext` around the view; `FindText` recomputes
+  the occurrences of one piece of text and marks them, with `data-find-current` on the
+  current one, which is scrolled into view (a few frames later for virtualized table rows,
+  which `TableView` first scrolls to). The page's document array must keep its identity
+  (`NO_DOCUMENTS` while nothing is loaded), because a new array means a new page.
 - No backend changes: the existing `list_databases` and `list_collections` commands are used.
 
 ## Key files
@@ -94,10 +120,16 @@ ConnectionSidebar ── SidebarFilterBox (store/filter.ts: input)
 | `src/features/connections/components/sidebar/SidebarFilterBox.tsx`   | The box and its shortcut                     |
 | `src/features/connections/components/sidebar/ConnectionTreeView.tsx` | Applies the filter to the groups             |
 | `src/features/connections/hooks/useSidebarNavigation.ts`             | Arrow keys, Enter and Esc                    |
+| `src/features/documents/lib/find.ts`                                 | Hits per view, ids, paths to open            |
+| `src/features/documents/hooks/useDocumentFind.ts`                    | Find state, Ctrl+F, current hit, scrolling   |
+| `src/features/documents/components/find/`                            | Find bar, context, marked text               |
 
 ## Edge cases and limitations
 
-- Only names are searched, never documents or field names.
+- The sidebar filter and Go to collection search names only, never documents or fields.
+- Find on this page never searches beyond the loaded page. Long table cells are cut by the
+  column width, so a hit far into a cell may be hidden until the column is widened (the
+  counter still counts it, and the list view shows it).
 - Databases or collections created by other clients appear after a refresh (lists are cached
   for 60 s while filtering, like the tree).
 - A favorite appears twice (Favorites and its folder), as without the filter.
@@ -114,7 +146,12 @@ ConnectionSidebar ── SidebarFilterBox (store/filter.ts: input)
   keys and Esc, empty state, shortcut, the 100-database limit and its hint),
   `goto.test.ts` (order without a query, recent first, scores, `db.coll`),
   `GoToCollectionDialog.test.tsx` (Ctrl+P, results from two connections, Enter opens the tab,
-  recently opened group, nothing connected, no matches).
+  recently opened group, nothing connected, no matches), `documents/lib/find.test.ts`
+  (occurrences, list, JSON and table hits, array positions, paths to open),
+  `DocumentFind.test.tsx` (Ctrl+F, page-only note, nested fields open, Enter / Shift+Enter
+  wrap, no matches, Esc removes marks, JSON view from the toolbar, table cells).
 - Manual: connect to a server with a few databases, type part of a collection name, then
   `db.` plus part of a collection name; use ↓, Enter and Esc. Press Ctrl+P, type part of a
-  name, press Enter; open another collection and check that Ctrl+P lists it first.
+  name, press Enter; open another collection and check that Ctrl+P lists it first. In a
+  collection tab press Ctrl+F, type a value from a nested field and step through the hits in
+  all three views.
