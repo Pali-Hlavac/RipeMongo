@@ -55,6 +55,8 @@ const APP_COMMANDS: &[&str] = &[
     "inspect_dump",
     "start_restore",
     "start_export",
+    "inspect_import_file",
+    "start_import",
     "list_dump_profiles",
     "save_dump_profile",
     "delete_dump_profile",

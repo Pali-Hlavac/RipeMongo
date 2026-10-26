@@ -135,7 +135,7 @@ favorite summary wrapping, and history removal when a connection is deleted.
 - [x] Restore UI: drop before restore, `nsFrom`/`nsTo`, dry run (plus include/exclude, oplog replay; renames per database)
 - [x] Live progress, cancel, readable errors, copyable log, equivalent CLI command
 - [x] Saved dump profiles (one-click re-run, connects first)
-- [ ] JSON/CSV import and export per collection with field selection and type mapping
+- [x] JSON/CSV import and export per collection with field selection and type mapping (CSV/TSV with any delimiter read by RipeMongo and piped to mongoimport)
 - [ ] Copy collection/database between connections
 - [x] Measure installer size — ADR 0009 (Windows, with the tools: NSIS 21.4 MiB, MSI 28.6 MiB)
 
@@ -222,8 +222,20 @@ Decisions for M4 (details in ADRs 0009 and 0010 as they are written):
   the dump dialog. Found while probing mongoexport 100.19: `--sort` refuses canonical Extended
   JSON (`$numberInt`), JSON exports keep whole top-level fields for dotted names, missing
   folders are created.
-- Slice 5b next: import (JSON as is; CSV/TSV read by RipeMongo and piped to mongoimport with
-  typed columns, any delimiter, columns left out).
+- Slice 5b complete: import. `tools/import/` (`preview.rs` detects JSON, JSON arrays and
+  delimited text with its delimiter, columns, samples and suggested types from `columns.rs`;
+  `feed.rs` rewrites text as plain CSV without header, BOM or left-out columns;
+  `request.rs` builds typed `--fields`, parse grace, modes, drop; `ImportProgress` in file
+  bytes), `run_tool` can feed stdin (`Input`, `SyncIoBridge`), `inspect_import_file` +
+  `start_import`, `tests/import.rs`. Frontend `ImportDialog` (file, new collection name,
+  delimiter, header, column mapping, options, drop confirmed by typing) from the collection
+  and database menus and the documents toolbar; the catalog and documents reload after an
+  import. Found while probing mongoimport 100.19: `auto()` turns `01234` into 1234 and leaves
+  `true` and dates as strings, `date_ms` cannot parse a literal `T` (ISO dates use
+  `date_go`), stdin imports report only bytes consumed.
+- Next: one real-app pass over slice 5 (export from the menu and the toolbar with a query,
+  CSV with nested columns, import of a semicolon CSV with typed columns into a new
+  collection, merge and drop), then slice 6 (copy between connections).
 
 ### M5 — Aggregation
 

@@ -57,6 +57,8 @@
     "allow-inspect-dump",
     "allow-start-restore",
     "allow-start-export",
+    "allow-inspect-import-file",
+    "allow-start-import",
     "allow-list-dump-profiles",
     "allow-save-dump-profile",
     "allow-delete-dump-profile",

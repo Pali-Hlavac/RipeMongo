@@ -112,6 +112,13 @@ export const commands = {
 	startRestore: (connectionId: string, request: RestoreRequest) => typedError<JobInfo, AppError>(__TAURI_INVOKE("start_restore", { connectionId, request })),
 	/**  Starts `mongoexport` as a background job on an open connection. */
 	startExport: (connectionId: string, request: ExportRequest) => typedError<JobInfo, AppError>(__TAURI_INVOKE("start_export", { connectionId, request })),
+	/**
+	 *  Reads the start of a file to import: its format, and for delimited text the delimiter,
+	 *  columns, sample values and suggested types. `delimiter` overrides the detected one.
+	 */
+	inspectImportFile: (path: string, delimiter: string | null) => typedError<ImportPreview, AppError>(__TAURI_INVOKE("inspect_import_file", { path, delimiter })),
+	/**  Starts `mongoimport` as a background job on an open connection. */
+	startImport: (connectionId: string, request: ImportRequest) => typedError<JobInfo, AppError>(__TAURI_INVOKE("start_import", { connectionId, request })),
 	/**  Every saved dump whose connection still exists. */
 	listDumpProfiles: () => typedError<DumpProfile[], AppError>(__TAURI_INVOKE("list_dump_profiles")),
 	/**  Creates or updates a saved dump. */
@@ -203,6 +210,27 @@ export type CollectionStats = {
 	indexSize: number | null,
 	averageDocumentSize: number | null,
 };
+
+/**  The type a CSV column is imported as. */
+export type ColumnType = 
+/**  Numbers become numbers, everything else text (mongoimport's default). */
+"auto" | 
+/**  Always text, keeping leading zeros (`01234`). */
+"string" | "int32" | "int64" | "double" | 
+/**  Exact decimal (Decimal128). */
+"decimal" | 
+/**  `true`/`false` (also `1`/`0`, `t`/`f`). */
+"boolean" | 
+/**  ISO 8601 date-time with a time zone. */
+"isoDate" | 
+/**  ISO 8601 date-time without a time zone, read as UTC. */
+"isoLocalDate" | 
+/**  A date in a custom layout (`dd.MM.yyyy HH:mm`). */
+"date" | 
+/**  Binary data written in base64. */
+"base64" | 
+/**  Binary data written in hexadecimal. */
+"hex";
 
 /**  Color label shown next to a connection (e.g. red for production). */
 export type ConnectionColor = "red" | "orange" | "amber" | "green" | "teal" | "blue" | "purple" | "pink";
@@ -466,6 +494,73 @@ export type HostPort = {
 	port: number | null,
 };
 
+/**  One column of a CSV file. */
+export type ImportColumn = {
+	/**  Imported or left out. */
+	include: boolean,
+	/**  Field name in the documents; dots create nested documents (`address.city`). */
+	field: string,
+	type: ColumnType,
+	/**  Date layout for [`ColumnType::Date`], e.g. `dd.MM.yyyy`. */
+	dateFormat: string,
+};
+
+/**  Format of the file to import. */
+export type ImportFormat = 
+/**  One JSON document per line (or concatenated documents). */
+"json" | 
+/**  One JSON array of documents (`--jsonArray`). */
+"jsonArray" | 
+/**  Delimited text (comma, semicolon, tab, …), read by RipeMongo and passed on as CSV. */
+"csv";
+
+/**  What happens to documents that match existing ones. */
+export type ImportMode = 
+/**  Insert only; documents whose `_id` exists fail and are counted. */
+"insert" | 
+/**  Replace matching documents, insert the rest. */
+"upsert" | 
+/**  Update fields of matching documents, insert the rest. */
+"merge";
+
+/**  What the import dialog shows about a file. */
+export type ImportPreview = {
+	format: ImportFormat,
+	/**  File size in bytes. */
+	size: number | null,
+	/**  Text files: the detected (or chosen) delimiter. */
+	delimiter: string,
+	/**  Text files: every column found in the first rows. */
+	columns: PreviewColumn[],
+};
+
+/**  An import of one file into one collection. */
+export type ImportRequest = {
+	database: string,
+	/**  Created by the import when it does not exist. */
+	collection: string,
+	/**  Absolute path of the file. */
+	path: string,
+	format: ImportFormat,
+	/**  CSV: the single character between values. */
+	delimiter: string,
+	/**  CSV: the first line holds column names and is not imported. */
+	header: boolean,
+	/**  CSV: every column of the file, in order. */
+	columns: ImportColumn[],
+	/**  CSV: leave out fields whose value is empty (`--ignoreBlanks`). */
+	ignoreBlanks: boolean,
+	/**  CSV: values that do not fit their column type. */
+	parseErrors: ParseErrors,
+	mode: ImportMode,
+	/**  Fields that identify a matching document for upsert/merge; empty means `_id`. */
+	matchFields: string[],
+	/**  Drop the collection first (`--drop`). */
+	drop: boolean,
+	/**  Stop at the first document that fails (`--stopOnError`). */
+	stopOnError: boolean,
+};
+
 /**  Result of an import. */
 export type ImportSummary = {
 	imported: number,
@@ -538,6 +633,17 @@ export type NewView = {
 /**  Built-in OIDC machine-workflow providers supported by the driver. */
 export type OidcEnvironment = "azure" | "gcp" | "k8s";
 
+/**  What mongoimport does when a CSV value does not fit its column type (`--parseGrace`). */
+export type ParseErrors = 
+/**  Stop the import. */
+"stop" | 
+/**  Leave the field out of that document. */
+"skipField" | 
+/**  Leave the whole row out. */
+"skipRow" | 
+/**  Import the value as if the column type were automatic. */
+"autoCast";
+
 /**
  *  Result of parsing a pasted connection string. Secrets found in the URI (password,
  *  session token, key password) are returned separately so the UI can route them into the
@@ -546,6 +652,16 @@ export type OidcEnvironment = "azure" | "gcp" | "k8s";
 export type ParsedConnectionString = {
 	config: ConnectionConfig,
 	secrets: ConnectionSecrets,
+};
+
+/**  One column of a delimited text file. */
+export type PreviewColumn = {
+	/**  Value of the first row (the column name when the file has a header line). */
+	first: string,
+	/**  Values of the next rows. */
+	samples: string[],
+	/**  Type suggested from the values after the first row. */
+	suggestion: TypeSuggestion,
 };
 
 /**  What `done` and `total` count. */
@@ -695,6 +811,12 @@ export type ToolsInfo = {
 
 /**  Deployment shape as seen from the connected member. */
 export type TopologyKind = "standalone" | "replicaSet" | "sharded";
+
+/**  A suggested column type, with the date layout for [`ColumnType::Date`]. */
+export type TypeSuggestion = {
+	type: ColumnType,
+	dateFormat: string,
+};
 
 /**  Preview of an update-many: the match count and a few documents before and after. */
 export type UpdatePreview = {

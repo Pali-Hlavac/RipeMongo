@@ -1,6 +1,6 @@
-import { DownloadIcon, PlusIcon, RefreshCwIcon } from "lucide-react";
+import { DownloadIcon, PlusIcon, RefreshCwIcon, UploadIcon } from "lucide-react";
 
-import { useExportDialog } from "@/features/tools";
+import { useExportDialog, useImportDialog } from "@/features/tools";
 
 import { cn } from "@/shared/lib/cn";
 import { Button } from "@/shared/ui/button";
@@ -66,6 +66,18 @@ export function DocumentsToolbar({
           <Button variant="outline" size="sm" className="h-7" onClick={actions.insert}>
             <PlusIcon aria-hidden /> Insert
           </Button>
+          <Tooltip content="Import documents from a JSON or CSV file">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7"
+              onClick={() => {
+                useImportDialog.getState().open(target);
+              }}
+            >
+              <UploadIcon aria-hidden /> Import
+            </Button>
+          </Tooltip>
           <BulkActionsMenu target={target} filter={filter} />
         </>
       )}

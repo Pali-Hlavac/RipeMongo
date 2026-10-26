@@ -201,8 +201,8 @@ fn measures_folder_restores_in_bytes() {
         .line("finished restoring `copy.items` (300 documents, 0 failures)")
         .unwrap();
     assert_eq!(items.done, items.total.unwrap());
-    assert_eq!(progress::parse_size("1.5KB"), Some(1536.0));
-    assert_eq!(progress::parse_size("shop"), None);
+    assert_eq!(crate::tools::text::parse_size("1.5KB"), Some(1536.0));
+    assert_eq!(crate::tools::text::parse_size("shop"), None);
 }
 
 #[test]

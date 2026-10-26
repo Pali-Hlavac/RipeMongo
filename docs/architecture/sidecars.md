@@ -53,7 +53,7 @@ On Linux the tools link `libgssapi_krb5.so.2`; the `.deb` declares `libgssapi-kr
 
 ## Running
 
-`tools::tool_command` starts a binary with `tokio::process`: stdin closed, stdout/stderr
+`tools::tool_command` starts a binary with `tokio::process`: stdin closed (CSV imports pipe it), stdout/stderr
 piped, killed when dropped (job cancelled or app closed), and without a console window on
 Windows. The shell plugin is not used, so the webview has no permission to start processes.
 Credentials never appear on the command line (milestone 4, slice 2: a temporary `--config`

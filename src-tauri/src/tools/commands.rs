@@ -4,6 +4,10 @@ use tauri::State;
 
 use super::dump::{start_dump as start_dump_job, DumpRequest};
 use super::export::{start_export as start_export_job, ExportRequest};
+use super::import::{
+    inspect_import_file as inspect_file, start_import as start_import_job, ImportPreview,
+    ImportRequest,
+};
 use super::restore::{
     inspect_dump as inspect, start_restore as start_restore_job, DumpContents, RestoreRequest,
     RestoreSource,
@@ -85,4 +89,31 @@ pub async fn start_export(
 ) -> CommandResult<JobInfo> {
     let connection = manager.tool_connection(&connection_id).await?;
     Ok(start_export_job(&jobs, connection_id, connection, request)?)
+}
+
+/// Reads the start of a file to import: its format, and for delimited text the delimiter,
+/// columns, sample values and suggested types. `delimiter` overrides the detected one.
+#[tauri::command]
+#[specta::specta]
+pub async fn inspect_import_file(
+    path: String,
+    delimiter: Option<String>,
+) -> CommandResult<ImportPreview> {
+    tokio::task::spawn_blocking(move || inspect_file(&path, delimiter.as_deref()))
+        .await
+        .map_err(|error| AppError::new(ErrorCode::Internal, error.to_string()))?
+        .map_err(Into::into)
+}
+
+/// Starts `mongoimport` as a background job on an open connection.
+#[tauri::command]
+#[specta::specta]
+pub async fn start_import(
+    manager: State<'_, ConnectionManager>,
+    jobs: State<'_, JobRegistry>,
+    connection_id: String,
+    request: ImportRequest,
+) -> CommandResult<JobInfo> {
+    let connection = manager.tool_connection(&connection_id).await?;
+    Ok(start_import_job(&jobs, connection_id, connection, request)?)
 }

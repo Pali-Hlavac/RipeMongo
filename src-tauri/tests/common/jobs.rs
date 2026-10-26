@@ -1,5 +1,5 @@
-//! Helpers for tests that run tool jobs: a registry without UI events, dump, restore and
-//! export runners.
+//! Helpers for tests that run tool jobs: a registry without UI events, dump, restore, export
+//! and import runners.
 
 use std::sync::Arc;
 use std::time::Duration;
@@ -8,6 +8,7 @@ use ripemongo_lib::connections::ConnectionManager;
 use ripemongo_lib::jobs::{JobEvents, JobInfo, JobRegistry, JobStatus};
 use ripemongo_lib::tools::dump::{start_dump, DumpRequest};
 use ripemongo_lib::tools::export::{start_export, ExportRequest};
+use ripemongo_lib::tools::import::{start_import, ImportRequest};
 use ripemongo_lib::tools::restore::{inspect_dump, start_restore, RestoreRequest};
 use ripemongo_lib::tools::{locate, Tool};
 
@@ -99,5 +100,19 @@ pub async fn export(
     let started = start_export(jobs, id.to_owned(), connection, request).expect("export started");
     let command = started.command.expect("command");
     assert!(command.starts_with("mongoexport --uri="), "{command}");
+    finished(jobs, &started.id).await
+}
+
+/// Runs an import on an open connection to the end.
+pub async fn import(
+    manager: &ConnectionManager,
+    jobs: &JobRegistry,
+    id: &str,
+    request: ImportRequest,
+) -> JobInfo {
+    let connection = manager.tool_connection(id).await.expect("connection");
+    let started = start_import(jobs, id.to_owned(), connection, request).expect("import started");
+    let command = started.command.expect("command");
+    assert!(command.starts_with("mongoimport --uri="), "{command}");
     finished(jobs, &started.id).await
 }

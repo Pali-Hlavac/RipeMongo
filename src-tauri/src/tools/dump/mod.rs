@@ -58,6 +58,7 @@ pub fn start_dump(
             tool: Tool::Mongodump,
             args,
             credentials,
+            input: None,
         };
         run_tool(&ctx, invocation, &mut progress).await?;
         Ok(progress.summary(request.output.path()))

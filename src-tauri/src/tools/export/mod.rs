@@ -40,6 +40,7 @@ pub fn start_export(
             tool: Tool::Mongoexport,
             args,
             credentials,
+            input: None,
         };
         run_tool(&ctx, invocation, &mut progress).await?;
         Ok(progress.summary(request.path.trim()))

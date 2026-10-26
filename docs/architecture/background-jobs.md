@@ -39,6 +39,9 @@ connection string with credentials, see [security.md](security.md)) plus the job
 forwards stdout and stderr lines into the job log, feeds them (without the tools' timestamp
 prefix) to an `OutputParser` for progress, kills the process on cancel, and turns a non-zero
 exit into `"<tool> failed: <reason>"`, where the reason is the tool's own `Failed: …` line.
+An invocation may carry an `Input` closure (CSV imports): the tool then gets a piped stdin
+that the closure writes on a blocking thread (`SyncIoBridge`); a failure of the closure fails
+the job when the tool itself succeeded.
 
 `tools/dump/progress.rs` sums `mongodump`'s per-collection progress bars and
 `done dumping <ns> (<n> documents)` lines; the total is estimated beforehand from collection

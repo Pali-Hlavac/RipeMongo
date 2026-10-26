@@ -1,4 +1,4 @@
-# Tools: dump, restore, export (later import and copy)
+# Tools: dump, restore, export and import (later copy)
 
 ## What it does
 
@@ -78,7 +78,39 @@
   - Progress follows mongoexport's bar (documents done of the total); the summary is
     "Exported 1,204 documents to …".
 
-Planned next (M4): JSON/CSV import, and copying between connections.
+- **Import** a file with the bundled `mongoimport`: collection ⋯ → "Import from JSON or CSV…"
+  (not on views), **Import** in a writable documents tab's toolbar, or database ⋯ → "Import
+  into a new collection…" (name suggested from the file name). RipeMongo reads the file's
+  start first (`inspect_import_file`, up to 64 KiB for detection, 101 rows for columns):
+  - **JSON** (first character `{`) and **JSON arrays** (`[`, `--jsonArray`) go to mongoimport
+    as they are (`--file`); Extended JSON types are kept.
+  - **Delimited text** (anything else) is read by RipeMongo with the `csv` crate and passed on
+    as plain CSV on mongoimport's standard input (`tools/import/feed.rs`). That allows any
+    one-character delimiter (detected from the first line among `,` `;` tab `|`, `.tsv` →
+    tab; the user can switch), a UTF-8 byte order mark, skipping the header line while using
+    typed field names, and leaving columns out. mongoimport alone reads only commas or tabs
+    and cannot do the rest.
+  - **Columns**: per column "import" (tick), the **field name** (from the header line, or
+    `field1…`; a dot nests, `address.city`) and the **type** (`--columnsHaveTypes`): Automatic
+    (`auto()`), Text, Whole number 32/64-bit, Decimal number, Exact decimal, True/false, Date
+    ISO 8601 with zone (`date_go(2006-01-02T15:04:05Z07:00)`), Date ISO 8601 without zone
+    (read as UTC), Date in another format (`date_ms(dd.MM.yyyy)`), Binary base64/hex. Types
+    are suggested from the values: Text for numbers with leading zeros (zip codes), True/false
+    for `true`/`false`, the date types for `yyyy-MM-dd`, `yyyy-MM-dd HH:mm:ss`, `dd.MM.yyyy` and
+    ISO date-times; otherwise Automatic.
+  - **Values that do not fit their type** (`--parseGrace`): stop (default), leave the field
+    out, leave the row out, import as Automatic. **Leave out empty values**
+    (`--ignoreBlanks`).
+  - **Existing documents** (`--mode`): insert only (duplicates fail and are counted), replace
+    matching documents (upsert) or update their fields (merge), matched on `_id` or on typed
+    fields (`--upsertFields`). **Stop at the first failure** (`--stopOnError`). **Drop the
+    collection first** (`--drop`), confirmed by typing the collection name.
+  - Progress is measured in bytes of the file: mongoimport's own bar for JSON files, the bytes
+    RipeMongo has read for text files. The summary: "Imported 1,204 documents into
+    shop.people.", plus the documents that failed. When an import ends, the sidebar and that
+    connection's open documents reload.
+
+Planned next (M4): copying between connections.
 
 ## How it works
 
@@ -114,14 +146,23 @@ Planned next (M4): JSON/CSV import, and copying between connections.
    validates it (`ExportRequest::args`: absolute path, fields for CSV, no commas in field
    names, parsable filter and sort) and runs `mongoexport`; `ExportProgress` reads its bar
    and "exported N records".
+9. `ImportDialog` (store `useImportDialog`) reads the chosen path with `useImportPreview`
+   (`inspect_import_file`; a new delimiter reads it again). Column changes are kept as
+   `columnEdits` on top of the preview (`importColumns` merges them), so the preview stays
+   query data. `start_import` validates the request (`ImportRequest::args`: collection name,
+   absolute path, one-character delimiter, field names without `,` `(` `)` or a leading `$`,
+   unique, a date format for custom dates), and for text files hands `run_tool` an `Input`
+   closure: `run_tool` then pipes stdin and runs it on a blocking thread through
+   `SyncIoBridge`; closing the pipe ends the data. The first log line says what RipeMongo did
+   with the file; the displayed command ends with "< (the file's rows as CSV, see the log)".
 
 ## Key files
 
-| Area     | Files                                                                                                                                                                               |
-| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Backend  | `src-tauri/src/tools/{dump/,restore/,export/,run.rs,credentials.rs,display.rs,text.rs}`, `src-tauri/src/dump_profiles/`, `src-tauri/src/jobs/`, `src-tauri/src/documents/fields.rs` |
-| Frontend | `src/features/tools/` (dump, restore and export dialogs, saved dumps), `src/features/jobs/` (panel, events, log)                                                                    |
-| Tests    | `src-tauri/tests/{dump,restore,export}.rs`, `tools/*/tests.rs`, `dump_profiles/tests.rs`, `*Dialog.test.tsx`, `lib/*.test.ts`                                                       |
+| Area     | Files                                                                                                                                                                                       |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Backend  | `src-tauri/src/tools/{dump/,restore/,export/,import/,run.rs,credentials.rs,display.rs,text.rs}`, `src-tauri/src/dump_profiles/`, `src-tauri/src/jobs/`, `src-tauri/src/documents/fields.rs` |
+| Frontend | `src/features/tools/` (dump, restore, export and import dialogs, saved dumps), `src/features/jobs/` (panel, events, log)                                                                    |
+| Tests    | `src-tauri/tests/{dump,restore,export,import}.rs`, `tools/*/tests.rs`, `dump_profiles/tests.rs`, `*Dialog.test.tsx`, `lib/*.test.ts`                                                        |
 
 ## Edge cases and limitations
 
@@ -144,6 +185,12 @@ Planned next (M4): JSON/CSV import, and copying between connections.
 - Export: field names containing a comma cannot be chosen (`--fields` is comma-separated).
   Exports of views work; the sample of a very large view may hit the 10 second limit, in
   which case typed fields still work. A small export reports only its final count.
+- Import: a column type that does not fit stops the import by default with mongoimport's
+  reason ("could not parse token `x` to type int32"); documents before it are already in the
+  collection. Row numbers in mongoimport's messages count rows passed on (without the header).
+  Date layouts cannot contain a literal `T`; use the ISO 8601 types for those. Decimal commas
+  (`1,5`) are not converted. A text file that cannot be read halfway fails the job after
+  mongoimport has imported the rows before it. JSON files cannot leave fields out.
 - Authentication methods the tools do not support fail with their own message.
 - Jobs are not kept after the app quits; quitting stops running tools.
 
@@ -161,6 +208,10 @@ Planned next (M4): JSON/CSV import, and copying between connections.
   with filter, descending sort, skip, limit and fields; a pretty canonical array of a view; CSV
   with nested paths with and without the header; a created folder; a path that is a folder
   fails with the tool's reason.
+- `cargo test --test import` (Docker + `pnpm sidecars`): JSON lines with Extended JSON, the
+  same again (duplicates counted), drop, a JSON array merged into existing documents, a
+  semicolon file with a byte order mark using the suggested types, a nested renamed field and
+  a column left out, a type failure (stop) and skip-row, a 20,000-row file without header.
 - `cargo test tools::` arguments and scope rules, parsing (oplog lines, restore output, the
   archive prelude, dump folders), quoting;
   `cargo test dump_profiles::` the store; `cargo test jobs::` registry behavior.

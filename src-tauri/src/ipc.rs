@@ -81,6 +81,8 @@ pub fn builder() -> Builder<tauri::Wry> {
             tools::commands::inspect_dump,
             tools::commands::start_restore,
             tools::commands::start_export,
+            tools::commands::inspect_import_file,
+            tools::commands::start_import,
             dump_profiles::commands::list_dump_profiles,
             dump_profiles::commands::save_dump_profile,
             dump_profiles::commands::delete_dump_profile,

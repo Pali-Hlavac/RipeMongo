@@ -17,6 +17,7 @@ tauri-build = { version = "2", features = [] }
 argon2 = "0.5"
 base64 = "0.22"
 chacha20poly1305 = "0.10"
+csv = "1"
 flate2 = "1"
 futures-util = "0.3.34"
 keyring = "4"
@@ -33,7 +34,7 @@ tauri-specta = { version = "=2.0.0-rc.26", features = ["derive", "typescript"] }
 tempfile = "3.27.0"
 thiserror = "2"
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "io-util", "sync", "time", "process"] }
-tokio-util = "0.7"
+tokio-util = { version = "0.7", features = ["io-util"] }
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 uuid = { version = "1", features = ["v4"] }

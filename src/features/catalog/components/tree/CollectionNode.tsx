@@ -1,6 +1,7 @@
 import {
   ArchiveIcon,
   DownloadIcon,
+  UploadIcon,
   ClockIcon,
   EyeIcon,
   FilePlus2Icon,
@@ -10,7 +11,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import { useDumpDialog, useExportDialog } from "@/features/tools";
+import { useDumpDialog, useExportDialog, useImportDialog } from "@/features/tools";
 import { useTabsStore } from "@/features/workspace";
 import { cn } from "@/shared/lib/cn";
 import { formatCompactCount, formatCount } from "@/shared/lib/format";
@@ -129,6 +130,15 @@ export function CollectionNode({ connectionId, database, info, showCount }: Coll
           >
             <DownloadIcon aria-hidden /> Export to JSON or CSV…
           </DropdownMenuItem>
+          {kind !== "view" && (
+            <DropdownMenuItem
+              onSelect={() => {
+                useImportDialog.getState().open(target);
+              }}
+            >
+              <UploadIcon aria-hidden /> Import from JSON or CSV…
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem
             destructive

@@ -34,10 +34,11 @@ The document is copied as text that you can paste into a query or another tool.
 Click the circular arrow next to the view buttons to load the current page again, for example
 after another program changed the data.
 
-## Export
+## Export and import
 
 Click **Export** above the documents to save the documents you are looking at (with the filter
-and sort you applied) as a JSON or CSV file; see [Exporting and importing](import-export.md).
+and sort you applied) as a JSON or CSV file. Click **Import** to add documents from a file. See
+[Exporting and importing](import-export.md).
 
 ## Find specific documents
 

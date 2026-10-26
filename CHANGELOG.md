@@ -80,6 +80,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   file with the bundled `mongoexport`: JSON (one document per line or an array, indented,
   canonical types) or CSV (header line optional); fields chosen from a sample of the
   documents (nested paths become CSV columns); live progress and a summary.
+- Import (milestone 4): "Import from JSON or CSV…" in a collection's ⋯ menu, **Import** in the
+  documents toolbar and "Import into a new collection…" in a database's ⋯ menu load a file
+  with the bundled `mongoimport`. JSON files (one document per line or an array) are imported
+  as they are; text files with any delimiter (comma, semicolon, tab, …) and a header line are
+  read by RipeMongo, with columns to leave out, field names to change (dots nest) and a type
+  per column (text, numbers, decimals, true/false, dates in ISO or a custom format, binary),
+  suggested from the values. Insert, replace or update existing documents, drop the collection
+  first (confirmed by typing its name), what to do with values that do not fit their type;
+  live progress, a summary, and the sidebar and documents reload afterwards.
 - Saved dumps (milestone 4): save a dump's settings under a name and run it again with one
   click from "Saved dumps" (command palette or the connection's ⋯ menu); RipeMongo connects
   first if needed. Edit and delete them there; deleting a connection deletes its saved dumps.

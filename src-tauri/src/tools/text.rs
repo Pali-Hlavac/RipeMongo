@@ -1,9 +1,25 @@
-//! Text helpers shared by the tool output parsers: namespaces as the tools print them, and
-//! counts in job summaries ("1 document", "1,204 documents").
+//! Text helpers shared by the tool output parsers: namespaces as the tools print them, sizes
+//! in progress lines ("12.7MB") and counts in job summaries ("1 document", "1,204 documents").
+
+/// Size units in the tools' progress bars ("12.7MB"), largest first; powers of 1024.
+const SIZE_UNITS: [(&str, f64); 5] = [
+    ("TB", 1_099_511_627_776.0),
+    ("GB", 1_073_741_824.0),
+    ("MB", 1_048_576.0),
+    ("KB", 1024.0),
+    ("B", 1.0),
+];
 
 /// Recent tools quote names in messages (`` `shop.items` ``) but not in progress bars.
 pub fn clean_namespace(namespace: &str) -> &str {
     namespace.trim().trim_matches('`')
+}
+
+/// "12.7MB" → bytes. `None` for anything else.
+pub fn parse_size(text: &str) -> Option<f64> {
+    let (unit, factor) = SIZE_UNITS.iter().find(|(unit, _)| text.ends_with(unit))?;
+    let number: f64 = text.strip_suffix(unit)?.parse().ok()?;
+    number.is_finite().then_some(number * factor)
 }
 
 /// 1204 → "1,204".

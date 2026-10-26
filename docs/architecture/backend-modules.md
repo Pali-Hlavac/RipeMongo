@@ -137,7 +137,8 @@ Every domain module follows the same layout:
 
 - **Purpose:** the bundled MongoDB Database Tools. `locate` finds a binary (next to the app
   executable; in debug builds also `src-tauri/binaries/<tool>-<triple>`), `tool_command`
-  starts it (no stdin, piped output, killed on drop, no console window on Windows),
+  starts it (no stdin unless a job feeds one, piped output, killed on drop, no console window
+  on Windows),
   `tools_info` runs `--version` on each. `run.rs` runs a tool inside a job (log, progress
   parser, cancel → kill, `Failed: …` → error); `credentials.rs` writes the temporary
   `--config` file; `display.rs` renders the equivalent command; `dump/` validates the request
@@ -145,7 +146,11 @@ Every domain module follows the same layout:
   excluded collections and prefixes, parallelism), estimates totals and parses progress
   (including the oplog). `restore/` reads a dump (folder layout or archive prelude, gzip and
   oplog detection), builds `mongorestore` arguments (escaped `--nsExclude`, `--nsFrom/--nsTo`
-  per database, drop, dry run, oplog replay) and parses its output; `text.rs` formats counts.
+  per database, drop, dry run, oplog replay) and parses its output. `export/` builds
+  `mongoexport` arguments (JSON/CSV, fields, query, sort, skip, limit); `import/` reads a file
+  before import (`preview.rs`: format, delimiter, columns, suggested types from
+  `columns.rs`), builds `mongoimport` arguments with typed fields and feeds delimited text
+  through `feed.rs`. `text.rs` formats counts and parses sizes.
   See ADR 0009 and [sidecars.md](sidecars.md).
 - **Errors:** `ToolsError::Missing` → `NOT_FOUND` (hint: reinstall / `pnpm sidecars`),
   `Invalid` → `INVALID_INPUT`, `Credentials`/`Start` → `IO`; a failed run →

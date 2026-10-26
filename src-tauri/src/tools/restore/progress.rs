@@ -6,20 +6,12 @@ use std::collections::HashMap;
 
 use crate::jobs::{JobProgress, ProgressUnit};
 use crate::tools::run::OutputParser;
-use crate::tools::text::{clean_namespace as clean, count};
+use crate::tools::text::{clean_namespace as clean, count, parse_size};
 
 /// Collections named in a dry-run summary before "and N more".
 const LISTED_IN_SUMMARY: usize = 5;
 /// Dry runs list these too, but mongorestore never restores them as collections.
 const NOT_RESTORED: [&str; 1] = ["admin.system.version"];
-/// Size units in the tools' progress bars ("12.7MB"), largest first; powers of 1024.
-const SIZE_UNITS: [(&str, f64); 5] = [
-    ("TB", 1_099_511_627_776.0),
-    ("GB", 1_073_741_824.0),
-    ("MB", 1_048_576.0),
-    ("KB", 1024.0),
-    ("B", 1.0),
-];
 
 /// Progress of a restore. Folder dumps know each data file's size, so progress is measured in
 /// bytes read; archives give no sizes up front, so it falls back to documents restored.
@@ -187,11 +179,4 @@ impl OutputParser for RestoreProgress {
         }
         Some(self.progress())
     }
-}
-
-/// "12.7MB" → bytes. `None` for anything else.
-pub(super) fn parse_size(text: &str) -> Option<f64> {
-    let (unit, factor) = SIZE_UNITS.iter().find(|(unit, _)| text.ends_with(unit))?;
-    let number: f64 = text.strip_suffix(unit)?.parse().ok()?;
-    number.is_finite().then_some(number * factor)
 }

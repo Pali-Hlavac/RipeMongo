@@ -6,10 +6,11 @@ import {
   PlusIcon,
   RefreshCwIcon,
   Trash2Icon,
+  UploadIcon,
 } from "lucide-react";
 import { useId } from "react";
 
-import { useDumpDialog } from "@/features/tools";
+import { useDumpDialog, useImportDialog } from "@/features/tools";
 import { cn } from "@/shared/lib/cn";
 import { formatBytes } from "@/shared/lib/format";
 import { DropdownMenuItem, DropdownMenuSeparator } from "@/shared/ui/dropdown-menu";
@@ -82,6 +83,13 @@ export function DatabaseNode({ connectionId, info }: DatabaseNodeProps) {
             }}
           >
             <ArchiveIcon aria-hidden /> Dump database…
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onSelect={() => {
+              useImportDialog.getState().open({ connectionId, database: name, collection: null });
+            }}
+          >
+            <UploadIcon aria-hidden /> Import into a new collection…
           </DropdownMenuItem>
           <DropdownMenuItem
             onSelect={() => {
