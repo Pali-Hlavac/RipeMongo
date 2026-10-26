@@ -44,7 +44,7 @@ export function ImportColumnsField({ preview, values, error, onChange }: ImportC
           {included} of {columns.length} imported
         </span>
       </legend>
-      <ul className="grid max-h-72 gap-2 overflow-auto rounded-md border border-border p-2">
+      <ul className="grid gap-2 rounded-md border border-border p-2">
         {columns.map((column, index) => {
           const first = preview.columns[index]?.first.trim() ?? "";
           const name = first === "" ? `column ${index + 1}` : first;

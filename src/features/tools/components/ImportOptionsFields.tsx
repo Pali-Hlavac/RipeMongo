@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import type { ImportMode, ImportPreview, ParseErrors } from "@/shared/ipc/bindings";
 import { FormField } from "@/shared/ui/form-field";
 import { Checkbox, Input, NativeSelect } from "@/shared/ui/input";
@@ -29,14 +31,17 @@ interface ImportCsvFieldsProps {
   values: ImportFormValues;
   onDelimiterChange: (delimiter: string) => void;
   onChange: (patch: Partial<ImportFormValues>) => void;
+  /** The column mapping, shown right after the delimiter and header line. */
+  children: ReactNode;
 }
 
-/** How a text file is read: delimiter, header line, empty values and type errors. */
+/** How a text file is read: delimiter, header line, columns, empty values and type errors. */
 export function ImportCsvFields({
   preview,
   values,
   onDelimiterChange,
   onChange,
+  children,
 }: ImportCsvFieldsProps) {
   const delimiters =
     preview.delimiter in DELIMITERS
@@ -71,6 +76,7 @@ export function ImportCsvFields({
           }}
         />
       </div>
+      {children}
       <Checkbox
         label="Leave out fields whose value is empty"
         checked={values.ignoreBlanks}

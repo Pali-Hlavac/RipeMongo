@@ -156,13 +156,14 @@ function ImportForm({ target, onDone }: { target: ImportTarget; onDone: () => vo
                 change({ columnEdits: {} });
               }}
               onChange={change}
-            />
-            <ImportColumnsField
-              preview={preview.data}
-              values={values}
-              error={errors.columns ?? null}
-              onChange={change}
-            />
+            >
+              <ImportColumnsField
+                preview={preview.data}
+                values={values}
+                error={errors.columns ?? null}
+                onChange={change}
+              />
+            </ImportCsvFields>
           </>
         )}
         {preview.data && <ImportOptionsFields values={values} onChange={change} />}

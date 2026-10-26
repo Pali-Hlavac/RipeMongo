@@ -233,9 +233,17 @@ Decisions for M4 (details in ADRs 0009 and 0010 as they are written):
   import. Found while probing mongoimport 100.19: `auto()` turns `01234` into 1234 and leaves
   `true` and dates as strings, `date_ms` cannot parse a literal `T` (ISO dates use
   `date_go`), stdin imports report only bytes consumed.
-- Next: one real-app pass over slice 5 (export from the menu and the toolbar with a query,
-  CSV with nested columns, import of a semicolon CSV with typed columns into a new
-  collection, merge and drop), then slice 6 (copy between connections).
+- Verified in the real app (2026-10-26, MongoDB 8 in Docker): CSV export from the collection
+  menu with a non-ASCII filter, descending sort, limit, nested columns and `_id` left out;
+  toolbar export carrying the tab's applied filter into an indented JSON array without one
+  field; import of a semicolon CSV with a byte order mark into a new collection (name from
+  the file, suggested Text/date/true-false types, a renamed nested field, Decimal128, a
+  column left out); merge of a JSON file on `email` (the open tab and sidebar reloaded);
+  drop and import behind typing the collection name, with a type failure reported in
+  mongoimport's words. Fixed there: the column list scrolled inside the scrolling import
+  dialog (about four columns visible) and sat after the value options; it now follows the
+  delimiter and header line and the dialog scrolls once.
+- Slice 6 next: copy a collection or database between connections.
 
 ### M5 — Aggregation
 
