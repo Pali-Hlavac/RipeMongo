@@ -1,4 +1,6 @@
-import { PlusIcon, RefreshCwIcon } from "lucide-react";
+import { DownloadIcon, PlusIcon, RefreshCwIcon } from "lucide-react";
+
+import { useExportDialog } from "@/features/tools";
 
 import { cn } from "@/shared/lib/cn";
 import { Button } from "@/shared/ui/button";
@@ -67,6 +69,21 @@ export function DocumentsToolbar({
           <BulkActionsMenu target={target} filter={filter} />
         </>
       )}
+      <Tooltip content="Export the documents matching the applied query to JSON or CSV">
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-7"
+          onClick={() => {
+            const { filter, sort, skip, limit, projection } = state.query;
+            useExportDialog
+              .getState()
+              .open({ ...target, query: { filter, sort, skip, limit, projection } });
+          }}
+        >
+          <DownloadIcon aria-hidden /> Export
+        </Button>
+      </Tooltip>
       <div className="ml-auto">
         <Pager
           skip={state.skip}

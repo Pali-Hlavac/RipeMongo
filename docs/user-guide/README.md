@@ -19,12 +19,13 @@ are not available yet are listed at the bottom.
   update and delete many at once
 - [Backing up and restoring](backups.md): save a server, database or collection, run saved
   dumps again, restore a dump, follow the progress
+- [Exporting and importing](import-export.md): save a collection as a JSON or CSV file
 - [Keyboard shortcuts](keyboard-shortcuts.md)
 
 ## Coming later
 
 Aggregations, indexes, schema analysis,
-performance monitoring, restore, and import/export are being built. See the
+performance monitoring, importing files and copying between connections are being built. See the
 [roadmap](../roadmap.md) for the plan.
 
 ## Getting help

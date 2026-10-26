@@ -3,6 +3,7 @@
 use tauri::State;
 
 use super::dump::{start_dump as start_dump_job, DumpRequest};
+use super::export::{start_export as start_export_job, ExportRequest};
 use super::restore::{
     inspect_dump as inspect, start_restore as start_restore_job, DumpContents, RestoreRequest,
     RestoreSource,
@@ -71,4 +72,17 @@ pub async fn start_restore(
         request,
         &contents,
     )?)
+}
+
+/// Starts `mongoexport` as a background job on an open connection.
+#[tauri::command]
+#[specta::specta]
+pub async fn start_export(
+    manager: State<'_, ConnectionManager>,
+    jobs: State<'_, JobRegistry>,
+    connection_id: String,
+    request: ExportRequest,
+) -> CommandResult<JobInfo> {
+    let connection = manager.tool_connection(&connection_id).await?;
+    Ok(start_export_job(&jobs, connection_id, connection, request)?)
 }

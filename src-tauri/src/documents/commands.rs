@@ -3,7 +3,8 @@
 use tauri::State;
 
 use super::{
-    DeletePreview, DocumentCount, FieldEdit, FindPage, FindRequest, UpdatePreview, UpdateSummary,
+    DeletePreview, DocumentCount, FieldEdit, FieldSample, FindPage, FindRequest, UpdatePreview,
+    UpdateSummary,
 };
 use crate::connections::ConnectionManager;
 use crate::error::CommandResult;
@@ -36,6 +37,19 @@ pub async fn count_documents(
 ) -> CommandResult<DocumentCount> {
     let db = mongo::database(&manager, &connection_id, &database).await?;
     Ok(super::count_documents(&db, &collection, &filter, max_time_ms).await?)
+}
+
+/// Field names and dotted paths found in a random sample of documents.
+#[tauri::command]
+#[specta::specta]
+pub async fn sample_fields(
+    manager: State<'_, ConnectionManager>,
+    connection_id: String,
+    database: String,
+    collection: String,
+) -> CommandResult<FieldSample> {
+    let db = mongo::database(&manager, &connection_id, &database).await?;
+    Ok(super::sample_fields(&db, &collection).await?)
 }
 
 /// Inserts one document or an array of documents; returns how many were inserted.

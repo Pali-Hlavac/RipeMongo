@@ -75,6 +75,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   dumps and collections at a time; folder restores show the data read out of the total; the
   summary counts restored and failed documents, and the sidebar reloads afterwards.
 - Tab shortcuts (Ctrl+Tab, Ctrl+Shift+Tab, Ctrl/Cmd+W) are ignored while a dialog is open.
+- Export (milestone 4): "Export to JSON or CSV…" in a collection's or view's ⋯ menu, and
+  **Export** in the documents toolbar (with the tab's filter, sort, skip and limit), write a
+  file with the bundled `mongoexport`: JSON (one document per line or an array, indented,
+  canonical types) or CSV (header line optional); fields chosen from a sample of the
+  documents (nested paths become CSV columns); live progress and a summary.
 - Saved dumps (milestone 4): save a dump's settings under a name and run it again with one
   click from "Saved dumps" (command palette or the connection's ⋯ menu); RipeMongo connects
   first if needed. Edit and delete them there; deleting a connection deletes its saved dumps.

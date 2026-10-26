@@ -1,4 +1,4 @@
-# Tools: dump and restore (later import, export, copy)
+# Tools: dump, restore, export (later import and copy)
 
 ## What it does
 
@@ -57,7 +57,28 @@
     collections.", plus replayed oplog entries and documents that failed (duplicates).
   - When a restore ends, the sidebar reloads that connection's databases and collections.
 
-Planned next (M4): JSON/CSV import and export, and copying between connections.
+- **Export** a collection or view to a file with the bundled `mongoexport`: collection ⋯ →
+  "Export to JSON or CSV…", or **Export** in a documents tab's toolbar, which carries the tab's
+  applied filter, sort, skip and limit (not its projection; a note says so).
+  - **JSON** (Extended JSON, relaxed by default): one document per line or one array
+    (`--jsonArray`), indented (`--pretty`), canonical types (`--jsonFormat=canonical`).
+  - **CSV**: the ticked fields become columns (`--type=csv --fields`); field names as the first
+    line unless switched off (`--noHeaderLine`). Arrays and nested documents are written as
+    JSON, `ObjectId` as `ObjectId(…)`, dates in ISO 8601.
+  - **Fields**: a checklist from a random sample of up to 1,000 documents (`sample_fields`,
+    `$sample`, 10 s limit). JSON lists top-level fields (mongoexport keeps whole top-level
+    fields in JSON even for a dotted name); CSV lists dotted paths with nested documents
+    expanded (up to 4 levels). With every JSON field ticked the export has no `--fields` at
+    all, so fields the sample missed are kept. "Other fields" adds names the sample did not
+    find.
+  - **Query**: filter and sort in the documents syntax (filter passed as canonical Extended
+    JSON, sort as relaxed JSON because `--sort` refuses `$numberInt`), skip and limit.
+  - The file comes from a native save dialog (`orders.json` / `orders.csv` suggested; the
+    extension follows the format). Missing folders are created.
+  - Progress follows mongoexport's bar (documents done of the total); the summary is
+    "Exported 1,204 documents to …".
+
+Planned next (M4): JSON/CSV import, and copying between connections.
 
 ## How it works
 
@@ -87,14 +108,20 @@ Planned next (M4): JSON/CSV import and export, and copying between connections.
    and keep errors and buttons in a fixed footer (`<Button form={formId}>`).
 7. `useJobEvents(onFinished)` lets the app react to finished jobs: `App` reloads the catalog
    of the restore's connection.
+8. `ExportDialog` (store `useExportDialog`, `store/transfer.ts`) samples fields with
+   `useSampledFields`, keeps the form in `ExportFormValues` (unticked fields, so everything
+   starts ticked) and builds an `ExportRequest` with `buildExportRequest`. `start_export`
+   validates it (`ExportRequest::args`: absolute path, fields for CSV, no commas in field
+   names, parsable filter and sort) and runs `mongoexport`; `ExportProgress` reads its bar
+   and "exported N records".
 
 ## Key files
 
-| Area     | Files                                                                                                                                                                       |
-| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Backend  | `src-tauri/src/tools/{dump/,restore/,run.rs,credentials.rs,display.rs,text.rs}`, `src-tauri/src/dump_profiles/`, `src-tauri/src/jobs/`                                      |
-| Frontend | `src/features/tools/` (dump and restore dialogs, saved dumps), `src/features/jobs/` (panel, events, log)                                                                    |
-| Tests    | `src-tauri/tests/{dump,restore}.rs`, `dump/args.rs`, `restore/*.rs`, `dump_profiles/tests.rs`, `DumpDialog.test.tsx`, `RestoreDialog.test.tsx`, `SavedDumpsDialog.test.tsx` |
+| Area     | Files                                                                                                                                                                               |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Backend  | `src-tauri/src/tools/{dump/,restore/,export/,run.rs,credentials.rs,display.rs,text.rs}`, `src-tauri/src/dump_profiles/`, `src-tauri/src/jobs/`, `src-tauri/src/documents/fields.rs` |
+| Frontend | `src/features/tools/` (dump, restore and export dialogs, saved dumps), `src/features/jobs/` (panel, events, log)                                                                    |
+| Tests    | `src-tauri/tests/{dump,restore,export}.rs`, `tools/*/tests.rs`, `dump_profiles/tests.rs`, `*Dialog.test.tsx`, `lib/*.test.ts`                                                       |
 
 ## Edge cases and limitations
 
@@ -114,6 +141,9 @@ Planned next (M4): JSON/CSV import and export, and copying between connections.
   existing documents with the same `_id`.
 - Restoring from an archive has no total in advance, so its bar is indeterminate; the
   collection in progress and the size read so far move.
+- Export: field names containing a comma cannot be chosen (`--fields` is comma-separated).
+  Exports of views work; the sample of a very large view may hit the 10 second limit, in
+  which case typed fields still work. A small export reports only its final count.
 - Authentication methods the tools do not support fail with their own message.
 - Jobs are not kept after the app quits; quitting stops running tools.
 
@@ -127,6 +157,10 @@ Planned next (M4): JSON/CSV import and export, and copying between connections.
   dumps (collections, a view, the oplog), restores into another database without one
   collection, again with duplicates reported, with drop, a dry run, and a point-in-time
   restore with oplog replay.
+- `cargo test --test export` (Docker + `pnpm sidecars`): sampled fields and paths; JSON lines
+  with filter, descending sort, skip, limit and fields; a pretty canonical array of a view; CSV
+  with nested paths with and without the header; a created folder; a path that is a folder
+  fails with the tool's reason.
 - `cargo test tools::` arguments and scope rules, parsing (oplog lines, restore output, the
   archive prelude, dump folders), quoting;
   `cargo test dump_profiles::` the store; `cargo test jobs::` registry behavior.

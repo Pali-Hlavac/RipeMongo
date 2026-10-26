@@ -68,6 +68,8 @@ export const commands = {
 	findDocuments: (connectionId: string, database: string, collection: string, request: FindRequest) => typedError<FindPage, AppError>(__TAURI_INVOKE("find_documents", { connectionId, database, collection, request })),
 	/**  Number of documents matching a filter (estimated when the filter is empty). */
 	countDocuments: (connectionId: string, database: string, collection: string, filter: string, maxTimeMs: number | null) => typedError<DocumentCount, AppError>(__TAURI_INVOKE("count_documents", { connectionId, database, collection, filter, maxTimeMs })),
+	/**  Field names and dotted paths found in a random sample of documents. */
+	sampleFields: (connectionId: string, database: string, collection: string) => typedError<FieldSample, AppError>(__TAURI_INVOKE("sample_fields", { connectionId, database, collection })),
 	/**  Recent and favorite queries of a collection. */
 	listQueries: (connectionId: string, database: string, collection: string) => typedError<CollectionQueries, AppError>(__TAURI_INVOKE("list_queries", { connectionId, database, collection })),
 	/**  Remembers a query that ran successfully. */
@@ -108,6 +110,8 @@ export const commands = {
 	inspectDump: (source: RestoreSource) => typedError<DumpContents, AppError>(__TAURI_INVOKE("inspect_dump", { source })),
 	/**  Starts `mongorestore` as a background job on an open connection. */
 	startRestore: (connectionId: string, request: RestoreRequest) => typedError<JobInfo, AppError>(__TAURI_INVOKE("start_restore", { connectionId, request })),
+	/**  Starts `mongoexport` as a background job on an open connection. */
+	startExport: (connectionId: string, request: ExportRequest) => typedError<JobInfo, AppError>(__TAURI_INVOKE("start_export", { connectionId, request })),
 	/**  Every saved dump whose connection still exists. */
 	listDumpProfiles: () => typedError<DumpProfile[], AppError>(__TAURI_INVOKE("list_dump_profiles")),
 	/**  Creates or updates a saved dump. */
@@ -374,6 +378,39 @@ export type ErrorCode =
 /**  The data changed since it was loaded; reload before trying again. */
 "CONFLICT";
 
+/**  File format of an export. */
+export type ExportFormat = 
+/**  Extended JSON, one document per line or a JSON array. */
+"json" | 
+/**  Comma-separated values with the chosen fields as columns. */
+"csv";
+
+/**  An export of one collection (or view) to a file. Options of the other format are ignored. */
+export type ExportRequest = {
+	database: string,
+	collection: string,
+	/**  Absolute path of the file to write. */
+	path: string,
+	format: ExportFormat,
+	/**  Fields to export (`--fields`); empty exports whole documents (JSON only). */
+	fields: string[],
+	/**  JSON: one array instead of one document per line (`--jsonArray`). */
+	jsonArray: boolean,
+	/**  JSON: indented (`--pretty`). */
+	pretty: boolean,
+	/**  JSON: canonical Extended JSON that keeps every type (`--jsonFormat=canonical`). */
+	canonical: boolean,
+	/**  CSV: field names as the first line (otherwise `--noHeaderLine`). */
+	header: boolean,
+	/**  Filter in the documents filter syntax; blank exports every document. */
+	query: string | null,
+	/**  Sort in the documents sort syntax. */
+	sort: string | null,
+	skip: number | null,
+	/**  Most documents to export; `None` or 0 exports all. */
+	limit: number | null,
+};
+
 /**
  *  An inline edit of one field. Values are shell syntax / Extended JSON; `original_value`
  *  guards against overwriting a change made since the document was loaded.
@@ -385,6 +422,17 @@ export type FieldEdit = {
 	path: string,
 	originalValue: string,
 	value: string,
+};
+
+/**  Fields of sampled documents, in the order they were first seen (`_id` first). */
+export type FieldSample = {
+	/**  Top-level field names. */
+	fields: string[],
+	/**
+	 *  Dotted paths to values, nested documents expanded (`address.city`); an array is one
+	 *  value.
+	 */
+	paths: string[],
 };
 
 /**  A page of documents. */

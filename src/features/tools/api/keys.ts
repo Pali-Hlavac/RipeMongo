@@ -8,4 +8,6 @@ export const toolsKeys = {
     [...toolsKeys.all, "collections", connectionId, database] as const,
   dumpContents: (source: RestoreSource | null) =>
     [...toolsKeys.all, "dump-contents", source] as const,
+  fields: (connectionId: string, database: string, collection: string) =>
+    [...toolsKeys.all, "fields", connectionId, database, collection] as const,
 };

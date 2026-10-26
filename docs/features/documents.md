@@ -44,6 +44,8 @@
   shown. While a projection is applied, whole-document edit and clone are disabled because the
   hidden fields would be lost; inline field edits and delete stay available.
 
+- **Export** (toolbar, also on views): opens the tools feature's export dialog with the tab's
+  applied filter, sort, skip and limit ([tools.md](tools.md)).
 - **Bulk update / delete** (toolbar "Bulk" menu, writable collections only): starts from the
   tab's applied filter.
   - **Update documents**: an update in shell syntax, either operators (`{ $set: … }`,

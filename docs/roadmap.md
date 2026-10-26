@@ -214,8 +214,16 @@ Decisions for M4 (details in ADRs 0009 and 0010 as they are written):
   databases showed an empty checkbox; prefix-matched collections looked included; the sidebar
   now reloads after a restore; tab shortcuts (Ctrl+Tab, Ctrl+W) no longer act behind open
   dialogs; the delete-connection text mentions saved queries and dumps.
-- Slice 5 next: JSON/CSV export and import per collection with field selection and type
-  mapping.
+- Slice 5a complete: export. `documents/fields.rs` (`sample_fields`: top-level fields and
+  dotted paths from `$sample` of 1,000), `tools/export/` (`ExportRequest` → `mongoexport`
+  arguments, `ExportProgress`), `start_export`, `tests/export.rs`. Frontend `ExportDialog`
+  (format, file, field checklist, JSON/CSV options, query) from the collection ⋯ menu and the
+  documents toolbar (carries the applied query); `SegmentedField` and `PathField` shared with
+  the dump dialog. Found while probing mongoexport 100.19: `--sort` refuses canonical Extended
+  JSON (`$numberInt`), JSON exports keep whole top-level fields for dotted names, missing
+  folders are created.
+- Slice 5b next: import (JSON as is; CSV/TSV read by RipeMongo and piped to mongoimport with
+  typed columns, any delimiter, columns left out).
 
 ### M5 — Aggregation
 
