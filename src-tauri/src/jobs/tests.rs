@@ -132,3 +132,20 @@ async fn long_logs_keep_the_latest_lines() {
     assert_eq!(log.len(), 10_000);
     assert_eq!(log[0], "line 5");
 }
+
+#[tokio::test]
+async fn a_flood_of_lines_is_published_in_part() {
+    let (jobs, recorded) = registry();
+    let started = jobs.start(spec(), |ctx| async move {
+        for index in 0..10_005 {
+            ctx.log(&format!("line {index}"));
+        }
+        Ok(String::new())
+    });
+    finished(&jobs, &started.id).await;
+    // The lines arrive between two flushes: only the newest are published, after a note.
+    let lines = recorded.lines.lock().unwrap();
+    assert_eq!(lines.len(), state::MAX_PENDING_LINES + 1);
+    assert!(lines[0].starts_with("… 9505 more lines"), "{}", lines[0]);
+    assert_eq!(lines.last().map(String::as_str), Some("line 10004"));
+}

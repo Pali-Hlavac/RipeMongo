@@ -112,7 +112,9 @@
     `bypassDocumentValidation` privilege.
   - Progress is measured in bytes of the file: mongoimport's own bar for JSON files, the bytes
     RipeMongo has read for text files. The summary: "Imported 1,204 documents into
-    shop.people.", plus the documents that failed. When an import ends, the sidebar and that
+    shop.people.", plus the documents that failed and why, counted from mongoimport's
+    "continuing through error" lines: already existing (E11000, same `_id` or unique key) or
+    breaking the validation rules; other reasons point to the log. When an import ends, the sidebar and that
     connection's open documents reload.
 
 - **Copy** a database or collection into another saved connection, or into the same one

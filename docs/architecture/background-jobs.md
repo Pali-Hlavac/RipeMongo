@@ -27,7 +27,11 @@ Inside, `jobs.start(spec, |ctx| async move { … })` runs the work on tokio. The
 `Ok(summary)` or `Err(AppError)`.
 
 - **Throttling:** a flusher task publishes pending changes every 200 ms (`JobUpdated` with the
-  full snapshot, `JobLogged` with the new lines).
+  full snapshot, `JobLogged` with the new lines). At most 500 lines go out per flush, the
+  newest, after a note how many were left out: a tool can print a line per failing document
+  (a million duplicates flooded the webview until it missed the final update). The log keeps
+  them as usual, and the frontend reloads it when the job ends. While a job runs, the
+  frontend also refetches the job list every 5 seconds in case an event was lost.
 - **Limits:** 10,000 log lines per job (oldest dropped), 2,000 characters per line, 50 finished
   jobs kept.
 - **Statuses:** `running` → `succeeded` | `failed` (with `AppError`) | `cancelled`.

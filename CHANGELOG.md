@@ -108,6 +108,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   summary or readable error at the end, the full tool log and the equivalent command (both
   copyable); a Jobs button in the status bar and a toast when a job ends; ADR 0010.
 
+### Fixed
+
+- A tool that prints a line per failing document (for example a million duplicates in an
+  import) no longer floods the window: the live log shows the newest lines with a note how
+  many were left out, the full log loads when the job ends, and the job list refreshes while
+  jobs run, so a job no longer looks stuck as running.
+- An import's summary says why documents failed (they already exist, or break the
+  validation rules) instead of always suggesting duplicates.
+
 ### Security
 
 - Connection secrets are stored only in the OS keychain and never sent back to the webview;

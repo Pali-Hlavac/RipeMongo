@@ -108,7 +108,7 @@ async fn imports_json_and_typed_csv() {
     ));
     let summary = succeeded(&jobs, import(&manager, &jobs, &id, json.clone()).await);
     assert!(
-        summary.contains("2 documents could not be imported"),
+        summary.contains("2 documents could not be imported: 2 already exist"),
         "{summary}"
     );
     let mut dropped = json;
@@ -174,11 +174,17 @@ async fn imports_json_and_typed_csv() {
     std::fs::write(&mixed, "{\"_id\":1,\"email\":\"a@x\"}\n{\"_id\":2}\n").unwrap();
     let checked = request("checked", &mixed, ImportFormat::Json);
     let summary = succeeded(&jobs, import(&manager, &jobs, &id, checked.clone()).await);
-    assert!(summary.starts_with("Imported 1 document into"), "{summary}");
+    assert!(
+        summary.ends_with("1 breaks the validation rules."),
+        "{summary}"
+    );
     let mut bypass = checked;
     bypass.bypass_validation = true;
     let summary = succeeded(&jobs, import(&manager, &jobs, &id, bypass).await);
-    assert!(summary.starts_with("Imported 1 document into"), "{summary}");
+    assert!(
+        summary.ends_with("1 already exists (same _id or unique key)."),
+        "{summary}"
+    );
     find(&database, "checked", doc! { "_id": 2 }).await;
 
     // A large comma-separated file without a header is streamed to the end by several workers.

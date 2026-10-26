@@ -73,7 +73,8 @@ impl JobRegistry {
             Entry {
                 info: info.clone(),
                 log: VecDeque::new(),
-                pending: Vec::new(),
+                pending: VecDeque::new(),
+                skipped: 0,
                 dirty: false,
                 cancel: cancel.clone(),
             },

@@ -1,13 +1,17 @@
 //! Reads `mongoimport` output: its progress bar for files (`[##...] shop.items\t14.8MB/200MB
 //! (7.4%)`), the bytes read so far when RipeMongo feeds a CSV file itself, and the final
-//! "N document(s) imported successfully. M document(s) failed to import.".
+//! "N document(s) imported successfully. M document(s) failed to import.", with the reasons
+//! of failed documents counted from "continuing through error: …" lines.
 
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 
 use crate::jobs::{JobProgress, ProgressUnit};
 use crate::tools::run::OutputParser;
-use crate::tools::text::{clean_namespace as clean, count, parse_size};
+use crate::tools::text::{clean_namespace as clean, count, parse_size, thousands};
+
+/// mongoimport's prefix for a document that failed while the import goes on.
+const CONTINUING_PREFIX: &str = "continuing through error: ";
 
 /// Progress of an import, measured in bytes of the file.
 pub struct ImportProgress {
@@ -17,6 +21,10 @@ pub struct ImportProgress {
     fed: Option<Arc<AtomicU64>>,
     imported: Option<f64>,
     failed: f64,
+    /// Failures because the `_id` or another unique key already exists (E11000).
+    duplicates: f64,
+    /// Failures because of the collection's validation rules.
+    invalid: f64,
     message: Option<String>,
 }
 
@@ -29,6 +37,8 @@ impl ImportProgress {
             fed,
             imported: None,
             failed: 0.0,
+            duplicates: 0.0,
+            invalid: 0.0,
             message: None,
         }
     }
@@ -40,10 +50,41 @@ impl ImportProgress {
         if self.failed > 0.0 {
             let failed = count(self.failed, "document", "documents");
             summary.push_str(&format!(
-                " {failed} could not be imported (for example duplicates); the log says why."
+                " {failed} could not be imported{}",
+                self.reasons()
             ));
         }
         summary
+    }
+
+    /// ": 3 already exist (same _id or unique key), 1 breaks the validation rules." or, for
+    /// failures without a known reason, "; the log says why."
+    fn reasons(&self) -> String {
+        let duplicates = self.duplicates.min(self.failed);
+        let invalid = self.invalid.min(self.failed - duplicates);
+        let mut reasons = Vec::new();
+        // "1 already exists" but "2 already exist".
+        let verb = |number: f64, one: &str, many: &str| {
+            let form = if (number - 1.0).abs() < f64::EPSILON {
+                one
+            } else {
+                many
+            };
+            format!("{} {form}", thousands(number))
+        };
+        if duplicates > 0.0 {
+            let exist = verb(duplicates, "already exists", "already exist");
+            reasons.push(format!("{exist} (same _id or unique key)"));
+        }
+        if invalid > 0.0 {
+            reasons.push(verb(invalid, "breaks", "break") + " the validation rules");
+        }
+        let unexplained = self.failed - duplicates - invalid > 0.0;
+        match (reasons.is_empty(), unexplained) {
+            (true, _) => "; the log says why.".to_owned(),
+            (false, false) => format!(": {}.", reasons.join(", ")),
+            (false, true) => format!(": {}; the log says why for the rest.", reasons.join(", ")),
+        }
     }
 
     fn progress(&self) -> JobProgress {
@@ -63,6 +104,13 @@ impl OutputParser for ImportProgress {
             #[allow(clippy::cast_precision_loss)]
             {
                 self.done = fed.load(Ordering::Relaxed) as f64;
+            }
+        }
+        if let Some(reason) = line.strip_prefix(CONTINUING_PREFIX) {
+            if reason.contains("E11000") {
+                self.duplicates += 1.0;
+            } else if reason.contains("failed validation") {
+                self.invalid += 1.0;
             }
         }
         if let Some(rest) = line.strip_prefix("dropping: ") {
@@ -112,9 +160,33 @@ mod tests {
         assert_eq!(end.done, end.total.unwrap());
         assert_eq!(
             progress.summary("imp.big"),
-            "Imported 4,998 documents into imp.big. 2 documents could not be imported (for \
-             example duplicates); the log says why."
+            "Imported 4,998 documents into imp.big. 2 documents could not be imported; the log \
+             says why."
         );
+    }
+
+    #[test]
+    fn names_the_reasons_documents_failed() {
+        let mut progress = ImportProgress::new(100.0, None);
+        let duplicate = "continuing through error: E11000 duplicate key error collection: \
+                         shop.people index: _id_ dup key: { _id: 1 }";
+        for _ in 0..1_500 {
+            progress.line(duplicate);
+        }
+        progress.line("continuing through error: Document failed validation");
+        progress.line("continuing through error: something else");
+        progress.line("0 document(s) imported successfully. 1502 document(s) failed to import.");
+        assert_eq!(
+            progress.summary("shop.people"),
+            "Imported 0 documents into shop.people. 1,502 documents could not be imported: \
+             1,500 already exist (same _id or unique key), 1 breaks the validation rules; the \
+             log says why for the rest."
+        );
+        progress.line("0 document(s) imported successfully. 1 document(s) failed to import.");
+        assert!(progress.summary("x").ends_with(
+            "could not be imported: 1 already exists (same \
+             _id or unique key)."
+        ));
     }
 
     #[test]

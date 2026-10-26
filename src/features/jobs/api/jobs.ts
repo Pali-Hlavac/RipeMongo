@@ -10,12 +10,17 @@ export const jobKeys = {
   log: (jobId: string) => [...jobKeys.all, "log", jobId] as const,
 };
 
-/** Every job of this session, newest first; kept current by events, never refetched. */
+/** While a job runs, the list is also refetched this often in case an event was missed. */
+const RUNNING_REFETCH_MS = 5_000;
+
+/** Every job of this session, newest first; kept current by events. */
 export function useJobs() {
   return useQuery({
     queryKey: jobKeys.list(),
     queryFn: () => call(commands.listJobs()),
     staleTime: Infinity,
+    refetchInterval: (query) =>
+      query.state.data?.some((job) => job.status === "running") ? RUNNING_REFETCH_MS : false,
   });
 }
 

@@ -67,7 +67,8 @@ dialog instead.
 4. Choose what happens to **existing documents** (see below), then click **Start import**.
 
 The import runs in the background. The Background jobs window shows how much of the file is
-done, and a message tells you how many documents were imported and how many could not be.
+done, and a message tells you how many documents were imported and how many could not be,
+for example because they already exist or break the collection's validation rules.
 Afterwards the sidebar and the open collection show the new documents.
 
 ## Tables (CSV and similar files)

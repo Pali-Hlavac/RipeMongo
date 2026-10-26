@@ -19,7 +19,8 @@ working meanwhile. Several jobs can run at once.
   observe cancellation; it returns a one-line summary or an `AppError`.
 - Changes are published through a `JobEvents` sink. The app's sink emits the typed
   tauri-specta events `JobUpdated { job }` and `JobLogged { jobId, lines }`. A flusher task
-  publishes at most every 200 ms per job, so a chatty tool cannot flood the webview.
+  publishes at most every 200 ms per job, at most 500 log lines each time (the newest, after a
+  note how many were left out), so a chatty tool cannot flood the webview.
 - `cancel_job` triggers the token; tool runs kill the child process (which is also killed if
   the task is dropped). A job that fails after a cancel ends as `cancelled`; one that
   completed before noticing ends as `succeeded`.

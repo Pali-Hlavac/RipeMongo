@@ -14,13 +14,19 @@ use crate::error::AppError;
 const MAX_LOG_LINES: usize = 10_000;
 /// Longer log lines are cut (a tool can print whole documents on errors).
 const MAX_LINE_CHARS: usize = 2_000;
+/// Log lines published per flush. A tool can print a line per failing document (a million
+/// duplicates); sending them all would flood the webview, so the rest wait for the final log.
+pub(super) const MAX_PENDING_LINES: usize = 500;
 /// Finished jobs kept until dismissed; the oldest are forgotten first.
 const MAX_FINISHED_JOBS: usize = 50;
 
 pub(super) struct Entry {
     pub(super) info: JobInfo,
     pub(super) log: VecDeque<String>,
-    pub(super) pending: Vec<String>,
+    /// Lines not yet published, the newest [`MAX_PENDING_LINES`].
+    pub(super) pending: VecDeque<String>,
+    /// Lines left out of `pending` since the last flush.
+    pub(super) skipped: u64,
     pub(super) dirty: bool,
     pub(super) cancel: CancellationToken,
 }
@@ -53,7 +59,15 @@ impl Inner {
                 return;
             };
             entry.dirty = false;
-            (entry.info.clone(), std::mem::take(&mut entry.pending))
+            let skipped = std::mem::take(&mut entry.skipped);
+            let mut lines: Vec<String> = Vec::with_capacity(entry.pending.len() + 1);
+            if skipped > 0 {
+                lines.push(format!(
+                    "… {skipped} more lines while the job runs; the log reloads when it ends."
+                ));
+            }
+            lines.extend(entry.pending.drain(..));
+            (entry.info.clone(), lines)
         };
         if !lines.is_empty() {
             self.events.logged(id, &lines);
@@ -121,7 +135,11 @@ impl JobContext {
                 entry.log.pop_front();
             }
             entry.log.push_back(line.clone());
-            entry.pending.push(line);
+            if entry.pending.len() == MAX_PENDING_LINES {
+                entry.pending.pop_front();
+                entry.skipped += 1;
+            }
+            entry.pending.push_back(line);
             entry.info.log_lines += 1.0;
         });
     }
