@@ -24,7 +24,8 @@
   the first match), Enter on a row does what a click does, **Esc** clears the filter (from the
   box or a row).
 - Nothing matches: an empty state says so, mentions that only connected connections are
-  searched inside, and offers **Clear filter**.
+  searched inside, says how many databases were not searched because of the limit (the match
+  may be there) with the `database.collection` tip, and offers **Clear filter**.
 
 ### Go to collection
 
@@ -33,8 +34,12 @@
   (fuzzy, `db.coll`); each result shows its database (and connection, when several are
   connected) with the matched letters highlighted. Enter opens (or focuses) its tab.
 - **Recently opened first**: collections whose tab was activated in this session are listed
-  under "Recently opened", newest first; the rest follow by score (collection-name matches
-  above database-name matches), then by connection, database and collection name.
+  under "Recently opened", newest first, except the one on screen (so Ctrl+P, Enter goes back
+  to the previous collection; the current one is still listed with the others); the rest
+  follow by score (collection-name matches above database-name matches), then by connection,
+  database and collection name.
+- The picker sits near the top of the window, so its box does not move while the list
+  changes length.
 - At most 100 results are listed; the footer says how many more matched, how many databases
   were not searched, or that lists are still loading.
 

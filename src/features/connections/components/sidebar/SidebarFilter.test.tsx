@@ -148,5 +148,11 @@ describe("Sidebar filter", () => {
       await screen.findByText(/2 more databases were not searched/, undefined, { timeout: 3000 }),
     ).toBeInTheDocument();
     expect(commands.listCollections).toHaveBeenCalledTimes(100);
+
+    // Nothing matches, but the skipped databases might hold it: the empty state says so.
+    await user.type(await filterBox(), "zzz");
+    expect(
+      await screen.findByText(/2 databases were not searched \(too many\)/),
+    ).toBeInTheDocument();
   });
 });

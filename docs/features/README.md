@@ -12,7 +12,7 @@ flow), key files, edge cases and limitations, and how to test it.
 | [Documents](documents.md): views, paging, query bar, history | Implemented (M3)   |
 | Editing documents (in [documents](documents.md))             | Implemented (M3)   |
 | [Tools](tools.md): dump, restore, export, import, copy       | Implemented (M4)   |
-| [Search and navigation](search.md): filter, go to, find      | In progress (M4.5) |
+| [Search and navigation](search.md): filter, go to, find      | Implemented (M4.5) |
 | Aggregation                                                  | Planned (M5)       |
 | Indexes, explain, validation                                 | Planned (M6)       |
 | Schema, performance                                          | Planned (M7)       |

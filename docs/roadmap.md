@@ -300,7 +300,7 @@ Decisions for M4 (details in ADRs 0009 and 0010 as they are written):
 - [x] Command palette "Go to collection…": jump to any collection/view across all connected connections, recently opened first
 - [x] Search/filter in the connection list (name, host, folder, color label)
 - [x] Find in document views (Ctrl/Cmd+F): highlight keys/values on the current page, next/previous match — clearly labelled as page-only, not a database query
-- [ ] Tests, docs/features/search.md, user guide page, CHANGELOG
+- [x] Tests, docs/features/search.md, user guide page, CHANGELOG
 
 Slices: (1) sidebar filter, connection-list filter and the loading behind it; (2) "Go to
 collection…"; (3) find in document views; (4) docs pass and real-app verification.
@@ -329,6 +329,25 @@ collection…"; (3) find in document views; (4) docs pass and real-app verificat
   with hits show, the value with the current hit wraps; the table scrolls the virtualizer to
   the current row when it is not rendered. Toolbar magnifier. Found while testing: a fresh
   `[]` per render for an unloaded page reset find state in a loop (now a stable constant).
+- Verified in the real app (2026-10-27, MongoDB 8 in Docker with 109 databases: `shop` with
+  collections and a view, `analytics`, 104 tenant databases): Ctrl+Shift+F focuses the filter;
+  `ord` keeps `shop` opened with `openOrders`, `orderItems` and `orders` highlighted and says
+  "9 more databases were not searched"; Enter opens the first collection; ↓ walks the group,
+  connection and database rows; Esc on a row clears and returns to the box;
+  `tenant_103.inv` finds a collection in a database beyond the limit; the color label `red`
+  matches the connection. Ctrl+P lists recent collections first and the counts of more
+  matches and unsearched databases, `cust` + Enter opens `customers`, `shop.big` finds a
+  collection created meanwhile. Ctrl+F finds `bratislava` three times in List (nested
+  `address` and `tags` opened, Enter steps to the third), once in Table (scrolled sideways),
+  and `needle` in row 49 of a 50-row page in Table (the virtualized row is scrolled to) and in
+  JSON. Fixed there: the "nothing matches" state did not mention databases skipped by the
+  limit (it now counts them and gives the `database.collection` tip); the picker listed the
+  collection on screen first, so Ctrl+P, Enter did nothing (now left out of "Recently
+  opened"); the picker was centred, so its box jumped while typing (now anchored near the
+  top); a long "page only" note pushed the find bar's close button onto a second line (now
+  one line, cut off with "…").
+
+**Milestone 4.5 is complete.** Next: M5 (aggregation).
 
 ### M5 — Aggregation
 

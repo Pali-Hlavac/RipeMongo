@@ -6,8 +6,8 @@ need the command line.
 
 > **Status: early development, not released yet.** Connections (TLS, SSH tunnels, keychain
 > secrets), browsing, querying and editing documents, and the bundled database tools (dump,
-> restore, import, export, copy between servers) work. Search, aggregation, indexes and schema
-> analysis come next. See the [CHANGELOG](CHANGELOG.md) for what works today and the
+> restore, import, export, copy between servers) and search (sidebar filter, go to collection,
+> find on the page) work. Aggregation, indexes and schema analysis come next. See the [CHANGELOG](CHANGELOG.md) for what works today and the
 > [roadmap](docs/roadmap.md) for the plan.
 
 ![RipeMongo app shell (milestone 1)](docs/assets/screenshot-shell.png)
@@ -18,6 +18,7 @@ need the command line.
 - Document browsing in list, JSON and table views, with full BSON / Extended JSON support
 - Built-in dump / restore / import / export / copy between servers with progress, cancel and
   saved profiles
+- Filter the sidebar, jump to any collection (Ctrl+P) and find text on the page (Ctrl+F)
 - Planned: visual aggregation pipeline builder with per-stage previews
 - Planned: schema analysis, explain plans, index and validation management
 - Planned: server performance dashboard

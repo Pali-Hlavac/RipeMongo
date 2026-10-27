@@ -69,10 +69,11 @@ describe("GoToCollectionDialog", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
-  it("lists recently opened collections first", async () => {
+  it("lists recently opened collections first, without the one on screen", async () => {
     const user = userEvent.setup();
     renderWithProviders(<GoToCollectionDialog connections={connections.slice(0, 1)} />);
     openCollectionTab("c1", "logs", "events");
+    openCollectionTab("c1", "shop", "orders");
     openCollectionTab("c1", "shop", "paid");
 
     useGoToCollection.getState().setOpen(true);
@@ -81,7 +82,9 @@ describe("GoToCollectionDialog", () => {
       within(recent)
         .getAllByRole("option")
         .map((option) => option.textContent),
-    ).toEqual(["paid(view)shop", "eventslogs"]);
+    ).toEqual(["ordersshop", "eventslogs"]);
+    // The active tab is still listed with the other collections.
+    expect(await screen.findByRole("option", { name: /paid/ })).toBeInTheDocument();
     expect(await screen.findByRole("option", { name: /customers/ })).toBeInTheDocument();
 
     await user.type(screen.getByRole("combobox"), "zzz");

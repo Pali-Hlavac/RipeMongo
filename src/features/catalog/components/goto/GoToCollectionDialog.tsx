@@ -20,7 +20,11 @@ export function GoToCollectionDialog({ connections }: { connections: ConnectedCo
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="overflow-hidden p-0" showCloseButton={false}>
+      {/* Anchored near the top so the box stays put while the results change. */}
+      <DialogContent
+        className="top-[12vh] translate-y-0 overflow-hidden p-0"
+        showCloseButton={false}
+      >
         <DialogTitle className="sr-only">Go to collection</DialogTitle>
         <DialogDescription className="sr-only">
           Search the collections and views of the connected connections.

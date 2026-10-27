@@ -1,6 +1,7 @@
 import { LoaderCircleIcon } from "lucide-react";
 import { useState } from "react";
 
+import { useTabsStore } from "@/features/workspace";
 import { Highlight } from "@/shared/components/Highlight";
 import { formatCount } from "@/shared/lib/format";
 import {
@@ -15,7 +16,7 @@ import {
 import { useCatalogLists } from "../../api/search";
 import { databaseCandidate, parseSidebarFilter } from "../../lib/filter";
 import { entryKey, rankEntries, type NamespaceEntry, type RankedEntry } from "../../lib/goto";
-import { openCollectionTab } from "../../lib/tabs";
+import { collectionTabId, openCollectionTab } from "../../lib/tabs";
 import { useRecentCollections } from "../../store/recent";
 import { KIND_ICONS, KIND_LABELS } from "../kinds";
 
@@ -52,7 +53,12 @@ export function GoToCollectionList({ connections, onDone }: GoToCollectionListPr
       })),
     ),
   );
-  const recent = useRecentCollections((state) => state.recent);
+  // The collection already on screen is left out, so Enter goes back to the previous one.
+  const activeTabId = useTabsStore((state) => state.activeTabId);
+  const recent = useRecentCollections((state) => state.recent).filter(
+    (entry) =>
+      collectionTabId(entry.connectionId, entry.database, entry.collection) !== activeTabId,
+  );
   const ranked = rankEntries(entries, query, recent);
   const shown = ranked.others.slice(0, RESULT_LIMIT);
   const searching = lists.some((list) => list.searching);

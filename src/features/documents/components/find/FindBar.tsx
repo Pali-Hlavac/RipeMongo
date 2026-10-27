@@ -32,11 +32,12 @@ export function FindBar({
   onClose,
 }: FindBarProps) {
   const status = count > 0 ? `${formatCount(position + 1)} of ${formatCount(count)}` : "No matches";
+  const note = `Searches only the ${formatCount(documents)} ${documents === 1 ? "document" : "documents"} on this page, not the collection. Use the filter to query the database.`;
   return (
     <div
       role="search"
       aria-label="Find on this page"
-      className="flex flex-wrap items-center gap-2 border-b border-border bg-muted/40 px-4 py-1"
+      className="flex items-center gap-2 border-b border-border bg-muted/40 px-4 py-1"
     >
       <SearchIcon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
       <Input
@@ -44,7 +45,7 @@ export function FindBar({
         value={needle}
         placeholder="Find on this page"
         aria-label="Find on this page"
-        className="h-7 w-56 text-xs"
+        className="h-7 w-56 shrink-0 text-xs"
         spellCheck={false}
         autoComplete="off"
         onChange={(event) => {
@@ -61,7 +62,10 @@ export function FindBar({
           }
         }}
       />
-      <span aria-live="polite" className="min-w-16 text-xs text-muted-foreground tabular-nums">
+      <span
+        aria-live="polite"
+        className="min-w-16 shrink-0 text-xs text-muted-foreground tabular-nums"
+      >
         {needle && status}
       </span>
       <Button
@@ -86,14 +90,14 @@ export function FindBar({
       >
         <ChevronDownIcon aria-hidden />
       </Button>
-      <span className="text-xs text-muted-foreground">
-        Searches only the {formatCount(documents)} {documents === 1 ? "document" : "documents"} on
-        this page, not the collection. Use the filter to query the database.
+      {/* One line: cut off with "…" in narrow windows, the full text in the tooltip. */}
+      <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground" title={note}>
+        {note}
       </span>
       <Button
         variant="ghost"
         size="icon"
-        className="ml-auto size-7"
+        className="size-7 shrink-0"
         aria-label="Close find"
         onClick={onClose}
       >

@@ -2,6 +2,7 @@ import { SearchXIcon } from "lucide-react";
 
 import { parseSidebarFilter, useCatalogSearch } from "@/features/catalog";
 import { EmptyState } from "@/shared/components/EmptyState";
+import { formatCount } from "@/shared/lib/format";
 import { Button } from "@/shared/ui/button";
 
 import { useActiveConnections } from "../../api/session";
@@ -27,11 +28,17 @@ export function ConnectionTreeView({ profiles }: { profiles: ConnectionProfile[]
   const onlyUngrouped = tree.favorites.length === 0 && tree.folders.length === 0;
 
   if (matches?.size === 0) {
+    // The limit can hide the match; say so instead of only "nothing matches".
+    const notSearched = [...searches.values()].reduce((sum, search) => sum + search.notSearched, 0);
+    const skipped =
+      notSearched > 0
+        ? ` ${formatCount(notSearched)} ${notSearched === 1 ? "database was" : "databases were"} not searched (too many); type database.collection to search them.`
+        : "";
     return (
       <EmptyState
         icon={SearchXIcon}
         title={`Nothing matches “${text}”`}
-        description="Databases and collections are searched only in connected connections."
+        description={`Databases and collections are searched only in connected connections.${skipped}`}
         action={
           <Button
             size="sm"
